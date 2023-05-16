@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 Red Hat, Inc.
+# Copyright (C) 2023 Red Hat, Inc.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -14,18 +14,3 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Module building firewatch cli"""
-import click
-
-from cli.jira_config_gen import jira_config_gen
-from cli.report import report
-
-
-@click.group()
-@click.pass_context
-def cli(ctx: click.Option) -> None:
-    pass
-
-
-cli.add_command(report)
-cli.add_command(jira_config_gen)
