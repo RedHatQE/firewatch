@@ -22,5 +22,4 @@ RUN chgrp -R 0 /firewatch && \
 RUN chgrp -R 0 /templates && \
     chmod -R g=u /templates
 
-CMD ["tail", "-f", "/dev/null"]
-#ENTRYPOINT ["firewatch", "report"]
+CMD ["/bin/bash"]
