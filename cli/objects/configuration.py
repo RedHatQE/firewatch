@@ -42,8 +42,11 @@ class Configuration:
         self.valid_failure_types = ["pod_failure", "test_failure", "all"]
 
         # Check if DEFAULT_JIRA_PROJECT
-        self.default_jira_project = os.getenv(
-            "FIREWATCH_DEFAULT_JIRA_PROJECT",
+        self.default_jira_project = (
+            os.getenv(
+                "FIREWATCH_DEFAULT_JIRA_PROJECT",
+            )
+            or "NONE"
         )
 
         # Check if config_file_path was provided
@@ -104,7 +107,7 @@ class Configuration:
         :returns: A boolean value. True = valid, False = invalid
         """
         # Check if step_value is a valid string and not None
-        if not self.value_is_string_and_not_none(step_value):
+        if not value_is_string_and_not_none(step_value):
             self.logger.error(
                 f'No value found for "step" or a non-string value was given... ',
             )
@@ -130,7 +133,7 @@ class Configuration:
         """
 
         # Check if failure_type_value is a valid string and not None
-        if not self.value_is_string_and_not_none(failure_type_value):
+        if not value_is_string_and_not_none(failure_type_value):
             self.logger.error(
                 f'No value found for "failure_type" or a non-string value was given... ',
             )
@@ -152,9 +155,9 @@ class Configuration:
         :returns: A boolean value. True = valid, False = invalid
         """
         # Check if classification_value is a valid string and not None
-        if not self.value_is_string_and_not_none(classification_value):
+        if not value_is_string_and_not_none(classification_value):
             self.logger.error(
-                f'No value found for "failure_type" or a non-string value was given... ',
+                f'No value found for "classification" or a non-string value was given... ',
             )
             return False
 
@@ -171,7 +174,7 @@ class Configuration:
         :returns: A boolean value. True = valid, False = invalid
         """
         # Check if jira_project_value is a valid string and not None
-        if not self.value_is_string_and_not_none(jira_project_value):
+        if not value_is_string_and_not_none(jira_project_value):
             self.logger.error(
                 f'No value found for "jira_project" or a non-string value was given... ',
             )
@@ -183,17 +186,15 @@ class Configuration:
 
         return True
 
-    def value_is_string_and_not_none(self, value: str) -> bool:
-        """
-        Used by other functions in this class to validate that a value in the firewatch config is a string and not None
 
-        :param value: The string of the value you'd like to validate
+def value_is_string_and_not_none(value: str) -> bool:
+    """
+    Used by other functions in this class to validate that a value in the firewatch config is a string and not None
 
-        :returns: A boolean value. True = value is string and not None, False = value is not a string or is None
-        """
-        if value is None or not isinstance(value, str):
-            self.logger.error(
-                f"Value provided is empty or is not a valid string value...",
-            )
-            return False
-        return True
+    :param value: The string of the value you'd like to validate
+
+    :returns: A boolean value. True = value is string and not None, False = value is not a string or is None
+    """
+    if value is None or not isinstance(value, str):
+        return False
+    return True

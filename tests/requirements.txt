@@ -1,0 +1,4 @@
+google-cloud-storage
+pytest
+pytest-cov
+pytest-mock

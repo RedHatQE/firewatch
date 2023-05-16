@@ -21,13 +21,22 @@ from jinja2 import FileSystemLoader
 
 
 class JiraConfig:
-    def __init__(self, server_url: str, token: str, output_file: str) -> None:
+    def __init__(
+        self,
+        server_url: str,
+        token: str,
+        output_file: str,
+        template_dir: str = "/templates",
+        template_filename: str = "jira.config.j2",
+    ) -> None:
         """
         Used to build the Jira configuration file for use in the report command.
 
         :param server_url: Jira server URL, i.e "https://issues.stage.redhat.com"
         :param token: Jira server API token
         :param output_file: Where the rendered config will be stored.
+        :param template_dir: Directory where template is stored
+        :param template_filename: Filename of Jinja template
         """
 
         logging.basicConfig(level=logging.INFO)
@@ -39,20 +48,29 @@ class JiraConfig:
             server_url=server_url,
             token=token,
             output_file=output_file,
+            template_dir=template_dir,
+            template_filename=template_filename,
         )
 
-    def render_template(self, server_url: str, token: str, output_file: str) -> str:
+    def render_template(
+        self,
+        server_url: str,
+        token: str,
+        output_file: str,
+        template_dir: str,
+        template_filename: str,
+    ) -> str:
         """
         Uses Jinja to render the Jira configuration file
 
         :param server_url: Jira server URL, i.e "https://issues.stage.redhat.com"
         :param token: Jira server API token
         :param output_file: Where the rendered config will be stored.
+        :param template_dir: Directory where template is stored
+        :param template_filename: Filename of Jinja template
 
         :returns: A string object that represents the path of the rendered template.
         """
-        template_dir = "/templates"
-        template_filename = "jira.config.j2"
 
         # Load Jinja template file
         env = Environment(loader=FileSystemLoader(template_dir))
