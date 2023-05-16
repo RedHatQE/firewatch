@@ -19,6 +19,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from typing import Any
 
 import junitparser
 from google.cloud import storage
@@ -248,7 +249,11 @@ class Report:
 
         # Find rules that match the failures found.
         for failure in self.failures:
-            rule_matches = self.failure_matches_rule(failure)
+            rule_matches = self.failure_matches_rule(
+                failure=failure,
+                rules=self.firewatch_config.rules,
+                default_jira_project=self.firewatch_config.default_jira_project,
+            )
             for rule in rule_matches:
                 rule_failure_pairs.append({"rule": rule, "failure": failure})
 
@@ -276,18 +281,25 @@ class Report:
 
         return bugs_filed
 
-    def failure_matches_rule(self, failure: dict[str, str]) -> list[dict[str, str]]:
+    def failure_matches_rule(
+        self,
+        failure: dict[str, str],
+        rules: Any,
+        default_jira_project: str,
+    ) -> list[dict[str, str]]:
         """
         Determines if a failure matches a rule in the firewatch config. If there is no matching rule, a default rule
         will be returned.
 
         :param failure: A dictionary item representing a failure
+        :param rules: A list of firewatch rules
+        :param default_jira_project: A string value of the Jira project you'd like to use by default
 
         :returns: A list of rules that the failure may match
         """
         # Check if the step matches a "step" in the firewatch_config
         matching_rules = []
-        for rule in self.firewatch_config.rules:
+        for rule in rules:
             if fnmatch.fnmatch(failure["step"], rule["step"]) and (
                 failure["failure_type"] == rule["failure_type"]
             ):
@@ -300,7 +312,7 @@ class Report:
                     "step": "!none",
                     "failure_type": "!none",
                     "classification": "UNKNOWN",
-                    "jira_project": self.firewatch_config.default_jira_project,
+                    "jira_project": default_jira_project,
                 },
             )
 

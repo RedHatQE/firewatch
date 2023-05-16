@@ -6,7 +6,7 @@ COPY . /firewatch/
 
 # Install firewatch
 RUN pip install --upgrade pip
-RUN pip install /firewatch
+RUN pip install /firewatch tox
 
 # Copy the Jira config template to /templates
 RUN mkdir /templates

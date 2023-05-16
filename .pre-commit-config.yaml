@@ -35,6 +35,7 @@ repos:
   rev: v0.982
   hooks:
   - id: mypy
+    exclude: ^(tests/)
     additional_dependencies: [types-all]
 - repo: https://github.com/psf/black
   rev: 22.10.0
