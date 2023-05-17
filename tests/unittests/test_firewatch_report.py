@@ -170,3 +170,20 @@ class TestFirewatchReport:
             and rule_matches[0]["failure_type"] == "!none"
             and rule_matches[0]["jira_project"] == "INTEROP"
         )
+
+        # Test when the rule's "test_failure" definition is "all"
+        rules = json.loads(
+            '[{"step": "*test*", "failure_type": "all", "classification": "General failures", "jira_project": "INTEROP"}]',
+        )
+        failure = {"step": "some-test-step", "failure_type": "test_failure"}
+        rule_matches = Report.failure_matches_rule(
+            self,
+            failure=failure,
+            rules=rules,
+            default_jira_project="INTEROP",
+        )
+        assert (
+            rule_matches[0]["step"] == "*test*"
+            and rule_matches[0]["failure_type"] == "all"
+            and rule_matches[0]["jira_project"] == "INTEROP"
+        )

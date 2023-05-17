@@ -301,7 +301,8 @@ class Report:
         matching_rules = []
         for rule in rules:
             if fnmatch.fnmatch(failure["step"], rule["step"]) and (
-                failure["failure_type"] == rule["failure_type"]
+                (failure["failure_type"] == rule["failure_type"])
+                or rule["failure_type"] == "all"
             ):
                 matching_rules.append(rule)
 
