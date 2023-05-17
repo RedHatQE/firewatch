@@ -17,21 +17,65 @@ The firewatch project is in its infancy and currently has limited functionality.
 
 ## Getting Started
 
+### Usage in OpenShift CI
+
+Reporting issues using this tool in OpenShift CI is very simple, you can do one of the following:
+
+- Add the [`firewatch-report-issues` ref](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/report-issues) to the `post` steps of a test. This job should be last, if that is not possible, make sure it is at least following any step that you'd like an issue generated for.
+- Use a workflow with the [`firewatch-report-issues` ref](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/report-issues) already in the `post` steps. For example, see the [`firewatch-ipi-aws` workflow](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/ipi/aws).
+
+Remember, when you are using the `firewatch-report-isssues` ref, some variables need to be defined in your configuration file:
+
+- `FIREWATCH_CONFIG` [REQUIRED]
+  - This value should be a list of rules you have defined for firewatch to report on. For more information how to define these rules, please see the [CLI usage guide](docs/cli_usage_guide.md#defining-the-configuration).
+  - Example:
+
+    ```yaml
+    FIREWATCH_CONFIG: |
+        [
+            {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT"},
+            {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER"},
+            {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST"}
+        ]
+    ```
+
+- `FIREWATCH_JIRA_SERVER`
+  - The Jira server to report to.
+  - DEFAULT: `https://issues.stage.redhat.com`
+- `FIREWATCH_JIRA_API_TOKEN_PATH`
+  - The path to the file holding the Jira API token.
+  - DEFAULT: `/tmp/secrets/jira/access_token`.
+- `FIREWATCH_FAIL_WITH_TEST_FAILURES`
+  - A variable that will determine if the `firewatch-report-issues` step will fail with a non-zero exit code if a test failure is found in a JUnit file.
+  - DEFAULT: `"false"`
+  - BEHAVIOR:
+    - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
+    - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
+- `FIREWATCH_IGNORE_TEST_FAILURES`
+  - A variable that will determine if the `firewatch-report-issues` step will report failures classified as test failures to Jira.
+  - BEHAVIOR:
+    - `"false"`: Test failures will be reported to Jira.
+    - `"true"`: Test failures will not be reported to Jira.
+  - DEFAULT: `"false"`
+
+### Local Usage
+
 If you'd like to run firewatch locally, use the following instructions:
 
-### Docker (recommended)
+#### Docker (recommended)
 
 1. Ensure you have [Docker installed](https://www.docker.com/get-started/) on your system.
-2. Clone the repository: `git clone https://github.com/CSPI-QE/firewatch.git`
-3. Navigate to the project root in your terminal: `cd firewatch`
-4. Run the following to build and run a Docker container with firewatch installed: `make build-run`
+2. Clone the repository: `git clone https://github.com/CSPI-QE/firewatch.git`.
+3. Navigate to the project root in your terminal: `cd firewatch`.
+4. Run the following to build and run a Docker container with firewatch installed: `make build-run`.
+5. Use the `firewatch` command to execute the tool. See the [CLI usage guide](docs/cli_usage_guide.md) for instructions on using the tool.
 
-### Local Machine (using venv)
+#### Local Machine (using venv)
 
 1. Clone the repository: `git clone https://github.com/CSPI-QE/firewatch.git`
 2. Navigate to the project root: `cd firewatch`
 3. Install the necessary dependencies: `make dev-environment`
-
+4. Use the `firewatch` command to execute the tool. See the [CLI usage guide](docs/cli_usage_guide.md) for instructions on using the tool.
 
 ## Contributing
 

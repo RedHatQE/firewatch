@@ -70,6 +70,13 @@ from cli.report.report import Report
     default=False,
     type=click.BOOL,
 )
+@click.option(
+    "--ignore_test_failures",
+    help="Firewatch will NOT report an issue to Jira regarding test failures if this flag is set.",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -81,6 +88,7 @@ def report(
     firewatch_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
+    ignore_test_failures: bool,
 ) -> None:
     jira_connection = Jira(jira_config_path=jira_config_path)
     config = Configuration(jira=jira_connection, config_file_path=firewatch_config_path)
@@ -92,4 +100,5 @@ def report(
         firewatch_config=config,
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
+        ignore_test_failures=ignore_test_failures,
     )

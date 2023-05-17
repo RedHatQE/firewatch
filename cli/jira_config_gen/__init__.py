@@ -48,4 +48,8 @@ def jira_config_gen(
     output_file: str,
 ) -> None:
 
-    config = JiraConfig(server_url=server_url, token_path=token_path, output_file=output_file)
+    config = JiraConfig(
+        server_url=server_url,
+        token_path=token_path,
+        output_file=output_file,
+    )

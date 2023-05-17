@@ -38,6 +38,7 @@ class Report:
         firewatch_config: Configuration,
         jira: Jira,
         fail_with_test_failures: bool,
+        ignore_test_failures: bool,
     ) -> None:
         """
         Constructs the Report object, which will analyze failures in a Prow job and report those failures to Jira based
@@ -50,6 +51,7 @@ class Report:
         :param firewatch_config: A firewatch Configuration object
         :param jira: A Jira object used to interact with the Jira server
         :param fail_with_test_failures: A boolean value. If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
+        :param ignore_test_failures: A boolean value. If set to True, firewatch will not report issues to Jira that are catagorized as test failures
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -64,6 +66,7 @@ class Report:
         self.firewatch_config = firewatch_config
         self.jira = jira
         self.fail_with_test_failures = fail_with_test_failures
+        self.ignore_test_failures = ignore_test_failures
 
         # Log job information
         self.logger.info(f"JOB NAME: {self.job_name}")
@@ -270,14 +273,24 @@ class Report:
                 step_name=pair["failure"]["step"],
             )
 
-            jira_issue = self.jira.create_issue(
-                project=project,
-                summary=summary,
-                description=description,
-                issue_type=type,
-                file_attachments=file_attachments,
-            )
-            bugs_filed.append(jira_issue.key)
+            if self.ignore_test_failures and (
+                pair["failures"]["failure_type"] == "test_failure"
+            ):
+                self.logger.info(
+                    f"Test failure in {pair['failure']['step']} has been identified, but a Jira issue will not be filed.",
+                )
+                self.logger.info(
+                    "If you would like to start reporting test failures to Jira, unset the --ignore_test_failures flag.",
+                )
+            else:
+                jira_issue = self.jira.create_issue(
+                    project=project,
+                    summary=summary,
+                    description=description,
+                    issue_type=type,
+                    file_attachments=file_attachments,
+                )
+                bugs_filed.append(jira_issue.key)
 
         return bugs_filed
 

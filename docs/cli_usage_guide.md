@@ -115,6 +115,10 @@ $ firewatch report --fail_with_test_failures
 
 ```
 
+**Example of Jira Ticket Created:**
+
+![Sreenshot of an example Jira ticket](images/jira-ticket-example.png)
+
 ### `jira_config_gen`
 
 The `jira_config_gen` command is used to generate the Jira configuration file used when firewatch interacts with a Jira server.
@@ -126,17 +130,18 @@ Usage: firewatch jira_config_gen [OPTIONS]
 
 Options:
   --output_file TEXT  Where the rendered config will be stored  [required]
-  --token TEXT        Jira server API token  [required]
+  --token_path TEXT   Path to the Jira API token  [required]
   --server_url TEXT   Jira server URL, i.e "https://issues.stage.redhat.com"
                       [required]
+  --help              Show this message and exit.
 ```
 
 **Examples:**
 
 ```commandline
 # Create a configuration file in the default location (/tmp/jira.config)
-$ firewatch jira_config_gen --token {Jira API Token} --server_url https://some.jira.server.com
+$ firewatch jira_config_gen --token_path {Path to file containing Jira API token} --server_url https://some.jira.server.com
 
 # Create a configuration file in a different location (/some/path/jira.config)
-$ firewatch jira_config_gen --token {Jira API Token} --server_url https://some.jira.server.com --output_file /some/path
+$ firewatch jira_config_gen --token_path {Path to file containing Jira API token} --server_url https://some.jira.server.com --output_file /some/path
 ```
