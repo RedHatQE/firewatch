@@ -27,8 +27,8 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
     type=click.STRING,
 )
 @click.option(
-    "--token",
-    help="Jira server API token",
+    "--token_path",
+    help="Path to the Jira API token",
     required=True,
     type=click.STRING,
 )
@@ -44,8 +44,8 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
 def jira_config_gen(
     ctx: click.Context,
     server_url: str,
-    token: str,
+    token_path: str,
     output_file: str,
 ) -> None:
 
-    config = JiraConfig(server_url=server_url, token=token, output_file=output_file)
+    config = JiraConfig(server_url=server_url, token_path=token_path, output_file=output_file)
