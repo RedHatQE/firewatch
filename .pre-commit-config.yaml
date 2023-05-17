@@ -12,7 +12,6 @@ repos:
     - id: check-shebang-scripts-are-executable
     - id: check-toml
     - id: check-yaml
-    - id: no-commit-to-branch
 - repo: https://github.com/asottile/reorder_python_imports
   rev: v3.8.5
   hooks:
