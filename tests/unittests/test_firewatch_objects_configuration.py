@@ -15,11 +15,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+
 import pytest
 
 from cli.objects.configuration import Configuration
 from cli.objects.configuration import value_is_string_and_not_none
 from cli.objects.jira_base import Jira
+
 
 class TestFirewatchObjectsConfiguration:
     logger = logging.getLogger(__name__)
