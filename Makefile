@@ -4,6 +4,8 @@ pre-commit:
 test:
 	tox
 
+commit: pre-commit test
+
 dev-environment:
 	python -m venv venv
 	source venv/bin/activate

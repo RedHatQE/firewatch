@@ -137,7 +137,7 @@ class TestFirewatchReport:
 
         assert Report.build_issue_description(self, step_name, classification)
 
-    def test_failure_matches_rule(self) -> None:
+    def test_failure_matches_rule_match(self) -> None:
         # Test when a match is found
         rules = json.loads(
             '[{"step": "*test*", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "INTEROP"}]',
@@ -154,6 +154,7 @@ class TestFirewatchReport:
             and rule_matches[0]["failure_type"] == "test_failure"
         )
 
+    def test_failure_matches_rule_no_match(self) -> None:
         # Test when a match is not found
         rules = json.loads(
             '[{"step": "*test*", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "INTEROP"}]',
@@ -171,6 +172,7 @@ class TestFirewatchReport:
             and rule_matches[0]["jira_project"] == "INTEROP"
         )
 
+    def test_failure_matches_rule_test_failure_type_all(self) -> None:
         # Test when the rule's "test_failure" definition is "all"
         rules = json.loads(
             '[{"step": "*test*", "failure_type": "all", "classification": "General failures", "jira_project": "INTEROP"}]',
@@ -187,3 +189,17 @@ class TestFirewatchReport:
             and rule_matches[0]["failure_type"] == "all"
             and rule_matches[0]["jira_project"] == "INTEROP"
         )
+
+    def test_failure_matches_rule_ignore_rule(self) -> None:
+        # Test when a rule is set to be ignored
+        rules = json.loads(
+            '[{"step": "*test*", "failure_type": "all", "classification": "General failures", "jira_project": "INTEROP", "ignore": "true"}]',
+        )
+        failure = {"step": "some-test-step", "failure_type": "test_failure"}
+        rule_matches = Report.failure_matches_rule(
+            self,
+            failure=failure,
+            rules=rules,
+            default_jira_project="INTEROP",
+        )
+        assert len(rule_matches) == 0

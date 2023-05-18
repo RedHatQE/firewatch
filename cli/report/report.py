@@ -38,7 +38,6 @@ class Report:
         firewatch_config: Configuration,
         jira: Jira,
         fail_with_test_failures: bool,
-        ignore_test_failures: bool,
     ) -> None:
         """
         Constructs the Report object, which will analyze failures in a Prow job and report those failures to Jira based
@@ -51,7 +50,6 @@ class Report:
         :param firewatch_config: A firewatch Configuration object
         :param jira: A Jira object used to interact with the Jira server
         :param fail_with_test_failures: A boolean value. If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
-        :param ignore_test_failures: A boolean value. If set to True, firewatch will not report issues to Jira that are catagorized as test failures
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -66,7 +64,6 @@ class Report:
         self.firewatch_config = firewatch_config
         self.jira = jira
         self.fail_with_test_failures = fail_with_test_failures
-        self.ignore_test_failures = ignore_test_failures
 
         # Log job information
         self.logger.info(f"JOB NAME: {self.job_name}")
@@ -273,24 +270,14 @@ class Report:
                 step_name=pair["failure"]["step"],
             )
 
-            if self.ignore_test_failures and (
-                pair["failures"]["failure_type"] == "test_failure"
-            ):
-                self.logger.info(
-                    f"Test failure in {pair['failure']['step']} has been identified, but a Jira issue will not be filed.",
-                )
-                self.logger.info(
-                    "If you would like to start reporting test failures to Jira, unset the --ignore_test_failures flag.",
-                )
-            else:
-                jira_issue = self.jira.create_issue(
-                    project=project,
-                    summary=summary,
-                    description=description,
-                    issue_type=type,
-                    file_attachments=file_attachments,
-                )
-                bugs_filed.append(jira_issue.key)
+            jira_issue = self.jira.create_issue(
+                project=project,
+                summary=summary,
+                description=description,
+                issue_type=type,
+                file_attachments=file_attachments,
+            )
+            bugs_filed.append(jira_issue.key)
 
         return bugs_filed
 
@@ -312,23 +299,35 @@ class Report:
         """
         # Check if the step matches a "step" in the firewatch_config
         matching_rules = []
+        ignored_rules = []
+
+        default_rule = {
+            "step": "!none",
+            "failure_type": "!none",
+            "classification": "UNKNOWN",
+            "jira_project": default_jira_project,
+        }
+
         for rule in rules:
+
+            # Check if the rule should be ignored
+            if "ignore" in rule and (rule["ignore"].lower() == "true"):
+                ignore_rule = True
+            else:
+                ignore_rule = False
+
             if fnmatch.fnmatch(failure["step"], rule["step"]) and (
                 (failure["failure_type"] == rule["failure_type"])
                 or rule["failure_type"] == "all"
             ):
-                matching_rules.append(rule)
+                if ignore_rule:
+                    ignored_rules.append(rule)
+                else:
+                    matching_rules.append(rule)
 
-        # Return a default rule so the error can still be reported to the default jira project.
-        if len(matching_rules) < 1:
-            matching_rules.append(
-                {
-                    "step": "!none",
-                    "failure_type": "!none",
-                    "classification": "UNKNOWN",
-                    "jira_project": default_jira_project,
-                },
-            )
+        if (len(matching_rules) < 1) and (len(ignored_rules) < 1):
+            if default_rule not in matching_rules:
+                matching_rules.append(default_rule)
 
         return matching_rules
 
