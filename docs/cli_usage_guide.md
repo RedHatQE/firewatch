@@ -119,7 +119,7 @@ $ firewatch report --fail_with_test_failures
 
 **Example of Jira Ticket Created:**
 
-![Sreenshot of an example Jira ticket](images/jira-ticket-example.png)
+![Screenshot of an example Jira ticket](images/jira-ticket-example.png)
 
 ### `jira_config_gen`
 

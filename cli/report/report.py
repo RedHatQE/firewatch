@@ -304,7 +304,7 @@ class Report:
         default_rule = {
             "step": "!none",
             "failure_type": "!none",
-            "classification": "UNKNOWN",
+            "classification": "!none",
             "jira_project": default_jira_project,
         }
 

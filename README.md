@@ -24,7 +24,7 @@ Reporting issues using this tool in OpenShift CI is very simple, you can do one 
 - Add the [`firewatch-report-issues` ref](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/report-issues) to the `post` steps of a test. This job should be last, if that is not possible, make sure it is at least following any step that you'd like an issue generated for.
 - Use a workflow with the [`firewatch-report-issues` ref](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/report-issues) already in the `post` steps. For example, see the [`firewatch-ipi-aws` workflow](https://github.com/openshift/release/tree/master/ci-operator/step-registry/firewatch/ipi/aws).
 
-Remember, when you are using the `firewatch-report-isssues` ref, some variables need to be defined in your configuration file:
+Remember, when you are using the `firewatch-report-issues` ref, some variables need to be defined in your configuration file:
 
 - `FIREWATCH_CONFIG` [REQUIRED]
   - This value should be a list of rules you have defined for firewatch to report on. For more information how to define these rules, please see the [CLI usage guide](docs/cli_usage_guide.md#defining-the-configuration).

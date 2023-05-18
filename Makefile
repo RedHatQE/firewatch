@@ -8,7 +8,7 @@ commit: pre-commit test
 
 dev-environment:
 	python -m venv venv
-	source venv/bin/activate
+	. venv/bin/activate
 	pip install tox pre-commit
 	pip install -e .
 
