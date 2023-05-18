@@ -52,12 +52,6 @@ Remember, when you are using the `firewatch-report-isssues` ref, some variables 
   - BEHAVIOR:
     - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
     - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
-- `FIREWATCH_IGNORE_TEST_FAILURES`
-  - A variable that will determine if the `firewatch-report-issues` step will report failures classified as test failures to Jira.
-  - BEHAVIOR:
-    - `"false"`: Test failures will be reported to Jira.
-    - `"true"`: Test failures will not be reported to Jira.
-  - DEFAULT: `"false"`
 
 ### Local Usage
 
