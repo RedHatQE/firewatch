@@ -299,22 +299,35 @@ class Report:
         """
         # Check if the step matches a "step" in the firewatch_config
         matching_rules = []
-        for rule in rules:
-            if fnmatch.fnmatch(failure["step"], rule["step"]) and (
-                failure["failure_type"] == rule["failure_type"]
-            ):
-                matching_rules.append(rule)
+        ignored_rules = []
 
-        # Return a default rule so the error can still be reported to the default jira project.
-        if len(matching_rules) < 1:
-            matching_rules.append(
-                {
-                    "step": "!none",
-                    "failure_type": "!none",
-                    "classification": "UNKNOWN",
-                    "jira_project": default_jira_project,
-                },
-            )
+        default_rule = {
+            "step": "!none",
+            "failure_type": "!none",
+            "classification": "!none",
+            "jira_project": default_jira_project,
+        }
+
+        for rule in rules:
+
+            # Check if the rule should be ignored
+            if "ignore" in rule and (rule["ignore"].lower() == "true"):
+                ignore_rule = True
+            else:
+                ignore_rule = False
+
+            if fnmatch.fnmatch(failure["step"], rule["step"]) and (
+                (failure["failure_type"] == rule["failure_type"])
+                or rule["failure_type"] == "all"
+            ):
+                if ignore_rule:
+                    ignored_rules.append(rule)
+                else:
+                    matching_rules.append(rule)
+
+        if (len(matching_rules) < 1) and (len(ignored_rules) < 1):
+            if default_rule not in matching_rules:
+                matching_rules.append(default_rule)
 
         return matching_rules
 

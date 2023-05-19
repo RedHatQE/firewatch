@@ -24,7 +24,7 @@ class JiraConfig:
     def __init__(
         self,
         server_url: str,
-        token: str,
+        token_path: str,
         output_file: str,
         template_dir: str = "/templates",
         template_filename: str = "jira.config.j2",
@@ -33,7 +33,7 @@ class JiraConfig:
         Used to build the Jira configuration file for use in the report command.
 
         :param server_url: Jira server URL, i.e "https://issues.stage.redhat.com"
-        :param token: Jira server API token
+        :param token_path: Path to the file holding the Jira server API token
         :param output_file: Where the rendered config will be stored.
         :param template_dir: Directory where template is stored
         :param template_filename: Filename of Jinja template
@@ -46,11 +46,29 @@ class JiraConfig:
 
         self.config_file_path = self.render_template(
             server_url=server_url,
-            token=token,
+            token=self.token(file_path=token_path),
             output_file=output_file,
             template_dir=template_dir,
             template_filename=template_filename,
         )
+
+    def token(self, file_path: str) -> str:
+        """
+        Reads the contents of file_path and returns it. The file_path should be the file that holds the Jira API token
+
+        :param file_path: The path to the file that holds the Jira API token
+
+        :returns: A string object that represents the Jira API token
+        """
+        try:
+            with open(file_path) as file:
+                token = file.read().strip()
+                return token
+        except FileNotFoundError:
+            self.logger.error("File not found:", file_path)
+        except OSError as e:
+            self.logger.error("Error reading file:", e)
+        return "token_not_found"
 
     def render_template(
         self,
