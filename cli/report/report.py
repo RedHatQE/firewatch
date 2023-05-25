@@ -20,6 +20,7 @@ import logging
 import os
 from datetime import datetime
 from typing import Any
+from typing import Optional
 
 import junitparser
 from google.cloud import storage
@@ -269,17 +270,109 @@ class Report:
             file_attachments = self.get_file_attachments(
                 step_name=pair["failure"]["step"],
             )
+            labels = [
+                self.job_name,
+                pair["failure"]["step"],
+                pair["rule"]["classification"],
+                pair["failure"]["failure_type"],
+            ]
 
-            jira_issue = self.jira.create_issue(
+            # Find duplicate bugs
+            duplicate_bugs = self.find_duplicate_bugs(
                 project=project,
-                summary=summary,
-                description=description,
-                issue_type=type,
-                file_attachments=file_attachments,
+                job_name=self.job_name,
+                failed_step=pair["failure"]["step"],
+                failure_type=pair["failure"]["failure_type"],
             )
-            bugs_filed.append(jira_issue.key)
+
+            # If duplicates are found, comment
+            if len(duplicate_bugs) > 0:
+                for bug in duplicate_bugs:
+                    self.add_duplicate_comment(
+                        issue_id=bug,
+                        failed_step=pair["failure"]["step"],
+                        classification=pair["rule"]["classification"],
+                    )
+
+            # If duplicates are not found, file a bug
+            else:
+                jira_issue = self.jira.create_issue(
+                    project=project,
+                    summary=summary,
+                    description=description,
+                    issue_type=type,
+                    file_attachments=file_attachments,
+                    labels=labels,
+                )
+                bugs_filed.append(jira_issue.key)
 
         return bugs_filed
+
+    def find_duplicate_bugs(
+        self,
+        project: str,
+        job_name: Optional[str],
+        failed_step: str,
+        failure_type: str,
+    ) -> list[str]:
+        """
+        Searches Jira for possible duplicate bugs in the given project. If a bug in the same job, with the same failure_type, and the same failed_step, is found a list of duplicate bugs is returned.
+
+        :param project: Jira project to search in
+        :param job_name: Job name to search for
+        :param failed_step: Failed step name to search for
+        :param failure_type: Failure type to match
+
+        :return: A list of duplicate bugs that are still open
+        """
+
+        self.logger.info(
+            f'Searching for duplicate bugs in project {project} for a "{failure_type}" failure type in the {failed_step} step.',
+        )
+
+        # This JQL query will find any bug in the provided project that:
+        # Has a label that matches the job name
+        # AND has a label that matches the failed step name
+        # AND has a label that matches the failure type
+        # AND the bugs are not closed
+        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND status not in (closed)'
+        duplicate_bugs = self.jira.search(jql_query=jql_query)
+
+        if len(duplicate_bugs) > 0:
+            self.logger.info("Possible duplicate bugs found:")
+            for bug in duplicate_bugs:
+                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+
+        return duplicate_bugs
+
+    def add_duplicate_comment(
+        self,
+        issue_id: str,
+        failed_step: str,
+        classification: str,
+    ) -> None:
+        """
+        Builds a comment saying there is a duplicate failure and uses the Jira connection to add the comment to the duplicate bug
+
+        :param issue_id: Bug to comment on
+        :param failed_step: Failed step to put in comment
+        :param classification: Classification to put in comment
+        :return: None
+        """
+        comment = f"""
+                A duplicate failure was identified in a recent run of the {self.job_name} job:
+
+                *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
+                *Build ID:* {self.build_id}
+                *Classification:* {classification}
+                *Failed Step:* {failed_step}
+
+                Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
+
+                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+            """
+
+        self.jira.comment(issue_id=issue_id, comment=comment)
 
     def failure_matches_rule(
         self,
@@ -368,7 +461,7 @@ class Report:
             *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
             *Build ID:* {self.build_id}
             *Classification:* {classification}
-            *Pod Failed:* {step_name}
+            *Failed Step:* {step_name}
 
             Please see the link provided above along with the logs and junit files attached to the bug.
 

@@ -41,13 +41,20 @@ class Jira:
 
         self.url = jira_config["url"]
         self.token = jira_config["token"]
-        self.proxies = jira_config["proxies"]
 
-        self.connection = JIRA(
-            server=self.url,
-            token_auth=self.token,
-            proxies=self.proxies,
-        )
+        if "proxies" in jira_config:
+            self.proxies = jira_config["proxies"]
+            self.connection = JIRA(
+                server=self.url,
+                token_auth=self.token,
+                proxies=self.proxies,
+            )
+        else:
+            self.connection = JIRA(
+                server=self.url,
+                token_auth=self.token,
+            )
+
         self.logger.info("Jira authentication successful...")
 
     def create_issue(
@@ -57,6 +64,7 @@ class Jira:
         description: str,
         issue_type: str,
         file_attachments: Optional[list[str]] = None,
+        labels: list[Optional[str]] = [],
     ) -> Issue:
         """
         Used to create a Jira issue and attach any given files to that issue.
@@ -66,16 +74,20 @@ class Jira:
         :param description: Description of the issue
         :param issue_type: Issue type (Bug, Task, etc.)
         :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
+        :param labels: An optional list of labels to add to the issue
 
         :returns: A Jira Issue object
         """
-
         issue_dict = {
             "project": {"key": project},
             "summary": summary,
             "description": description,
             "issuetype": {"name": issue_type},
+            "labels": labels,
         }
+
+        if labels:
+            issue_dict.update({"labels": labels})
 
         self.logger.info(
             f"A Jira issue will be reported.",
@@ -91,6 +103,29 @@ class Jira:
                 self.logger.info(f"Attachment {file_path} has been uploaded to {issue}")
 
         return issue
+
+    def search(self, jql_query: str) -> list[str]:
+        """
+        Performs a Jira JQL query using the Jira connection and returns the results
+        :param jql_query: JQL query to run
+        :return: List of issues that are returned from the query
+        """
+        issues = []
+        results = self.connection.search_issues(jql_query, validate_query=True)
+
+        for issue in results:
+            issues.append(issue.key)
+
+        return issues
+
+    def comment(self, issue_id: str, comment: str) -> None:
+        """
+        Comments on the issue_id
+        :param issue_id: Issue to comment on
+        :param comment: Comment to add to issue
+        :return: None
+        """
+        self.connection.add_comment(issue_id, comment)
 
     def relate_issues(self, inward_issue: str, outward_issue: str) -> bool:
         """

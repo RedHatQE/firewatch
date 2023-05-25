@@ -71,7 +71,7 @@ The firewatch configuration can be saved to a file (can be stored wherever you w
 ### `report`
 
 The `report` command is used to generate and file Jira issues for a failed OpenShift CI run using a [user-defined firewatch configuration](#configuration).
-Many of the arguments for this command have set defaults or will use an environment variable
+Many of the arguments for this command have set defaults or will use an environment variable.
 
 **Pre-requisites:**
 
@@ -120,6 +120,31 @@ $ firewatch report --fail_with_test_failures
 **Example of Jira Ticket Created:**
 
 ![Screenshot of an example Jira ticket](images/jira-ticket-example.png)
+
+**How Are Duplicate Bugs Handled?**
+
+This tool take duplicate bugs into consideration. When a failure is identified, after the failure has been matched with its corresponding rule in the firewatch config, the firewatch tool with search Jira for any bugs that match the following rules to determine if it is a duplicate:
+
+- Any OPEN issues that are in the same Jira project defined in the rule's `jira_project` key
+- **AND** issues that have a label matching the step/pod name that failed
+- **AND** issues that have a label matching the prow job name that failed
+- **AND** issues that have a label matching the `failure_type` of the failure we are searching for
+
+If any issues are found that match all the conditions above, we can be fairly confident that the failure may be a duplicate and the tool will make a comment on each of the matching issues that looks like this:
+
+> A duplicate failure was identified in a recent run of the {job name} job:
+>
+> Link: {link to prow job run}
+>
+> Build ID: {failing build ID}
+>
+> Classification: {value of the "classification" key of the matching rule}
+>
+> Pod Failed: {name of step/pod that failed}
+>
+> Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
+>
+> This comment was created using firewatch in OpenShift CI
 
 ### `jira_config_gen`
 
