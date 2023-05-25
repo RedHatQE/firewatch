@@ -289,7 +289,7 @@ class Report:
             if len(duplicate_bugs) > 0:
                 for bug in duplicate_bugs:
                     self.add_duplicate_comment(
-                        bug_key=bug,
+                        issue_id=bug,
                         failed_step=pair["failure"]["step"],
                         classification=pair["rule"]["classification"],
                     )
@@ -347,14 +347,14 @@ class Report:
 
     def add_duplicate_comment(
         self,
-        bug_key: str,
+        issue_id: str,
         failed_step: str,
         classification: str,
     ) -> None:
         """
-        Builds a comment saying there is a duplicate failure and uses the Jira connection to add the comment to the dublicate bug
+        Builds a comment saying there is a duplicate failure and uses the Jira connection to add the comment to the duplicate bug
 
-        :param bug_key: Bug to comment on
+        :param issue_id: Bug to comment on
         :param failed_step: Failed step to put in comment
         :param classification: Classification to put in comment
         :return: None
@@ -365,14 +365,14 @@ class Report:
                 *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
                 *Build ID:* {self.build_id}
                 *Classification:* {classification}
-                *Pod Failed:* {failed_step}
+                *Failed Step:* {failed_step}
 
                 Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
 
                 This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
             """
 
-        self.jira.comment(issue_id=bug_key, comment=comment)
+        self.jira.comment(issue_id=issue_id, comment=comment)
 
     def failure_matches_rule(
         self,
@@ -461,7 +461,7 @@ class Report:
             *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
             *Build ID:* {self.build_id}
             *Classification:* {classification}
-            *Pod Failed:* {step_name}
+            *Failed Step:* {step_name}
 
             Please see the link provided above along with the logs and junit files attached to the bug.
 
