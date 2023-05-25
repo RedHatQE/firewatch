@@ -78,21 +78,16 @@ class Jira:
 
         :returns: A Jira Issue object
         """
+        issue_dict = {
+            "project": {"key": project},
+            "summary": summary,
+            "description": description,
+            "issuetype": {"name": issue_type},
+            "labels": labels,
+        }
+
         if labels:
-            issue_dict = {
-                "project": {"key": project},
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type},
-                "labels": labels,
-            }
-        else:
-            issue_dict = {
-                "project": {"key": project},
-                "summary": summary,
-                "description": description,
-                "issuetype": {"name": issue_type},
-            }
+            issue_dict.update({"labels": labels})
 
         self.logger.info(
             f"A Jira issue will be reported.",
