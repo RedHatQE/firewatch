@@ -42,8 +42,8 @@ Firewatch was designed to allow for users to define which Jira issues get create
 [
   {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT"},
   {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER"},
-  {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST"},
-  {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", ignore: "true"}
+  {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123"},
+  {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"}
 ]
 ```
 
@@ -62,6 +62,7 @@ The firewatch configuration is a list of rules, each rule is defined using 4 val
   - `all`: Either a `pod_failure` or a `test_failure`.
 - `classification`: How you'd like to classify the issue in Jira. This is not a formal field in Jira, but will be included in the issue description. This is meant to act as a "best-guess" value for why the failure happened.
 - `jira_project`: The Jira project you'd like the issue to be filed under.
+- `jira_epic`[OPTIONAL]: The epic you would like issues to be added to. **IMPORTANT:** Any epic you use must have the automation user you are using set as a contributor in Jira. For OpenShift CI, the user is `interop-test-jenkins interop-test-jenkins`.
 - `ignore`[OPTIONAL]: A value that be set to "true" or "false" and allows the user to define `step`/`failure_type` combinations that should be ignored when creating tickets.
 
 The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the [`report` command](#report---create-jira-issues), if an argument for `--firewatch_config_path` is not provided, the environment variable will be used.
