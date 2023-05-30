@@ -261,6 +261,7 @@ class Report:
         for pair in rule_failure_pairs:
             date = datetime.now()
             project = pair["rule"]["jira_project"]
+            epic = pair["rule"]["jira_epic"] if "jira_epic" in pair["rule"] else None
             summary = f"Failure in {self.job_name}, {date.strftime('%m-%d-%Y')}"
             description = self.build_issue_description(
                 step_name=pair["failure"]["step"],
@@ -273,7 +274,6 @@ class Report:
             labels = [
                 self.job_name,
                 pair["failure"]["step"],
-                pair["rule"]["classification"],
                 pair["failure"]["failure_type"],
             ]
 
@@ -301,6 +301,7 @@ class Report:
                     summary=summary,
                     description=description,
                     issue_type=type,
+                    epic=epic,
                     file_attachments=file_attachments,
                     labels=labels,
                 )
