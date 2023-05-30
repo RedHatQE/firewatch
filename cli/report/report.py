@@ -273,7 +273,6 @@ class Report:
             labels = [
                 self.job_name,
                 pair["failure"]["step"],
-                pair["rule"]["classification"],
                 pair["failure"]["failure_type"],
             ]
 
