@@ -215,7 +215,7 @@ class Report:
 
                     for suite in junit_xml:
                         for case in suite:
-                            if case.result:
+                            if hasattr(case, "result") and case.result:
                                 for result in case.result:
                                     if isinstance(result, junitparser.Failure):
                                         failure = {
@@ -370,7 +370,7 @@ class Report:
 
                 Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
 
-                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]
             """
 
         self.jira.comment(issue_id=issue_id, comment=comment)
