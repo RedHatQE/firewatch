@@ -33,7 +33,7 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
     ```yaml
     FIREWATCH_CONFIG: |
         [
-            {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT"},
+            {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
             {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER"},
             {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123"}
             {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", ignore: "true"}

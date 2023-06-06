@@ -262,6 +262,11 @@ class Report:
             date = datetime.now()
             project = pair["rule"]["jira_project"]
             epic = pair["rule"]["jira_epic"] if "jira_epic" in pair["rule"] else None
+            component = (
+                pair["rule"]["jira_component"]
+                if "jira_component" in pair["rule"]
+                else None
+            )
             summary = f"Failure in {self.job_name}, {date.strftime('%m-%d-%Y')}"
             description = self.build_issue_description(
                 step_name=pair["failure"]["step"],
@@ -301,6 +306,7 @@ class Report:
                     summary=summary,
                     description=description,
                     issue_type=type,
+                    component=component,
                     epic=epic,
                     file_attachments=file_attachments,
                     labels=labels,
