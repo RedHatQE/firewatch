@@ -63,6 +63,7 @@ class Jira:
         summary: str,
         description: str,
         issue_type: str,
+        component: Optional[str] = None,
         epic: Optional[str] = None,
         file_attachments: Optional[list[str]] = None,
         labels: list[Optional[str]] = [],
@@ -74,6 +75,7 @@ class Jira:
         :param summary: Title or summary of the issue
         :param description: Description of the issue
         :param issue_type: Issue type (Bug, Task, etc.)
+        :param component: The component you'd like the bug to be associated with. If not supplied, the bug will not have a component
         :param epic: The epic ID (PROJECT-8) the new issue should be a part of. If not supplied, the issue will not be associated with an epic
         :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
         :param labels: An optional list of labels to add to the issue
@@ -85,11 +87,15 @@ class Jira:
             "summary": summary,
             "description": description,
             "issuetype": {"name": issue_type},
-            "labels": labels,
         }
 
         if labels:
-            issue_dict.update({"labels": labels})
+            # MyPy spits out an odd error here unless ignored.
+            issue_dict.update({"labels": labels})  # type: ignore
+
+        if component:
+            # MyPy spits out an odd error here unless ignored.
+            issue_dict.update({"components": [{"name": component}]})  # type: ignore
 
         self.logger.info(
             f"A Jira issue will be reported.",
