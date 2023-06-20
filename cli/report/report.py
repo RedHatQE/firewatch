@@ -206,11 +206,18 @@ class Report:
                             failures.append(failure)
                             self.logger.info(f"Found pod failure in step: {step}")
 
+        # Find failures in JUnit results
         for root, dirs, files in os.walk(self.junit_dir):
             for file_name in files:
                 if "junit" in file_name:
                     file_path = os.path.join(root, file_name)
-                    junit_xml = junitparser.JUnitXml.fromfile(file_path)
+                    try:
+                        junit_xml = junitparser.JUnitXml.fromfile(file_path)
+                    except junitparser.junitparser.JUnitXmlError:
+                        self.logger.warning(
+                            f"Attempted to parse {file_name}, but it doesn't seem to be a JUnit results file.",
+                        )
+                        continue
                     step = os.path.basename(os.path.dirname(file_path))
 
                     for suite in junit_xml:
