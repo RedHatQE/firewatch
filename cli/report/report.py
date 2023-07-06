@@ -158,8 +158,9 @@ class Report:
         )
         for blob in blobs:
             blob_name = blob.name.split("/")[-1]
-            if (blob.name.split("/")[-2] == "artifacts") and ("junit" in blob_name):
-                blob_step = blob.name.split("/")[-3]
+
+            if "junit" in blob_name:
+                blob_step = blob.name.split("/")[5]
 
                 # Create a step directory if it does not already exist
                 if not os.path.exists(f"{path}/{blob_step}"):
@@ -209,7 +210,7 @@ class Report:
         # Find failures in JUnit results
         for root, dirs, files in os.walk(self.junit_dir):
             for file_name in files:
-                if "junit" in file_name:
+                if ("junit" in file_name) and ("xml" in file_name):
                     file_path = os.path.join(root, file_name)
                     try:
                         junit_xml = junitparser.JUnitXml.fromfile(file_path)
@@ -243,6 +244,25 @@ class Report:
                                         self.logger.info(
                                             f"Found test failure in step: {step}",
                                         )
+                            elif isinstance(case, junitparser.Failure):
+                                failure = {
+                                    "step": step,
+                                    "failure_type": "test_failure",
+                                }
+                                # Override any failures that have been found. This is only because some test
+                                # suites return a non-zero exit code if a test fails. We would like to classify
+                                # Those failures as the test_failure type.
+                                existing_failures = [
+                                    f for f in failures if f["step"] == step
+                                ]
+                                if existing_failures:
+                                    failures = [
+                                        f for f in failures if f["step"] != step
+                                    ]
+                                failures.append(failure)
+                                self.logger.info(
+                                    f"Found test failure in step: {step}",
+                                )
 
         return failures
 
