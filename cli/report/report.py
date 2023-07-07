@@ -308,6 +308,11 @@ class Report:
                 pair["failure"]["step"],
                 pair["failure"]["failure_type"],
             ]
+            affects_version = (
+                pair["rule"]["jira_affects_version"]
+                if "jira_affects_version" in pair["rule"]
+                else None
+            )
 
             # Find duplicate bugs
             duplicate_bugs = self.find_duplicate_bugs(
@@ -337,6 +342,7 @@ class Report:
                     epic=epic,
                     file_attachments=file_attachments,
                     labels=labels,
+                    affects_version=affects_version,
                 )
                 bugs_filed.append(jira_issue.key)
 

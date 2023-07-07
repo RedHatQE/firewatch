@@ -67,6 +67,7 @@ class Jira:
         epic: Optional[str] = None,
         file_attachments: Optional[list[str]] = None,
         labels: list[Optional[str]] = [],
+        affects_version: Optional[str] = None,
     ) -> Issue:
         """
         Used to create a Jira issue and attach any given files to that issue.
@@ -79,6 +80,7 @@ class Jira:
         :param epic: The epic ID (PROJECT-8) the new issue should be a part of. If not supplied, the issue will not be associated with an epic
         :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
         :param labels: An optional list of labels to add to the issue
+        :param affects_version: Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira
 
         :returns: A Jira Issue object
         """
@@ -96,6 +98,9 @@ class Jira:
         if component:
             # MyPy spits out an odd error here unless ignored.
             issue_dict.update({"components": [{"name": component}]})  # type: ignore
+
+        if affects_version:
+            issue_dict.update({"versions": [{"name": affects_version}]})  # type: ignore
 
         self.logger.info(
             f"A Jira issue will be reported.",
