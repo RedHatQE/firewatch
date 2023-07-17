@@ -99,7 +99,7 @@ class Jira:
             components = []
             for comp in filter(None, component.split(",")):
                 if comp.strip():
-                    components.append(dict(name=comp.strip()))
+                    components.append({"name": comp.strip()})
 
             # MyPy spits out an odd error here unless ignored.
             issue_dict.update({"components": components})  # type: ignore
