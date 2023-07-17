@@ -76,7 +76,7 @@ class Jira:
         :param summary: Title or summary of the issue
         :param description: Description of the issue
         :param issue_type: Issue type (Bug, Task, etc.)
-        :param component: The component you'd like the bug to be associated with. If not supplied, the bug will not have a component
+        :param component: The component or components you'd like the bug to be associated with. Must be a comma deliminated string to specify multiple components. If not supplied, the bug will not have a component
         :param epic: The epic ID (PROJECT-8) the new issue should be a part of. If not supplied, the issue will not be associated with an epic
         :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
         :param labels: An optional list of labels to add to the issue
@@ -96,8 +96,13 @@ class Jira:
             issue_dict.update({"labels": labels})  # type: ignore
 
         if component:
+            components = []
+            for comp in filter(None, component.split(",")):
+                if comp.strip():
+                    components.append(dict(name=comp.strip()))
+
             # MyPy spits out an odd error here unless ignored.
-            issue_dict.update({"components": [{"name": component}]})  # type: ignore
+            issue_dict.update({"components": components})  # type: ignore
 
         if affects_version:
             issue_dict.update({"versions": [{"name": affects_version}]})  # type: ignore

@@ -64,7 +64,7 @@ The firewatch configuration is a list of rules, each rule is defined using 4 val
 - `classification`: How you'd like to classify the issue in Jira. This is not a formal field in Jira, but will be included in the issue description. This is meant to act as a "best-guess" value for why the failure happened.
 - `jira_project`: The Jira project you'd like the issue to be filed under.
 - `jira_epic`[OPTIONAL]: The epic you would like issues to be added to. **IMPORTANT:** Any epic you use must have the automation user you are using set as a contributor in Jira. For OpenShift CI, the user is `interop-test-jenkins interop-test-jenkins`.
-- `jira_component`[OPTIONAL]: The component you would like issues to be added to.
+- `jira_component`[OPTIONAL]: The component/components you would like issues to be added to. Must be a comma delimeted string to specify more than one.
 - `jira_affects_version`[OPTIONAL]: The version affected by this bug. This will result in the "Affects Version/s" field in Jira to be populated. **IMPORTANT** The version must exist in Jira before adding this value.
 - `ignore`[OPTIONAL]: A value that be set to "true" or "false" and allows the user to define `step`/`failure_type` combinations that should be ignored when creating tickets.
 
