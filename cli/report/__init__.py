@@ -15,13 +15,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module building report cli command"""
-import logging
 from typing import Optional
 
 import click
 
 from cli.objects.configuration import Configuration
 from cli.objects.jira_base import Jira
+from cli.objects.job import Job
 from cli.report.report import Report
 
 
@@ -82,14 +82,20 @@ def report(
     jira_config_path: str,
     fail_with_test_failures: bool,
 ) -> None:
+
+    # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
-    config = Configuration(jira=jira_connection, config_file_path=firewatch_config_path)
-    Report(
-        job_name=job_name,
-        job_name_safe=job_name_safe,
-        build_id=build_id,
-        gcs_bucket=gcs_bucket,
-        firewatch_config=config,
+    config = Configuration(
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
+        config_file_path=firewatch_config_path,
     )
+    job = Job(
+        name=job_name,
+        name_safe=job_name_safe,
+        build_id=build_id,
+        gcs_bucket=gcs_bucket,
+    )
+
+    # Build the Report object and report issues to Jira
+    Report(firewatch_config=config, job=job)

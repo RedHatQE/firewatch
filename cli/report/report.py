@@ -15,329 +15,132 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import fnmatch
-import json
 import logging
 import os
 from datetime import datetime
-from typing import Any
 from typing import Optional
 
-import junitparser
-from google.cloud import storage
-
 from cli.objects.configuration import Configuration
+from cli.objects.failure import Failure
 from cli.objects.jira_base import Jira
+from cli.objects.job import Job
+from cli.objects.rule import Rule
 
 
 class Report:
-    def __init__(
-        self,
-        job_name: str,
-        job_name_safe: str,
-        build_id: str,
-        gcs_bucket: str,
-        firewatch_config: Configuration,
-        jira: Jira,
-        fail_with_test_failures: bool,
-    ) -> None:
+    def __init__(self, firewatch_config: Configuration, job: Job) -> None:
         """
-        Constructs the Report object, which will analyze failures in a Prow job and report those failures to Jira based
-        on a firewatch config.
+        Builds the Report object. This class is used to file Jira issues for OpenShift failures.
 
-        :param job_name: The full name of a Prow job. The value of $JOB_NAME
-        :param job_name_safe: The safe name of a test in a Prow job. The value of $JOB_NAME_SAFE
-        :param build_id: The build ID that needs to be reported. The value of $BUILD_ID
-        :param gcs_bucket: The bucket that Prow job logs are stored
-        :param firewatch_config: A firewatch Configuration object
-        :param jira: A Jira object used to interact with the Jira server
-        :param fail_with_test_failures: A boolean value. If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
+        :param firewatch_config: A valid firewatch Configuration object.
+        :param job: A valid Job object representing the prow job being checked for failures/reported on.
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
             __name__,
         )
 
-        # Set variables
-        self.job_name = job_name or os.getenv("JOB_NAME")  # type: ignore
-        self.job_name_safe = job_name_safe or os.getenv("JOB_NAME_SAFE")
-        self.build_id = build_id or os.getenv("BUILD_ID")
-        self.gcs_bucket = gcs_bucket
-        self.firewatch_config = firewatch_config
-        self.jira = jira
-        self.fail_with_test_failures = fail_with_test_failures
-
-        # Log job information
-        self.logger.info(f"JOB NAME: {self.job_name}")
-        self.logger.info(f"BUILD ID: {self.build_id}")
-
-        # Determine if the job is a rehearsal
-        if self.is_rehearsal():
+        # If job is a rehearsal, exit 0
+        if job.is_rehearsal:
             exit(0)
 
-        # Connect to GCS bucket
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(gcs_bucket)
-
-        # Define the download path
-        self.download_path = f"/tmp/{self.build_id}"
-        if not os.path.exists(self.download_path):
-            os.mkdir(self.download_path)
-
-        # Find failures
-        self.steps: list[str] = []
-        self.logs_dir = self.download_logs()
-        self.junit_dir = self.download_junit()
-        self.failures = self.find_failures()
-
-        # If failures exist
-        if len(self.failures) > 0:
-            self.bugs_filed = self.file_jira_issues()
-            if len(self.bugs_filed) > 1:
-                self.relate_issues(self.bugs_filed)
-            if self.fail_with_test_failures and self.has_test_failures():
+        # If job has failures, file bugs
+        if job.has_failures:
+            bugs_filed = self.file_jira_issues(
+                failures=job.failures,  # type: ignore
+                firewatch_config=firewatch_config,
+                job=job,
+            )
+            if len(bugs_filed) > 1:
+                self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
+            if firewatch_config.fail_with_test_failures and job.has_test_failures:
                 self.logger.info(
                     "Test failures found and --fail_with_test_failures flag is set. Exiting with exit code 1",
                 )
                 exit(1)
         else:
-            self.logger.info(
-                f"No failures for {self.job_name} #{self.build_id} were found!",
-            )
+            self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 
-    def download_logs(self) -> str:
+    def file_jira_issues(
+        self,
+        failures: list[Failure],
+        firewatch_config: Configuration,
+        job: Job,
+    ) -> list[str]:
         """
-        Used to download the finished.json and build-log.txt files from each step in a Prow job.
+        Using a list of failures, the firewatch config, and the Job object, file issues in Jira.
 
-        :returns: A string object representing the directory that the downloaded logs are in
-        """
-        path = f"{self.download_path}/logs"
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-        blobs = self.storage_client.list_blobs(
-            self.gcs_bucket,
-            prefix=f"logs/{self.job_name}/{self.build_id}/artifacts/{self.job_name_safe}",
-        )
-
-        files_to_download = ["finished.json", "build-log.txt"]
-
-        for blob in blobs:
-            blob_name = blob.name.split("/")[-1]
-            blob_step = blob.name.split("/")[-2]
-
-            if blob_name in files_to_download:
-                # Add step to list if it doesn't already exist
-                if blob_step not in self.steps:
-                    self.steps.append(blob_step)
-
-                # Create step directory if it does not already exist
-                if not os.path.exists(f"{path}/{blob_step}"):
-                    os.mkdir(f"{path}/{blob_step}")
-
-                # Download blob
-                file = f"{path}/{blob_step}/{blob_name}"
-                with open(file, "xb") as target:
-                    blob.download_to_file(target)
-                    self.logger.info(f"{file} downloaded successfully...")
-
-        return path
-
-    def download_junit(self) -> str:
-        """
-        Used to download any artifact for steps that include "junit" in the file name.
-
-        :returns: A string object representing the directory that the downloaded junit files are in
-        """
-        path = f"{self.download_path}/artifacts"
-        if not os.path.exists(path):
-            os.mkdir(path)
-
-        blobs = self.storage_client.list_blobs(
-            self.gcs_bucket,
-            prefix=f"logs/{self.job_name}/{self.build_id}/artifacts/{self.job_name_safe}",
-        )
-        for blob in blobs:
-            blob_name = blob.name.split("/")[-1]
-
-            if "junit" in blob_name:
-                blob_step = blob.name.split("/")[5]
-
-                # Create a step directory if it does not already exist
-                if not os.path.exists(f"{path}/{blob_step}"):
-                    os.mkdir(f"{path}/{blob_step}")
-
-                # Download blob
-                file = f"{path}/{blob_step}/{blob_name}"
-                with open(file, "xb") as target:
-                    blob.download_to_file(target)
-                    self.logger.info(f"{file} downloaded successfully...")
-
-        return path
-
-    def find_failures(self) -> list[dict[str, str]]:
-        """
-        Ultimately, this function is used to generate a list of failures for a Prow job. The function works by iterating
-        through downloaded log files and checks the finished.json file for the status of a step. If the status is not
-        passed, it will mark the step as failed. It then iterates through all the junit files for each step and
-        classifies a step as failed if there is a test failure.
-
-        :returns: A list of dictionaries each item in the list will look like {"step": "some-step-name", "failure_type": "pod_failure OR test_failure"}
-        """
-        # The failures list should be a list of dictionary objects that define a failure.
-        # The dictionary objects look like:
-        # {"step": "some-step-name", "failure_type": "pod_failure OR test_failure"}
-        # You'll notice there are two options for failure_type.
-        # pod_failure = some non-zero exit code occurred in a pod - the "passed" value in "finished.json" is false
-        # test_failure = one or more tests in the gathered junit files is marked as failed
-        failures = []
-
-        # Find failed pods in the logs directory
-        for root, dirs, files in os.walk(self.logs_dir):
-            for file_name in files:
-                if file_name == "finished.json":
-                    file_path = os.path.join(root, file_name)
-                    with open(file_path) as file:
-                        data = json.load(file)
-                        if data.get("passed", False) is False:
-                            step = os.path.basename(os.path.dirname(file_path))
-                            failure = {
-                                "step": step,
-                                "failure_type": "pod_failure",
-                            }
-                            failures.append(failure)
-                            self.logger.info(f"Found pod failure in step: {step}")
-
-        # Find failures in JUnit results
-        for root, dirs, files in os.walk(self.junit_dir):
-            for file_name in files:
-                if ("junit" in file_name) and ("xml" in file_name):
-                    file_path = os.path.join(root, file_name)
-                    try:
-                        junit_xml = junitparser.JUnitXml.fromfile(file_path)
-                    except junitparser.junitparser.JUnitXmlError:
-                        self.logger.warning(
-                            f"Attempted to parse {file_name}, but it doesn't seem to be a JUnit results file.",
-                        )
-                        continue
-                    step = os.path.basename(os.path.dirname(file_path))
-
-                    for suite in junit_xml:
-                        for case in suite:
-                            if hasattr(case, "result") and case.result:
-                                for result in case.result:
-                                    if isinstance(result, junitparser.Failure):
-                                        failure = {
-                                            "step": step,
-                                            "failure_type": "test_failure",
-                                        }
-                                        # Override any failures that have been found. This is only because some test
-                                        # suites return a non-zero exit code if a test fails. We would like to classify
-                                        # Those failures as the test_failure type.
-                                        existing_failures = [
-                                            f for f in failures if f["step"] == step
-                                        ]
-                                        if existing_failures:
-                                            failures = [
-                                                f for f in failures if f["step"] != step
-                                            ]
-                                        failures.append(failure)
-                                        self.logger.info(
-                                            f"Found test failure in step: {step}",
-                                        )
-                            elif isinstance(case, junitparser.Failure):
-                                failure = {
-                                    "step": step,
-                                    "failure_type": "test_failure",
-                                }
-                                # Override any failures that have been found. This is only because some test
-                                # suites return a non-zero exit code if a test fails. We would like to classify
-                                # Those failures as the test_failure type.
-                                existing_failures = [
-                                    f for f in failures if f["step"] == step
-                                ]
-                                if existing_failures:
-                                    failures = [
-                                        f for f in failures if f["step"] != step
-                                    ]
-                                failures.append(failure)
-                                self.logger.info(
-                                    f"Found test failure in step: {step}",
-                                )
-
-        return failures
-
-    def file_jira_issues(self) -> list[str]:
-        """
-        Used to file bugs in Jira based on a list of failures.
-
-        :returns: A list of strings. Each string represents the key of a Jira bug filed
+        :param failures: A list of Failure objects representing the failures found in a prow job.
+        :param firewatch_config: A valid firewatch Configuration object.
+        :param job: A valid Job object representing the prow job to be checked/reported on.
+        :return: A list of strings representing the bugs filed in Jira.
         """
         rule_failure_pairs = []
         bugs_filed = []
 
-        # Find rules that match the failures found.
-        for failure in self.failures:
+        # Get rule_failure_pairs
+        for failure in failures:
             rule_matches = self.failure_matches_rule(
                 failure=failure,
-                rules=self.firewatch_config.rules,
-                default_jira_project=self.firewatch_config.default_jira_project,
+                rules=firewatch_config.rules,  # type: ignore
+                default_jira_project=firewatch_config.default_jira_project,
             )
             for rule in rule_matches:
                 rule_failure_pairs.append({"rule": rule, "failure": failure})
 
         for pair in rule_failure_pairs:
+            # Gather bug information
             date = datetime.now()
-            project = pair["rule"]["jira_project"]
-            epic = pair["rule"]["jira_epic"] if "jira_epic" in pair["rule"] else None
-            component = (
-                pair["rule"]["jira_component"]
-                if "jira_component" in pair["rule"]
-                else None
+            project = pair["rule"].jira_project  # type: ignore
+            epic = pair["rule"].jira_epic  # type: ignore
+            component = pair["rule"].jira_component  # type: ignore
+            affects_version = pair["rule"].jira_affects_version  # type: ignore
+            summary = f"Failure in {job.name}, {date.strftime('%m-%d-%Y')}"
+            description = self._get_issue_description(
+                step_name=pair["failure"].step,  # type: ignore
+                classification=pair["rule"].classification,  # type: ignore
+                job_name=job.name,
+                build_id=job.build_id,
             )
-            summary = f"Failure in {self.job_name}, {date.strftime('%m-%d-%Y')}"
-            description = self.build_issue_description(
-                step_name=pair["failure"]["step"],
-                classification=pair["rule"]["classification"],
+            issue_type = "Bug"
+            file_attachments = self._get_file_attachments(
+                step_name=pair["failure"].step,  # type: ignore
+                logs_dir=job.logs_dir,
+                junit_dir=job.junit_dir,
             )
-            type = "Bug"
-            file_attachments = self.get_file_attachments(
-                step_name=pair["failure"]["step"],
-            )
-            labels = [
-                self.job_name,
-                pair["failure"]["step"],
-                pair["failure"]["failure_type"],
-            ]
-            affects_version = (
-                pair["rule"]["jira_affects_version"]
-                if "jira_affects_version" in pair["rule"]
-                else None
+            labels = self._get_issue_labels(
+                job_name=job.name,
+                step_name=pair["failure"].step,  # type: ignore
+                failure_type=pair["failure"].failure_type,  # type: ignore
+                jira_additional_labels=pair["rule"].jira_additional_labels,  # type: ignore
             )
 
             # Find duplicate bugs
-            duplicate_bugs = self.find_duplicate_bugs(
+            duplicate_bugs = self._get_duplicate_bugs(
                 project=project,
-                job_name=self.job_name,
-                failed_step=pair["failure"]["step"],
-                failure_type=pair["failure"]["failure_type"],
+                job_name=job.name,
+                failed_step=pair["failure"].step,  # type: ignore
+                failure_type=pair["failure"].failure_type,  # type: ignore
+                jira=firewatch_config.jira,
             )
 
             # If duplicates are found, comment
-            if len(duplicate_bugs) > 0:
+            if duplicate_bugs:
                 for bug in duplicate_bugs:
                     self.add_duplicate_comment(
                         issue_id=bug,
-                        failed_step=pair["failure"]["step"],
-                        classification=pair["rule"]["classification"],
+                        failed_step=pair["failure"].step,  # type: ignore
+                        classification=pair["rule"].classification,  # type: ignore
+                        job=job,
+                        jira=firewatch_config.jira,
                     )
-
             # If duplicates are not found, file a bug
             else:
-                jira_issue = self.jira.create_issue(
+                jira_issue = firewatch_config.jira.create_issue(
                     project=project,
                     summary=summary,
                     description=description,
-                    issue_type=type,
+                    issue_type=issue_type,
                     component=component,
                     epic=epic,
                     file_attachments=file_attachments,
@@ -348,112 +151,37 @@ class Report:
 
         return bugs_filed
 
-    def find_duplicate_bugs(
-        self,
-        project: str,
-        job_name: Optional[str],
-        failed_step: str,
-        failure_type: str,
-    ) -> list[str]:
-        """
-        Searches Jira for possible duplicate bugs in the given project. If a bug in the same job, with the same failure_type, and the same failed_step, is found a list of duplicate bugs is returned.
-
-        :param project: Jira project to search in
-        :param job_name: Job name to search for
-        :param failed_step: Failed step name to search for
-        :param failure_type: Failure type to match
-
-        :return: A list of duplicate bugs that are still open
-        """
-
-        self.logger.info(
-            f'Searching for duplicate bugs in project {project} for a "{failure_type}" failure type in the {failed_step} step.',
-        )
-
-        # This JQL query will find any bug in the provided project that:
-        # Has a label that matches the job name
-        # AND has a label that matches the failed step name
-        # AND has a label that matches the failure type
-        # AND the bugs are not closed
-        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND status not in (closed)'
-        duplicate_bugs = self.jira.search(jql_query=jql_query)
-
-        if len(duplicate_bugs) > 0:
-            self.logger.info("Possible duplicate bugs found:")
-            for bug in duplicate_bugs:
-                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
-
-        return duplicate_bugs
-
-    def add_duplicate_comment(
-        self,
-        issue_id: str,
-        failed_step: str,
-        classification: str,
-    ) -> None:
-        """
-        Builds a comment saying there is a duplicate failure and uses the Jira connection to add the comment to the duplicate bug
-
-        :param issue_id: Bug to comment on
-        :param failed_step: Failed step to put in comment
-        :param classification: Classification to put in comment
-        :return: None
-        """
-        comment = f"""
-                A duplicate failure was identified in a recent run of the {self.job_name} job:
-
-                *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
-                *Build ID:* {self.build_id}
-                *Classification:* {classification}
-                *Failed Step:* {failed_step}
-
-                Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
-
-                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]
-            """
-
-        self.jira.comment(issue_id=issue_id, comment=comment)
-
     def failure_matches_rule(
         self,
-        failure: dict[str, str],
-        rules: Any,
+        failure: Failure,
+        rules: list[Rule],
         default_jira_project: str,
-    ) -> list[dict[str, str]]:
+    ) -> list[Rule]:
         """
-        Determines if a failure matches a rule in the firewatch config. If there is no matching rule, a default rule
-        will be returned.
+        Used to check if a failure matches any rules in the firewatch config.
 
-        :param failure: A dictionary item representing a failure
-        :param rules: A list of firewatch rules
-        :param default_jira_project: A string value of the Jira project you'd like to use by default
-
-        :returns: A list of rules that the failure may match
+        :param failure: A Failure object representing a failure found in a prow job.
+        :param rules: A list of Rule objects from the firewatch config.
+        :param default_jira_project: A string object representing the default Jira project to report bugs to if there isn't a matching rule.
+        :return: A list of Rule objects that represents the list of Rules a failure matches.
         """
-        # Check if the step matches a "step" in the firewatch_config
         matching_rules = []
         ignored_rules = []
 
-        default_rule = {
+        default_rule_dict = {
             "step": "!none",
             "failure_type": "!none",
             "classification": "!none",
             "jira_project": default_jira_project,
         }
+        default_rule = Rule(default_rule_dict)
 
         for rule in rules:
-
-            # Check if the rule should be ignored
-            if "ignore" in rule and (rule["ignore"].lower() == "true"):
-                ignore_rule = True
-            else:
-                ignore_rule = False
-
-            if fnmatch.fnmatch(failure["step"], rule["step"]) and (
-                (failure["failure_type"] == rule["failure_type"])
-                or rule["failure_type"] == "all"
+            if fnmatch.fnmatch(failure.step, rule.step) and (
+                (failure.failure_type == rule.failure_type)
+                or rule.failure_type == "all"
             ):
-                if ignore_rule:
+                if rule.ignore:
                     ignored_rules.append(rule)
                 else:
                     matching_rules.append(rule)
@@ -464,53 +192,40 @@ class Report:
 
         return matching_rules
 
-    def get_file_attachments(self, step_name: str) -> list[str]:
+    def add_duplicate_comment(
+        self,
+        issue_id: str,
+        failed_step: str,
+        classification: str,
+        job: Job,
+        jira: Jira,
+    ) -> None:
         """
-        Generates a list of filepaths for logs and junit files associated with the step defined in the step_name
-        parameter.
+        Used to make a comment on a Jira issue that is a suspected duplicate.
 
-        :param step_name: A string object representing the name of the step to gather files for
-
-        :returns: A list of filepaths for logs and junit files associated with the step
+        :param issue_id: Issue ID of the suspected duplicate.
+        :param failed_step: Name of the failed step.
+        :param classification: Classification of the failure.
+        :param job: Job object of the failed job.
+        :param jira: Jira object.
+        :return: None
         """
-        attachments = []
-        if os.path.exists(f"{self.logs_dir}/{step_name}"):
-            for root, dirs, files in os.walk(f"{self.logs_dir}/{step_name}"):
-                for file_name in files:
-                    file_path = os.path.join(root, file_name)
-                    attachments.append(file_path)
+        comment = f"""
+                        A duplicate failure was identified in a recent run of the {job.name} job:
 
-        if os.path.exists(f"{self.junit_dir}/{step_name}"):
-            for root, dirs, files in os.walk(f"{self.junit_dir}/{step_name}"):
-                for file_name in files:
-                    file_path = os.path.join(root, file_name)
-                    attachments.append(file_path)
+                        *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job.name}/{job.build_id}
+                        *Build ID:* {job.build_id}
+                        *Classification:* {classification}
+                        *Failed Step:* {failed_step}
 
-        return attachments
+                        Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
 
-    def build_issue_description(self, step_name: str, classification: str) -> str:
-        """
-        Generates a description for a Jira bug to be filed for a failure.
+                        This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]
+                    """
 
-        :param step_name: A string object representing the name of a failed step
-        :param classification: A string object representing the best-guess classification for a bug
+        jira.comment(issue_id=issue_id, comment=comment)
 
-        :returns: A string object that is the description of a Jira bug
-        """
-        description = f"""
-            *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{self.job_name}/{self.build_id}
-            *Build ID:* {self.build_id}
-            *Classification:* {classification}
-            *Failed Step:* {step_name}
-
-            Please see the link provided above along with the logs and junit files attached to the bug.
-
-            This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
-        """
-
-        return description
-
-    def relate_issues(self, issues: list[str]) -> None:
+    def relate_issues(self, issues: list[str], jira: Jira) -> None:
         """
         Creates a relation for every issue created for a run.
 
@@ -524,33 +239,138 @@ class Report:
 
             for j in range(i + 1, len(issues)):
                 related_issue = issues[j]
-                self.jira.relate_issues(
+                jira.relate_issues(
                     inward_issue=current_issue,
                     outward_issue=related_issue,
                 )
 
-    def is_rehearsal(self) -> bool:
+    def _get_file_attachments(
+        self,
+        step_name: str,
+        logs_dir: str,
+        junit_dir: str,
+    ) -> list[str]:
         """
-        Determines if a run is a rehearsal run.
+        Generates a list of filepaths for logs and junit files associated with the step defined in the step_name
+        parameter.
 
-        :returns: A boolean value. If run is a rehearsal, return True. If run is not a rehearsal, return False
+        :param step_name: A string object representing the name of the step to gather files for
+        :param logs_dir: A string object representing the path to the logs directory
+        :param junit_dir: A string object representing the path to the junit archives directory
+        :returns: A list of filepaths for logs and junit files associated with the step
         """
-        if (
-            self.job_name is not None
-            and isinstance(self.job_name, str)
-            and self.job_name.startswith("rehearse")
-        ):
-            self.logger.info(f"Run #{self.build_id} is a rehearsal job.")
-            return True
-        return False
+        attachments = []
 
-    def has_test_failures(self) -> bool:
-        """
-        Determines if any of the failures in the failures list has any test_failures
+        if os.path.exists(f"{logs_dir}/{step_name}"):
+            for root, dirs, files in os.walk(f"{logs_dir}/{step_name}"):
+                for file_name in files:
+                    file_path = os.path.join(root, file_name)
+                    attachments.append(file_path)
 
-        :returns: A boolean value. Any of the failures are test_failures, return True. If not, return False
+        if os.path.exists(f"{junit_dir}/{step_name}"):
+            for root, dirs, files in os.walk(f"{junit_dir}/{step_name}"):
+                for file_name in files:
+                    file_path = os.path.join(root, file_name)
+                    attachments.append(file_path)
+        if len(attachments) < 1:
+            self.logger.info(
+                f"No file attachments for failed step {step_name} were found.",
+            )
+        return attachments
+
+    def _get_issue_description(
+        self,
+        step_name: str,
+        classification: str,
+        job_name: Optional[str],
+        build_id: Optional[str],
+    ) -> str:
         """
-        for failure in self.failures:
-            if failure["failure_type"] == "test_failure":
-                return True
-        return False
+        Used to generate the description of a bug to be filed in Jira.
+
+        :param step_name: Name of the step that failed.
+        :param classification: Classification of the failure.
+        :param job_name: Name of job that failed.
+        :param build_id: Build ID of failure.
+        :return: String object representing the description.
+        """
+        description = f"""
+                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+                    *Build ID:* {build_id}
+                    *Classification:* {classification}
+                    *Failed Step:* {step_name}
+
+                    Please see the link provided above along with the logs and junit files attached to the bug.
+
+                    This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+                """
+
+        return description
+
+    def _get_issue_labels(
+        self,
+        job_name: Optional[str],
+        step_name: str,
+        failure_type: str,
+        jira_additional_labels: Optional[list[str]],
+    ) -> list[Optional[str]]:
+        """
+        Builds a list of labels to be included on the Jira issue.
+
+        :param job_name: Name of failed job.
+        :param step_name: Name of failed step in job.
+        :param failure_type: Failure type.
+        :param jira_additional_labels: An optional list of additional labels to include.
+        :return: A list of strings representing the labels the new Jira issue should include.
+        """
+        labels = [
+            job_name,
+            step_name,
+            failure_type,
+            "firewatch",
+        ]
+
+        if jira_additional_labels:
+            for additional_label in jira_additional_labels:
+                labels.append(additional_label)
+
+        return labels
+
+    def _get_duplicate_bugs(
+        self,
+        project: str,
+        job_name: Optional[str],
+        failed_step: str,
+        failure_type: str,
+        jira: Jira,
+    ) -> Optional[list[str]]:
+        """
+        Used to search for possible duplicate bugs before filing a new bug.
+
+        :param project: The project to search for duplicate bugs in.
+        :param job_name: Name of the failed job.
+        :param failed_step: Name of the failed step.
+        :param failure_type: Failure type.
+        :param jira: Jira object.
+        :return: A list of strings representing duplicate bugs found.
+        """
+        self.logger.info(
+            f'Searching for duplicate bugs in project {project} for a "{failure_type}" failure type in the {failed_step} step.',
+        )
+
+        # This JQL query will find any bug in the provided project that:
+        # Has a label that matches the job name
+        # AND has a label that matches the failed step name
+        # AND has a label that matches the failure type
+        # AND the bugs are not closed
+        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND status not in (closed)'
+        duplicate_bugs = jira.search(jql_query=jql_query)
+
+        if len(duplicate_bugs) > 0:
+            self.logger.info("Possible duplicate bugs found:")
+            for bug in duplicate_bugs:
+                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+
+            return duplicate_bugs
+        else:
+            return None
