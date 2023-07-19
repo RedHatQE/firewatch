@@ -40,11 +40,11 @@ Firewatch was designed to allow for users to define which Jira issues get create
 
 ```json
 [
-  {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
-  {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER"},
-  {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123"},
-  {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-  {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
+    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
+    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"]},
+    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"]},
+    {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
+    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
 ]
 ```
 
@@ -64,8 +64,9 @@ The firewatch configuration is a list of rules, each rule is defined using 4 val
 - `classification`: How you'd like to classify the issue in Jira. This is not a formal field in Jira, but will be included in the issue description. This is meant to act as a "best-guess" value for why the failure happened.
 - `jira_project`: The Jira project you'd like the issue to be filed under.
 - `jira_epic`[OPTIONAL]: The epic you would like issues to be added to. **IMPORTANT:** Any epic you use must have the automation user you are using set as a contributor in Jira. For OpenShift CI, the user is `interop-test-jenkins interop-test-jenkins`.
-- `jira_component`[OPTIONAL]: The component/components you would like issues to be added to. Must be a comma delimeted string to specify more than one.
+- `jira_component`[OPTIONAL]: The component/components you would like issues to be added to. If one component, use a string (`"jira_component": "component-name"`). If multiple components, use a list (`"jira_component": ["component-1", "component-2"]`).
 - `jira_affects_version`[OPTIONAL]: The version affected by this bug. This will result in the "Affects Version/s" field in Jira to be populated. **IMPORTANT** The version must exist in Jira before adding this value.
+- `jira_additional_labels`[OPTIONAL]: A list of additional labels to add to a bug (`"jira_additional_labels": ["test-label-1", "test-label-2"]`). **IMPORTANT:** The Jira API will not allow these strings to have spaces in them.
 - `ignore`[OPTIONAL]: A value that be set to "true" or "false" and allows the user to define `step`/`failure_type` combinations that should be ignored when creating tickets.
 
 The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the [`report` command](#report---create-jira-issues), if an argument for `--firewatch_config_path` is not provided, the environment variable will be used.
