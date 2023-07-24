@@ -7,8 +7,6 @@
     * [Docker (recommended)](#docker-recommended)
     * [Local Machine (using venv)](#local-machine-using-venv)
   * [Configuration](#configuration)
-    * [Jira issue creation (`firewatch report`) configuration](#jira-issue-creation-firewatch-report-configuration)
-      * [Defining the Configuration](#defining-the-configuration)
   * [Usage](#usage)
     * [`report`](#report)
     * [`jira_config_gen`](#jiraconfiggen)
@@ -32,44 +30,7 @@
 
 ## Configuration
 
-### Jira issue creation (`firewatch report`) configuration
-
-Firewatch was designed to allow for users to define which Jira issues get created depending on which failures are found in a OpenShift CI failed run. Using an easy-to-define JSON config, users can easily track issues in their OpenShift CI runs efficiently.
-
-**Example:**
-
-```json
-[
-    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
-    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"]},
-    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"]},
-    {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
-]
-```
-
-#### Defining the Configuration
-
-The firewatch configuration is a list of rules, each rule is defined using 4 values:
-
-- `step`: The exact or partial name of a step in OpenShift CI. Using this value, we can usually determine what may have gone wrong during an OpenShift CI run.
-  - For example, say you have multiple steps whose names start with `infra-setup-` and you can confidently say that most of the time, if a run fails during one of these steps, it is probably an infrastructure setup issue. You can define a rule to always file a bug in a specific Jira project so the issue can be addressed. The value in this instance would be something like `infra-setup-*`.
-  - The value of this key can be whatever you'd like and can shell-style wildcards in the definition of this key:
-    - `*` – matches everything.
-    - `?` – matches any single character.
-- `failure_type`: The type of failure you'd like issues to be created for. Currently, there are 3 options for this value.
-  - `pod_failure`: A failure where the code being executed in the step (OpenShift CI pod) returns a non-zero exit code (when the `passed` value in [`finished.json`](https://docs.prow.k8s.io/docs/metadata-artifacts/) is set to `false`)
-  - `test_failure`: A failure where the code being executed in the step produces one or more JUnit files (must have `junit` in the filename) that is in the artifacts (copied into the `$ARTIFACT_DIR`) for the step and any failure is found in the JUnit file(s).
-  - `all`: Either a `pod_failure` or a `test_failure`.
-- `classification`: How you'd like to classify the issue in Jira. This is not a formal field in Jira, but will be included in the issue description. This is meant to act as a "best-guess" value for why the failure happened.
-- `jira_project`: The Jira project you'd like the issue to be filed under.
-- `jira_epic`[OPTIONAL]: The epic you would like issues to be added to. **IMPORTANT:** Any epic you use must have the automation user you are using set as a contributor in Jira. For OpenShift CI, the user is `interop-test-jenkins interop-test-jenkins`.
-- `jira_component`[OPTIONAL]: The component/components you would like issues to be added to. If one component, use a string (`"jira_component": "component-name"`). If multiple components, use a list (`"jira_component": ["component-1", "component-2"]`).
-- `jira_affects_version`[OPTIONAL]: The version affected by this bug. This will result in the "Affects Version/s" field in Jira to be populated. **IMPORTANT** The version must exist in Jira before adding this value.
-- `jira_additional_labels`[OPTIONAL]: A list of additional labels to add to a bug (`"jira_additional_labels": ["test-label-1", "test-label-2"]`). **IMPORTANT:** The Jira API will not allow these strings to have spaces in them.
-- `ignore`[OPTIONAL]: A value that be set to "true" or "false" and allows the user to define `step`/`failure_type` combinations that should be ignored when creating tickets.
-
-The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the [`report` command](#report---create-jira-issues), if an argument for `--firewatch_config_path` is not provided, the environment variable will be used.
+Please see the [configuration guide](configuration_guide.md) to help you build your configuration.
 
 ## Usage
 
