@@ -31,7 +31,7 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
 
   > **IMPORTANT:**
   >
-  > For more information how to define these rules, please see the [CLI usage guide](docs/cli_usage_guide.md#defining-the-configuration).
+  > For more information how to define these rules, please see the [configuration guide](configuration_guide.md). 
 
   - Example:
 
