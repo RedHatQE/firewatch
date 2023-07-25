@@ -243,15 +243,15 @@ class Rule:
 
         if "jira_additional_labels" in rule_dict.keys():
             try:
-                jira_additional_lables = rule_dict["jira_additional_labels"]
+                jira_additional_labels = rule_dict["jira_additional_labels"]
             except Exception as ex:
                 self.logger.error(ex)
                 exit(1)
-            if isinstance(jira_additional_lables, str):
-                labels.append(jira_additional_lables)
+            if isinstance(jira_additional_labels, str):
+                labels.append(jira_additional_labels)
                 return labels
-            elif isinstance(jira_additional_lables, list):
-                for label in jira_additional_lables:
+            elif isinstance(jira_additional_labels, list):
+                for label in jira_additional_labels:
                     if isinstance(label, str):
                         if " " in label:
                             self.logger.error(

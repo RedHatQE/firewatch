@@ -27,6 +27,7 @@ class TestFirewatchObjectsRule:
             "jira_epic": "TEST-1234",
             "jira_component": "test component",
             "jira_affects_version": "test version",
+            "jira_additional_labels": ["some-label-1", "some-label-2"],
             "ignore": False,
         }
 
@@ -39,6 +40,9 @@ class TestFirewatchObjectsRule:
         assert rule.jira_epic == test_rule_dict["jira_epic"]
         assert test_rule_dict["jira_component"] in rule.jira_component
         assert rule.jira_affects_version == test_rule_dict["jira_affects_version"]
+        assert ("some-label-1" in rule.jira_additional_labels) and (
+            "some-label-2" in rule.jira_additional_labels
+        )
         assert not rule.ignore
 
     def test_get_step(self) -> None:
