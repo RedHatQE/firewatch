@@ -165,7 +165,7 @@ class Jira:
         """
         try:
             self.connection.create_issue_link(
-                type="Relates",
+                type="relates to",
                 inwardIssue=inward_issue,
                 outwardIssue=outward_issue,
             )
@@ -173,8 +173,9 @@ class Jira:
                 f"Issue {inward_issue} and issue {outward_issue} related successfully",
             )
             return True
-        except Exception:
+        except Exception as ex:
             self.logger.error(f"Failure relating {inward_issue} with {outward_issue}")
+            self.logger.error(ex)
             return False
 
     def project_exists(self, project_key: str) -> bool:

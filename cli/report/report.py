@@ -233,16 +233,21 @@ class Report:
 
         :returns: None
         """
-        self.logger.info("Relating all Jira issues created for this run")
-        for i in range(len(issues)):
-            current_issue = issues[i]
+        self.logger.info("Relating all Jira issues created for this run.")
+        relations = {}
 
-            for j in range(i + 1, len(issues)):
-                related_issue = issues[j]
-                jira.relate_issues(
-                    inward_issue=current_issue,
-                    outward_issue=related_issue,
-                )
+        # Populate the relations dictionary.
+        # Should look like {"TEST-1234": [], "TEST-4321": []}
+        for issue in issues:
+            relations.update({issue: []})
+
+        for key in relations:
+            for issue in issues:
+                if (key != issue) and (issue not in relations[key]):
+                    related_issue = jira.relate_issues(inward_issue=key, outward_issue=issue)
+                    if related_issue:
+                        relations[key].append(issue)
+                        relations[issue].append(key)
 
     def _get_file_attachments(
         self,
