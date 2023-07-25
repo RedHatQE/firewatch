@@ -234,7 +234,7 @@ class Report:
         :returns: None
         """
         self.logger.info("Relating all Jira issues created for this run.")
-        relations = {}
+        relations = {}  # type: ignore
 
         # Populate the relations dictionary.
         # Should look like {"TEST-1234": [], "TEST-4321": []}
@@ -244,7 +244,10 @@ class Report:
         for key in relations:
             for issue in issues:
                 if (key != issue) and (issue not in relations[key]):
-                    related_issue = jira.relate_issues(inward_issue=key, outward_issue=issue)
+                    related_issue = jira.relate_issues(
+                        inward_issue=key,
+                        outward_issue=issue,
+                    )
                     if related_issue:
                         relations[key].append(issue)
                         relations[issue].append(key)
