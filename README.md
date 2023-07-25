@@ -27,15 +27,20 @@ Reporting issues using this tool in OpenShift CI is very simple, you can do one 
 Remember, when you are using the `firewatch-report-issues` ref, some variables need to be defined in your configuration file:
 
 - `FIREWATCH_CONFIG` [REQUIRED]
-  - This value should be a list of rules you have defined for firewatch to report on. For more information how to define these rules, please see the [CLI usage guide](docs/cli_usage_guide.md#defining-the-configuration).
+  - This value should be a list of rules you have defined for firewatch to report on.
+
+  > **IMPORTANT:**
+  >
+  > For more information how to define these rules, please see the [configuration guide](configuration_guide.md).
+
   - Example:
 
     ```yaml
     FIREWATCH_CONFIG: |
         [
             {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
-            {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER"},
-            {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123"},
+            {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"]},
+            {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"]},
             {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
             {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
         ]
@@ -79,7 +84,7 @@ We welcome contributions to firewatch! If you'd like to contribute, please revie
 
 ## License
 
-firewatch is released under the [MIT License](LICENSE).
+firewatch is released under the [GNU Public License](LICENSE).
 
 ## Contact
 

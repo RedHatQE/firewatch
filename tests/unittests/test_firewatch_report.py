@@ -14,192 +14,168 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import json
 import logging
 import os
 
-from google.cloud import storage
-
+import tests.unittests.helpers as helpers
+from cli.objects.failure import Failure
+from cli.objects.rule import Rule
 from cli.report.report import Report
 
 
 class TestFirewatchReport:
-    logger = logging.getLogger(__name__)
+    def test_get_issue_labels(self) -> None:
+        job_name = "test-job-name"
+        step_name = "test-step-name"
+        failure_type = "test_failure"
+        additional_labels = ["additional-label-1", "additional-label-2"]
 
-    def test_is_rehearsal_function(self) -> None:
-        self.build_id = "TEST_BUILD_ID"
-        self.logger = logging.getLogger(__name__)
+        # Test no additional labels
+        labels = set(
+            Report._get_issue_labels(
+                self,
+                job_name=job_name,
+                step_name=step_name,
+                failure_type=failure_type,
+                jira_additional_labels=[],
+            ),
+        )
+        compare_labels = {job_name, step_name, failure_type, "firewatch"}
+        assert labels == compare_labels
 
-        self.job_name = "rehearse-39134-periodic-ci-oadp-qe-oadp-qe-automation-main-oadp1.1-ocp4.13-lp-interop-oadp-interop-aws"
-        assert Report.is_rehearsal(self)
+        # Test with additional labels
+        labels = set(
+            Report._get_issue_labels(
+                self,
+                job_name=job_name,
+                step_name=step_name,
+                failure_type=failure_type,
+                jira_additional_labels=additional_labels,
+            ),
+        )
+        compare_labels = {
+            job_name,
+            step_name,
+            failure_type,
+            "firewatch",
+            "additional-label-1",
+            "additional-label-2",
+        }
+        assert labels == compare_labels
 
-        self.job_name = "periodic-ci-oadp-qe-oadp-qe-automation-main-oadp1.1-ocp4.13-lp-interop-oadp-interop-aws"
-        assert not Report.is_rehearsal(self)
+    def test_failure_matches_rule(self) -> None:
+        default_jira_project = "TEST"
+        failure = Failure(failed_step="failed-step", failure_type="test_failure")
+        ignore_rule = Rule(
+            rule_dict={
+                "step": "failed-step",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+                "ignore": "true",
+            },
+        )
+        no_match_rule = Rule(
+            rule_dict={
+                "step": "other-step",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        match_rule = Rule(
+            rule_dict={
+                "step": "failed-step",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        default_rule_dict = {
+            "step": "!none",
+            "failure_type": "!none",
+            "classification": "!none",
+            "jira_project": default_jira_project,
+        }
+        default_rule = Rule(default_rule_dict)
 
-    def test_has_test_failures(self) -> None:
-        self.failures = [
-            {"step": "test_step", "failure_type": "test_failure"},
-            {"step": "test_step", "failure_type": "pod_failure"},
-        ]
+        # Test a failure that does not match any rule
+        rules = [no_match_rule]
+        matching_rules = Report.failure_matches_rule(
+            self,
+            failure=failure,
+            rules=rules,
+            default_jira_project=default_jira_project,
+        )
+        assert len(matching_rules) == 1
+        assert matching_rules[0].step == default_rule.step
 
-        assert Report.has_test_failures(self)
+        # Test a failure that matches an ignore rule (should not return anything)
+        rules = [ignore_rule]
+        matching_rules = Report.failure_matches_rule(
+            self,
+            failure=failure,
+            rules=rules,
+            default_jira_project=default_jira_project,
+        )
+        assert len(matching_rules) == 0
 
-        self.failures = [
-            {"step": "test_step", "failure_type": "pod_failure"},
-            {"step": "test_step", "failure_type": "pod_failure"},
-        ]
-
-        assert not Report.has_test_failures(self)
-
-    def test_download_logs(self, tmp_path) -> None:
-        # Set required variables
-        self.download_path = tmp_path
-        self.gcs_bucket = "origin-ci-test"
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(self.gcs_bucket)
-        self.steps: list[str] = []
-
-        # Some random job to test with
-        self.job_name = "periodic-ci-windup-windup-ui-tests-v1.0-mtr-ocp4.13-lp-interop-mtr-interop-aws"
-        self.job_name_safe = "mtr-interop-aws"
-        self.build_id = "1658302496205967360"
-
-        assert os.listdir(Report.download_logs(self))
-
-    def test_download_junit(self, tmp_path) -> None:
-        # Set required variables
-        self.download_path = tmp_path
-        self.gcs_bucket = "origin-ci-test"
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(self.gcs_bucket)
-        self.steps: list[str] = []
-
-        # Some random job to test with
-        self.job_name = "periodic-ci-windup-windup-ui-tests-v1.0-mtr-ocp4.13-lp-interop-mtr-interop-aws"
-        self.job_name_safe = "mtr-interop-aws"
-        self.build_id = "1658302496205967360"
-
-        assert os.listdir(Report.download_junit(self))
+        # Test a failure that matches a rule
+        rules = [match_rule]
+        matching_rules = Report.failure_matches_rule(
+            self,
+            failure=failure,
+            rules=rules,
+            default_jira_project=default_jira_project,
+        )
+        assert len(matching_rules) == 1
+        assert (matching_rules[0].step == match_rule.step) and (
+            matching_rules[0].failure_type == match_rule.failure_type
+        )
 
     def test_get_file_attachments(self, tmp_path) -> None:
-        # Set required variables
-        self.download_path = tmp_path
-        self.gcs_bucket = "origin-ci-test"
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(self.gcs_bucket)
-        self.steps: list[str] = []
+        self.logger = logging.getLogger(
+            __name__,
+        )
 
-        # Some random job to test with
-        self.job_name = "periodic-ci-windup-windup-ui-tests-v1.0-mtr-ocp4.13-lp-interop-mtr-interop-aws"
-        self.job_name_safe = "mtr-interop-aws"
-        self.build_id = "1658302496205967360"
+        # Set up paths
+        logs_dir = helpers._get_tmp_logs_dir(tmp_path=tmp_path)
+        junit_dir = helpers._get_tmp_junit_dir(tmp_path=tmp_path)
+        helpers._create_failed_step_junit(junit_dir=junit_dir)
+        helpers._create_failed_step_pod(logs_dir=logs_dir)
 
-        # Download junit files and logs
-        self.logs_dir = Report.download_logs(self)
-        self.junit_dir = Report.download_junit(self)
+        file_attachments = Report._get_file_attachments(
+            self,
+            step_name="failed-step",
+            logs_dir=logs_dir,
+            junit_dir=junit_dir,
+        )
+        assert len(file_attachments) > 0
+        for file in file_attachments:
+            assert os.path.exists(file)
 
-        # Step Name
-        step_name = "mtr-tests-ui"
-
-        attachments = Report.get_file_attachments(self, step_name)
-
-        assert len(attachments) > 0
-
-        for attachment in attachments:
-            assert os.path.exists(attachment)
-
-    def test_find_failures(self, tmp_path) -> None:
-        # Set required variables
-        self.logger = logging.getLogger(__name__)
-        self.download_path = tmp_path
-        self.gcs_bucket = "origin-ci-test"
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(self.gcs_bucket)
-        self.steps: list[str] = []
-
-        # Some random job to test with
-        self.job_name = "periodic-ci-oadp-qe-oadp-qe-automation-main-oadp1.1-ocp4.13-lp-interop-oadp-interop-aws"
-        self.job_name_safe = "oadp-interop-aws"
-        self.build_id = "1655452745290747904"
-
-        # Download junit files and logs
-        self.logs_dir = Report.download_logs(self)
-        self.junit_dir = Report.download_junit(self)
-
-        assert len(Report.find_failures(self)) > 0
-
-    def test_build_issue_description(self) -> None:
-        self.job_name = "periodic-ci-oadp-qe-oadp-qe-automation-main-oadp1.1-ocp4.13-lp-interop-oadp-interop-aws"
-        self.job_name_safe = "oadp-interop-aws"
-        self.build_id = "1655452745290747904"
-        classification = "test-classification"
+    def test_get_issue_description(self) -> None:
         step_name = "test-step-name"
+        classification = "test-classification"
+        job_name = "test-job-name"
+        build_id = "12345"
 
-        assert Report.build_issue_description(self, step_name, classification)
+        compare_description = f"""
+                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+                    *Build ID:* {build_id}
+                    *Classification:* {classification}
+                    *Failed Step:* {step_name}
 
-    def test_failure_matches_rule_match(self) -> None:
-        # Test when a match is found
-        rules = json.loads(
-            '[{"step": "*test*", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "INTEROP"}]',
-        )
-        failure = {"step": "some-test-step", "failure_type": "test_failure"}
-        rule_matches = Report.failure_matches_rule(
+                    Please see the link provided above along with the logs and junit files attached to the bug.
+
+                    This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+                """
+        issue_description = Report._get_issue_description(
             self,
-            failure=failure,
-            rules=rules,
-            default_jira_project="INTEROP",
-        )
-        assert (
-            rule_matches[0]["step"] == "*test*"
-            and rule_matches[0]["failure_type"] == "test_failure"
+            step_name=step_name,
+            classification=classification,
+            job_name=job_name,
+            build_id=build_id,
         )
 
-    def test_failure_matches_rule_no_match(self) -> None:
-        # Test when a match is not found
-        rules = json.loads(
-            '[{"step": "*test*", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "INTEROP"}]',
-        )
-        failure = {"step": "some-infra-step", "failure_type": "pod_failure"}
-        rule_matches = Report.failure_matches_rule(
-            self,
-            failure=failure,
-            rules=rules,
-            default_jira_project="INTEROP",
-        )
-        assert (
-            rule_matches[0]["step"] == "!none"
-            and rule_matches[0]["failure_type"] == "!none"
-            and rule_matches[0]["jira_project"] == "INTEROP"
-        )
-
-    def test_failure_matches_rule_test_failure_type_all(self) -> None:
-        # Test when the rule's "test_failure" definition is "all"
-        rules = json.loads(
-            '[{"step": "*test*", "failure_type": "all", "classification": "General failures", "jira_project": "INTEROP"}]',
-        )
-        failure = {"step": "some-test-step", "failure_type": "test_failure"}
-        rule_matches = Report.failure_matches_rule(
-            self,
-            failure=failure,
-            rules=rules,
-            default_jira_project="INTEROP",
-        )
-        assert (
-            rule_matches[0]["step"] == "*test*"
-            and rule_matches[0]["failure_type"] == "all"
-            and rule_matches[0]["jira_project"] == "INTEROP"
-        )
-
-    def test_failure_matches_rule_ignore_rule(self) -> None:
-        # Test when a rule is set to be ignored
-        rules = json.loads(
-            '[{"step": "*test*", "failure_type": "all", "classification": "General failures", "jira_project": "INTEROP", "ignore": "true"}]',
-        )
-        failure = {"step": "some-test-step", "failure_type": "test_failure"}
-        rule_matches = Report.failure_matches_rule(
-            self,
-            failure=failure,
-            rules=rules,
-            default_jira_project="INTEROP",
-        )
-        assert len(rule_matches) == 0
+        assert compare_description == issue_description

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<testsuites failures="0" errors="0" tests="3" skipped="0">
+  <testsuite name="Root Suite" timestamp="2023-07-10T06:43:20" tests="0" file="cypress/e2e/tests/application_page.test.ts" time="0.000" failures="0"/>
+  <testsuite name="Applications page" timestamp="2023-07-10T06:43:20" tests="1" time="1012.630" failures="0">
+    <testcase name="Applications page Add/Remove application to existing project" time="858.082" classname="Add/Remove application to existing project"/>
+  </testsuite>
+  <testsuite name="Root Suite" timestamp="2023-07-10T07:00:34" tests="0" file="cypress/e2e/tests/targets.test.ts" time="0.000" failures="0"/>
+  <testsuite name="Analysis on different targets" timestamp="2023-07-10T07:00:34" tests="2" time="1488.713" failures="0">
+    <testcase name="Analysis on different targets Analysis for target Jakarta EE 9" time="627.095" classname="Analysis for target Jakarta EE 9"/>
+    <testcase name="Analysis on different targets Analysis for target Containerization" time="580.590" classname="Analysis for target Containerization"/>
+  </testsuite>
+</testsuites>

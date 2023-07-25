@@ -63,7 +63,7 @@ class Jira:
         summary: str,
         description: str,
         issue_type: str,
-        component: Optional[str] = None,
+        component: Optional[list[str]] = None,
         epic: Optional[str] = None,
         file_attachments: Optional[list[str]] = None,
         labels: list[Optional[str]] = [],
@@ -97,10 +97,8 @@ class Jira:
 
         if component:
             components = []
-            for comp in filter(None, component.split(",")):
-                if comp.strip():
-                    components.append({"name": comp.strip()})
-
+            for comp in component:
+                components.append({"name": comp})
             # MyPy spits out an odd error here unless ignored.
             issue_dict.update({"components": components})  # type: ignore
 
@@ -167,7 +165,7 @@ class Jira:
         """
         try:
             self.connection.create_issue_link(
-                type="Relates",
+                type="relates to",
                 inwardIssue=inward_issue,
                 outwardIssue=outward_issue,
             )
@@ -175,8 +173,9 @@ class Jira:
                 f"Issue {inward_issue} and issue {outward_issue} related successfully",
             )
             return True
-        except Exception as e:
+        except Exception as ex:
             self.logger.error(f"Failure relating {inward_issue} with {outward_issue}")
+            self.logger.error(ex)
             return False
 
     def project_exists(self, project_key: str) -> bool:
