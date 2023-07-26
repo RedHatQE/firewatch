@@ -70,6 +70,7 @@ class Jira:
         labels: list[Optional[str]] = [],
         affects_version: Optional[str] = None,
         assignee: Optional[str] = None,
+        priority: Optional[str] = None,
     ) -> Issue:
         """
         Used to create a Jira issue and attach any given files to that issue.
@@ -84,7 +85,7 @@ class Jira:
         :param labels: An optional list of labels to add to the issue
         :param affects_version: Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira
         :param assignee: An optional string for the assignee of an issue. Should be the email address of the user.
-
+        :param priority: An optional string representing the desired priority of the issue being created.
         :returns: A Jira Issue object
         """
         issue_dict = {
@@ -107,6 +108,9 @@ class Jira:
 
         if affects_version:
             issue_dict.update({"versions": [{"name": affects_version}]})  # type: ignore
+
+        if priority:
+            issue_dict.update({"priority": {"name": priority}})
 
         self.logger.info(
             f"A Jira issue will be reported.",

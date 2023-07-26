@@ -42,6 +42,7 @@ class Rule:
         self.jira_affects_version = self._get_jira_affects_version(rule_dict)
         self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
         self.jira_assignee = self._get_jira_assignee(rule_dict)
+        self.jira_priority = self._get_jira_priority(rule_dict)
         self.ignore = self._get_ignore(rule_dict)
 
     def _get_step(self, rule_dict: dict[Any, Any]) -> str:
@@ -282,7 +283,6 @@ class Rule:
         :param rule_dict: A dictionary object representing a user-defined firewatch rule.
         :return: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
-        rule_dict.keys()
         if "jira_assignee" in rule_dict.keys():
             try:
                 jira_assignee = rule_dict["jira_assignee"]
@@ -300,6 +300,39 @@ class Rule:
             else:
                 self.logger.error(
                     f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
+                )
+                exit(1)
+        else:
+            return None
+
+    def _get_jira_priority(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        """
+        Determines if a Jira priority is defined in a rule. If it is, validate it and return the string.
+
+        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
+        :return: A string of the Jira priority to use in a firewatch rule. If one is not defined, return None
+        """
+        valid_priority_values = ["Blocker", "Critical", "Major", "Normal", "Minor"]
+
+        if "jira_priority" in rule_dict.keys():
+            try:
+                jira_priority = (
+                    rule_dict["jira_priority"].lower().capitalize()
+                )  # The value must be an exact match to the values in valid_priority_values (first letter capitalized, the rest lower)
+            except Exception as ex:
+                self.logger.error(ex)
+                exit(1)
+            if isinstance(jira_priority, str):
+                if jira_priority in valid_priority_values:
+                    return jira_priority
+                else:
+                    self.logger.error(
+                        f'Value for "jira_priority" is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
+                    )
+                    exit(1)
+            else:
+                self.logger.error(
+                    f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
                 )
                 exit(1)
         else:
