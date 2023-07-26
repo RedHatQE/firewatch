@@ -247,7 +247,7 @@ class Job:
             steps.append(blob_step)
 
         # Return steps
-        if len(steps) > 0:
+        if len(steps) > 0 or self.is_rehearsal:
             return steps
         else:
             self.logger.error(f"No steps found for job {job_name}")
