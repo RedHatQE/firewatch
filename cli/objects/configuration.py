@@ -94,7 +94,12 @@ class Configuration:
             exit(1)
 
     def _get_config_data(self, config_file_path: Optional[str]) -> str:
-        """"""
+        """
+        Used to get the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
+        Will exit with code 1 if either a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
+        :param config_file_path: An optional value, the firewatch config can be stored in a file or an environment var.
+        :return: A string object representing the firewatch config data.
+        """
         if config_file_path is not None:
             # Read the contents of the config file
             try:
