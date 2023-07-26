@@ -41,6 +41,7 @@ class Rule:
         self.jira_component = self._get_jira_component(rule_dict)
         self.jira_affects_version = self._get_jira_affects_version(rule_dict)
         self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
+        self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.ignore = self._get_ignore(rule_dict)
 
     def _get_step(self, rule_dict: dict[Any, Any]) -> str:
@@ -269,6 +270,36 @@ class Rule:
             else:
                 self.logger.error(
                     f'Value for "jira_additional_labels" must be either a list of strings (multiple labels) or a string value (single label) in firewatch rule: "{rule_dict}"',
+                )
+                exit(1)
+        else:
+            return None
+
+    def _get_jira_assignee(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        """
+        Determines if a Jira Assignee is defined in a rule. If it is, validate it and return the string.
+
+        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
+        :return: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
+        """
+        rule_dict.keys()
+        if "jira_assignee" in rule_dict.keys():
+            try:
+                jira_assignee = rule_dict["jira_assignee"]
+            except Exception as ex:
+                self.logger.error(ex)
+                exit(1)
+            if isinstance(jira_assignee, str):
+                if "@" in jira_assignee:
+                    return jira_assignee
+                else:
+                    self.logger.error(
+                        f'Value for "jira_assignee" is not an email address in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            else:
+                self.logger.error(
+                    f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
                 )
                 exit(1)
         else:

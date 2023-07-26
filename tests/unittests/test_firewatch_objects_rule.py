@@ -28,6 +28,7 @@ class TestFirewatchObjectsRule:
             "jira_component": "test component",
             "jira_affects_version": "test version",
             "jira_additional_labels": ["some-label-1", "some-label-2"],
+            "jira_assignee": "some-email@redhat.com",
             "ignore": False,
         }
 
@@ -43,6 +44,7 @@ class TestFirewatchObjectsRule:
         assert ("some-label-1" in rule.jira_additional_labels) and (
             "some-label-2" in rule.jira_additional_labels
         )
+        assert rule.jira_assignee == "some-email@redhat.com"
         assert not rule.ignore
 
     def test_get_step(self) -> None:
@@ -117,6 +119,30 @@ class TestFirewatchObjectsRule:
         test_rule_dict = {"step": "test"}
         jira_affects_version = Rule._get_jira_affects_version(self, test_rule_dict)
         assert jira_affects_version is None
+
+    def test_get_jira_additional_labels(self) -> None:
+        # Test when jira_additional_labels is defined
+        test_rule_dict = {"jira_additional_labels": ["some-label-1", "some-label-2"]}
+        jira_additional_labels = Rule._get_jira_additional_labels(self, test_rule_dict)
+        assert ("some-label-1" in jira_additional_labels) and (
+            "some-label-2" in jira_additional_labels
+        )
+
+        # Test when jira_additional_labels is not defined
+        test_rule_dict = {"step": "test"}
+        jira_additional_labels = Rule._get_jira_additional_labels(self, test_rule_dict)
+        assert jira_additional_labels is None
+
+    def test_get_jira_assignee(self) -> None:
+        # Test when jira_assignee is defined
+        test_rule_dict = {"jira_assignee": "some-email@redhat.com"}
+        jira_assignee = Rule._get_jira_assignee(self, test_rule_dict)
+        assert jira_assignee == "some-email@redhat.com"
+
+        # Test when jira_assignee is not defined
+        test_rule_dict = {"step": "test"}
+        jira_assignee = Rule._get_jira_assignee(self, test_rule_dict)
+        assert jira_assignee is None
 
     def test_get_ignore(self) -> None:
         # Test when defined as "true"

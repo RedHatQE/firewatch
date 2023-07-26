@@ -14,6 +14,7 @@
       * [`jira_component`](#jiracomponent)
       * [`jira_affects_version`](#jiraaffectsversion)
       * [`jira_additional_labels`](#jiraadditionallabels)
+      * [`jira_assignee`](#jiraassignee)
       * [`ignore`](#ignore)
 
 ## Jira Issue Creation (`firewatch report`) Configuration
@@ -165,6 +166,20 @@ A list of additional labels to add to a bug.
 **Notes:**
 
 - The Jira API will not allow these strings to have spaces in them.
+
+---
+
+#### `jira_assignee`
+
+The email address of the user you would like a bug assigned to if a bug is created.
+
+**Example:**
+
+- `"jira_assignee": "some-user@redhat.com"`
+
+**Notes:**
+
+- Must be the EMAIL ADDRESS of the user you would like to assign bugs to.
 
 ---
 
