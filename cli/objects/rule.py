@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+import re
 from typing import Any
 from typing import Optional
 
@@ -290,7 +291,8 @@ class Rule:
                 self.logger.error(ex)
                 exit(1)
             if isinstance(jira_assignee, str):
-                if "@" in jira_assignee:
+                regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
+                if re.fullmatch(regex, jira_assignee):
                     return jira_assignee
                 else:
                     self.logger.error(
