@@ -21,6 +21,7 @@ from typing import Optional
 from jira import Issue
 from jira import JIRA
 from jira.exceptions import JIRAError
+from jira.resources import User
 
 
 class Jira:
@@ -68,6 +69,8 @@ class Jira:
         file_attachments: Optional[list[str]] = None,
         labels: list[Optional[str]] = [],
         affects_version: Optional[str] = None,
+        assignee: Optional[str] = None,
+        priority: Optional[str] = None,
     ) -> Issue:
         """
         Used to create a Jira issue and attach any given files to that issue.
@@ -81,7 +84,8 @@ class Jira:
         :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
         :param labels: An optional list of labels to add to the issue
         :param affects_version: Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira
-
+        :param assignee: An optional string for the assignee of an issue. Should be the email address of the user.
+        :param priority: An optional string representing the desired priority of the issue being created.
         :returns: A Jira Issue object
         """
         issue_dict = {
@@ -104,6 +108,9 @@ class Jira:
 
         if affects_version:
             issue_dict.update({"versions": [{"name": affects_version}]})  # type: ignore
+
+        if priority:
+            issue_dict.update({"priority": {"name": priority}})
 
         self.logger.info(
             f"A Jira issue will be reported.",
@@ -128,6 +135,10 @@ class Jira:
                 )
             else:
                 self.logger.error(f"Error finding Jira ID of epic {epic}")
+
+        if assignee is not None:
+            self.assign_issue(user_email=assignee, issue=issue.key)
+            self.logger.info(f"Issue {issue} has been assigned to user {assignee}")
 
         return issue
 
@@ -207,3 +218,18 @@ class Jira:
             else:
                 self.logger.error(f"Error: {e.text}")
                 return False
+
+    def assign_issue(self, user_email: str, issue: str) -> bool:
+        """
+        Assigns a given issue to the user specified.
+        :param user_email: A string value representing the email address of use the issue should be assigned to.
+        :param issue: A string value representing the issue that should be assigned.
+        :return: A boolean value. If True, the issue has been assigned successfully. If false, it is not assigned.
+        """
+        # Assign the issue
+        try:
+            return self.connection.assign_issue(issue=issue, assignee=user_email)
+        except Exception as ex:
+            self.logger.error(f"Unable to assign issue {issue} to user {user_email}.")
+            self.logger.error(ex)
+            return False

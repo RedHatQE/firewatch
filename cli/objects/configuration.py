@@ -48,25 +48,13 @@ class Configuration:
         self.jira = jira
 
         # Check if DEFAULT_JIRA_PROJECT
-        self.default_jira_project = (
-            os.getenv(
-                "FIREWATCH_DEFAULT_JIRA_PROJECT",
-            )
-            or "NONE"
-        )
+        self.default_jira_project = self._get_default_jira_project()
 
         # Boolean value representing if the program should fail if test failures are found.
         self.fail_with_test_failures = fail_with_test_failures
 
         # Get the config data
-        # Check if config_file_path was provided
-        if config_file_path is not None:
-            # Read the contents of the file
-            with open(config_file_path) as file:
-                self.config_data = file.read()
-        else:
-            # Check if the environment variable FIREWATCH_CONFIG is defined
-            self.config_data = os.getenv("FIREWATCH_CONFIG")  # type: ignore
+        self.config_data = self._get_config_data(config_file_path=config_file_path)
 
         # Create the list of Rule objects using the config data
         self.rules = self._get_rules(json.loads(self.config_data))
@@ -88,3 +76,47 @@ class Configuration:
                 "Firewatch config is empty, please populate the configuration and try again.",
             )
             exit(1)
+
+    def _get_default_jira_project(self) -> str:
+        """
+        Used to get the default jira project from the FIREWATCH_DEFAULT_JIRA_PROJECT environment variable
+        :return: The string of the default environment variable.
+        """
+
+        default_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
+
+        if default_project:
+            return default_project
+        else:
+            self.logger.error(
+                "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try again.",
+            )
+            exit(1)
+
+    def _get_config_data(self, config_file_path: Optional[str]) -> str:
+        """
+        Used to get the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
+        Will exit with code 1 if either a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
+        :param config_file_path: An optional value, the firewatch config can be stored in a file or an environment var.
+        :return: A string object representing the firewatch config data.
+        """
+        if config_file_path is not None:
+            # Read the contents of the config file
+            try:
+                with open(config_file_path) as file:
+                    config_data = file.read()
+                    return config_data
+            except Exception:
+                self.logger.error(
+                    f"Unable to read configuration file at {config_file_path}. Please verify permissions/path and try again.",
+                )
+                exit(1)
+        else:
+            config_data = os.getenv("FIREWATCH_CONFIG")  # type: ignore
+            if config_data:
+                return config_data
+            else:
+                self.logger.error(
+                    "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. Please fix error and try again.",
+                )
+                exit(1)

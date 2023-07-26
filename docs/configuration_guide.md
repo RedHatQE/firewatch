@@ -14,6 +14,8 @@
       * [`jira_component`](#jiracomponent)
       * [`jira_affects_version`](#jiraaffectsversion)
       * [`jira_additional_labels`](#jiraadditionallabels)
+      * [`jira_assignee`](#jiraassignee)
+      * [`jira_priority`](#jirapriority)
       * [`ignore`](#ignore)
 
 ## Jira Issue Creation (`firewatch report`) Configuration
@@ -165,6 +167,44 @@ A list of additional labels to add to a bug.
 **Notes:**
 
 - The Jira API will not allow these strings to have spaces in them.
+
+---
+
+#### `jira_assignee`
+
+The email address of the user you would like a bug assigned to if a bug is created.
+
+**Example:**
+
+- `"jira_assignee": "some-user@redhat.com"`
+
+**Notes:**
+
+- Must be the EMAIL ADDRESS of the user you would like to assign bugs to.
+
+---
+
+#### `jira_priority`
+
+The priority desired for a bug created using this rule.
+
+**Example(s):**
+
+- `"jira_priority": "Blocker"`
+- `"jira_priority": "critical"`
+- `"jira_priority": "MAJOR"`
+- `"jira_priority": "Normal"`
+- `"jira_priority": "minor"`
+
+**Notes:**
+
+- This value must be set to one of the following, as they are the only available options in Red Hat's Jira instance (may be expanded):
+  - `Blocker`
+  - `Critical`
+  - `Major`
+  - `Normal`
+  - `Minor`
+- This value is _not_ case-sensitive.
 
 ---
 

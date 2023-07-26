@@ -95,6 +95,8 @@ class Report:
             epic = pair["rule"].jira_epic  # type: ignore
             component = pair["rule"].jira_component  # type: ignore
             affects_version = pair["rule"].jira_affects_version  # type: ignore
+            assignee = pair["rule"].jira_assignee  # type: ignore
+            priority = pair["rule"].jira_priority  # type: ignore
             summary = f"Failure in {job.name}, {date.strftime('%m-%d-%Y')}"
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
@@ -146,6 +148,8 @@ class Report:
                     file_attachments=file_attachments,
                     labels=labels,
                     affects_version=affects_version,
+                    assignee=assignee,
+                    priority=priority,
                 )
                 bugs_filed.append(jira_issue.key)
 
