@@ -158,11 +158,9 @@ class Rule:
         :return: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_epic" in rule_dict.keys():
-            try:
-                jira_epic = rule_dict["jira_epic"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_epic = rule_dict["jira_epic"]
+
             if isinstance(jira_epic, str):
                 return jira_epic
             else:
@@ -182,11 +180,9 @@ class Rule:
         """
         components = []
         if "jira_component" in rule_dict.keys():
-            try:
-                jira_component = rule_dict["jira_component"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_component = rule_dict["jira_component"]
+
             if isinstance(jira_component, str):
                 components.append(jira_component)
                 return components
@@ -217,11 +213,9 @@ class Rule:
         :return: A string value representing the affected version for a firewatch rule.
         """
         if "jira_affects_version" in rule_dict.keys():
-            try:
-                jira_affects_version = rule_dict["jira_affects_version"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_affects_version = rule_dict["jira_affects_version"]
+
             if isinstance(jira_affects_version, str):
                 return jira_affects_version
             else:
@@ -245,11 +239,9 @@ class Rule:
         labels = []
 
         if "jira_additional_labels" in rule_dict.keys():
-            try:
-                jira_additional_labels = rule_dict["jira_additional_labels"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_additional_labels = rule_dict["jira_additional_labels"]
+
             if isinstance(jira_additional_labels, str):
                 labels.append(jira_additional_labels)
                 return labels
@@ -285,11 +277,9 @@ class Rule:
         :return: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_assignee" in rule_dict.keys():
-            try:
-                jira_assignee = rule_dict["jira_assignee"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_assignee = rule_dict["jira_assignee"]
+
             if isinstance(jira_assignee, str):
                 regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
                 if re.fullmatch(regex, jira_assignee):
@@ -317,13 +307,11 @@ class Rule:
         valid_priority_values = ["Blocker", "Critical", "Major", "Normal", "Minor"]
 
         if "jira_priority" in rule_dict.keys():
-            try:
-                jira_priority = (
-                    rule_dict["jira_priority"].lower().capitalize()
-                )  # The value must be an exact match to the values in valid_priority_values (first letter capitalized, the rest lower)
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            jira_priority = (
+                rule_dict["jira_priority"].lower().capitalize()
+            )  # The value must be an exact match to the values in valid_priority_values (first letter capitalized, the rest lower)
+
             if isinstance(jira_priority, str):
                 if jira_priority in valid_priority_values:
                     return jira_priority
@@ -348,11 +336,9 @@ class Rule:
         :return: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
         """
         if "ignore" in rule_dict.keys():
-            try:
-                ignore = rule_dict["ignore"]
-            except Exception as ex:
-                self.logger.error(ex)
-                exit(1)
+
+            ignore = rule_dict["ignore"]
+
             if isinstance(ignore, str):
                 if ignore.lower() == "true":
                     return True
