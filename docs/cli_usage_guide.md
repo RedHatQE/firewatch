@@ -89,7 +89,7 @@ $ firewatch report --fail_with_test_failures
 
 **How Are Duplicate Bugs Handled?**
 
-This tool take duplicate bugs into consideration. When a failure is identified, after the failure has been matched with its corresponding rule in the firewatch config, the firewatch tool with search Jira for any bugs that match the following rules to determine if it is a duplicate:
+This tool takes duplicate bugs into consideration. When a failure is identified, after the failure has been matched with its corresponding rule in the firewatch config, the firewatch tool will search Jira for any bugs that match the following rules to determine if it is a duplicate:
 
 - Any OPEN issues that are in the same Jira project defined in the rule's `jira_project` key
 - **AND** issues that have a label matching the step/pod name that failed
@@ -100,17 +100,40 @@ If any issues are found that match all the conditions above, we can be fairly co
 
 > A duplicate failure was identified in a recent run of the {job name} job:
 >
-> Link: {link to prow job run}
+> **Link:** {link to prow job run}
 >
-> Build ID: {failing build ID}
+> **Build ID:** {failing build ID}
 >
-> Classification: {value of the "classification" key of the matching rule}
+> **Classification:** {value of the "classification" key of the matching rule}
 >
-> Pod Failed: {name of step/pod that failed}
+> **Pod Failed:** {name of step/pod that failed}
 >
 > Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
 >
 > This comment was created using firewatch in OpenShift CI
+
+**What about stale issues in Jira?**
+
+This tool has functionality to find open Jira issues that were created for the passing job and created by firewatch. When no failures are found for a job, the firewatch tool will search Jira for any Jira issues that match the following rules:
+
+- Any OPEN issues in the provided Jira server that:
+- has a label matching the prow job name that passed
+- **AND** has a label matching "firewatch" (this is to ensure the open issue is created by the firewatch tool)
+- **AND** does NOT have a label matching "ignore-passing-notification" (this is to allow users to stop future notifications if they need to keep the issue open but don't want the notifications in the future)
+
+If Any issues are found that match all the conditions above, we can be fairly confident that a "passing job" notification should be given in the form of a comment on the issue. The comment looks something like this:
+
+>  **JOB RECENTLY PASSED**
+>
+> This job has been run successfully since this bug was filed. Please verify that this bug is still relevant and close it if needed.
+>
+> **Passing Run Link:** {link to prow job run}
+>
+> **Passing Run Build ID:** {passing build ID}
+>
+> *Please add the "ignore-passing-notification" tag to this bug to avoid future passing job notifications.*
+>
+> This comment was created using firewatch in OpenShift CI.
 
 ### `jira_config_gen`
 

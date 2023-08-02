@@ -14,6 +14,12 @@ The firewatch project is in its infancy and currently has limited functionality.
   - If multiple issues are created for a run, the issues will all be related to each other to help with issue.
   - The issues created have a "classification" section that is defined by the user in their firewatch config.
     - This can be used as a "best-guess" for what may have gone wrong during the job's run.
+  - Firewatch searches for duplicate issues and makes a comment on the issues rather than filing a second issue.
+    - This is done using the labels on issues created by firewatch. These labels should consist of the failure type, failed step, and the job name.
+    - If the new failures matches the failure type, failed step, and job name; firewatch will make a comment notifying the user that this failure likely happened again.
+  - If no failures are found, firewatch will search for any open issues on the Jira server provided and add a comment to the issue mentioning that the job has passed since that issue was filed.
+    - This functionality also uses the labels on issues created by firewatch.
+    - **Note:** If you get a notification on an issue, but would like to continue working on the issue without getting notifications, add the `ignore-passing-notification` label to the issue.
 
 ## Getting Started
 

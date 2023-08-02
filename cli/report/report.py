@@ -61,6 +61,23 @@ class Report:
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 
+            # Look for open bugs and
+            open_bugs = self._get_open_bugs(
+                job_name=job.name,
+                jira=firewatch_config.jira,
+            )
+            if open_bugs is not None:
+                if len(open_bugs) > 0:
+                    for bug in open_bugs:
+                        self.logger.info(
+                            f"Adding passed job notification to issue {bug}",
+                        )
+                        self.add_passing_job_comment(
+                            job=job,
+                            jira=firewatch_config.jira,
+                            issue_id=bug,
+                        )
+
     def file_jira_issues(
         self,
         failures: list[Failure],
@@ -195,6 +212,30 @@ class Report:
                 matching_rules.append(default_rule)
 
         return matching_rules
+
+    def add_passing_job_comment(self, job: Job, jira: Jira, issue_id: str) -> None:
+        """
+        Used to make a comment on a Jira issue that is open but has had a passing job since the issue was filed.
+
+        :param job: Job object of the passing job.
+        :param jira: Jira object.
+        :param issue_id: Issue ID of the open issue to comment on.
+        :return:
+        """
+        comment = f"""
+                                h2. *JOB RECENTLY PASSED*
+
+                                This job has been run successfully since this bug was filed. Please verify that this bug is still relevant and close it if needed.
+
+                                *Passing Run Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job.name}/{job.build_id}
+                                *Passing Run Build ID:* {job.build_id}
+
+
+                                _Please add the "ignore-passing-notification" tag to this bug to avoid future passing job notifications._
+
+                                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch].
+                            """
+        jira.comment(issue_id=issue_id, comment=comment)
 
     def add_duplicate_comment(
         self,
@@ -384,5 +425,36 @@ class Report:
                 self.logger.info(f"https://issues.redhat.com/browse/{bug}")
 
             return duplicate_bugs
+        else:
+            return None
+
+    def _get_open_bugs(
+        self,
+        job_name: Optional[str],
+        jira: Jira,
+    ) -> Optional[list[str]]:
+        """
+        Used to search for open bugs for a specific job.
+
+        :param job_name: A string object representing the job_name to search for.
+        :param jira: Jia object.
+        :return: A list of string representing open bugs for a job. If none are found, None is returned.
+        """
+        self.logger.info(f"Searching for open bugs for job {job_name}")
+
+        # This JQL query will find any open issue that:
+        # has a label that matches the job name
+        # AND a label that == "firewatch"
+        # AND does NOT have a label that == "ignore-passing-notification"
+        # AND a is not in the "closed" status
+        jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND status not in (closed)'
+        open_bugs = jira.search(jql_query=jql_query)
+
+        if len(open_bugs) > 0:
+            self.logger.info(f"Found open bugs for job {job_name}:")
+            for bug in open_bugs:
+                self.logger.info(f"https://issues.redhat.come/browse/{bug}")
+
+            return open_bugs
         else:
             return None
