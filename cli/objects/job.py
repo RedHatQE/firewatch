@@ -156,11 +156,22 @@ class Job:
                 if not os.path.exists(f"{path}/{blob_step}"):
                     os.mkdir(f"{path}/{blob_step}")
 
+                # Check if the filename exists
+                file_counter = 1
+                filename, extension = os.path.splitext(blob_name)
+                file_path = f"{path}/{blob_step}/{filename}{extension}"
+                while os.path.exists(file_path):
+                    self.logger.info(f"File {file_path} already exists...")
+                    file_path = (
+                        f"{path}/{blob_step}/{filename}_{str(file_counter)}{extension}"
+                    )
+                    file_counter += 1
+
                 # Download blob
-                file = f"{path}/{blob_step}/{blob_name}"
-                with open(file, "xb") as target:
+                f"{path}/{blob_step}/{blob_name}"
+                with open(file_path, "xb") as target:
                     blob.download_to_file(target)
-                    self.logger.info(f"{file} downloaded successfully...")
+                    self.logger.info(f"{file_path} downloaded successfully...")
 
         return path
 
