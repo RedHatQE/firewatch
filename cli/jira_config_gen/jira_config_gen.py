@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+import os
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
