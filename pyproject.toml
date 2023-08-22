@@ -42,7 +42,6 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
-
 [tool.poetry.urls]
 Download = "https://github.com/CSPI-QE/firewatch"
 "Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
