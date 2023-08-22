@@ -30,7 +30,7 @@ version = "0.0.0"
 description = "A tool to monitor pods in OpenShift CI and report pod failures to Jira."
 authors = ["CSPI QE <cspi-qe@redhat.com>"]
 readme = "README.md"
-license = "Apache-2.0"
+license = "GPLv3"
 homepage = "https://github.com/CSPI-QE/firewatch"
 repository = "https://github.com/CSPI-QE/firewatch"
 packages = [{include = "cli"}]
