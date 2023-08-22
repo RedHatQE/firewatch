@@ -1,0 +1,73 @@
+[tool.black]
+line-length = 88
+target_version = ['py38', 'py39', 'py310', "py311"]
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+    | \.mypy_cache
+    | \.tox
+  )/
+)
+'''
+
+[tool.mypy]
+check_untyped_defs = "true"
+disallow_any_generics = "true"
+disallow_incomplete_defs = "true"
+disallow_untyped_defs = "true"
+no_implicit_optional = "true"
+ignore_missing_imports = "true"
+
+[tool.isort]
+line_length = 88
+profile = "black"
+
+[tool.poetry]
+name = "firewatch"
+version = "0.0.0"
+description = "A tool to monitor pods in OpenShift CI and report pod failures to Jira."
+authors = ["CSPI QE <cspi-qe@redhat.com>"]
+readme = "README.md"
+license = "Apache-2.0"
+homepage = "https://github.com/CSPI-QE/firewatch"
+repository = "https://github.com/CSPI-QE/firewatch"
+packages = [{include = "cli"}]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: GPLv3 License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+
+
+[tool.poetry.urls]
+Download = "https://github.com/CSPI-QE/firewatch"
+"Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.1.7"
+google-cloud-storage = "^2.10.0"
+jinja2 = "^3.1.2"
+jira = "^3.5.2"
+junitparser = "^3.1.0"
+
+[tool.poetry.scripts]
+firewatch = "cli:cli"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = "((?P<epoch>\\d+)!)?(?P<base>\\d+(\\.\\d+)*)"
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["VERSION"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.ruff]
+line-length = 120
