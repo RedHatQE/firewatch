@@ -12,7 +12,9 @@ RUN python3 -m pip install pip poetry --upgrade \
     && poetry config cache-dir /openshift-cli-installer \
     && poetry config virtualenvs.in-project true \
     && poetry config installer.max-workers 10 \
-    && poetry install
+    && poetry install \
+    && printf '#!/bin/bash \n poetry run firewatch $@' > /usr/bin/firewatch \
+    && chmod +x /usr/bin/firewatch
 
 
-ENTRYPOINT ["poetry", "run", "firewatch"]
+ENTRYPOINT ["firewatch"]
