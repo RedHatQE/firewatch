@@ -27,7 +27,7 @@ class JiraConfig:
         server_url: str,
         token_path: str,
         output_file: str,
-        template_dir: str = os.path.join("firewatch", "cli", "templates"),
+        template_dir: str = os.path.join("/", "firewatch", "cli", "templates"),
         template_filename: str = "jira.config.j2",
     ) -> None:
         """
