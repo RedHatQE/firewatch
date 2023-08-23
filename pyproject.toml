@@ -27,7 +27,8 @@ profile = "black"
 [tool.poetry]
 name = "firewatch"
 version = "0.0.0"
-description = "A tool to monitor pods in OpenShift CI and report pod failures to Jira."
+description = "Suggested change
+description = "A tool to monitor results in OpenShift CI and report pod or test failures to Jira."
 authors = ["CSPI QE <cspi-qe@redhat.com>"]
 readme = "README.md"
 license = "GPLv3"
