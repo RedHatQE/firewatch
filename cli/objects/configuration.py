@@ -33,11 +33,12 @@ class Configuration:
         config_file_path: Union[str, None] = None,
     ):
         """
-        Used to construct the Configuration object. This class is mainly used to validate the firewatch configuration given.
+        Constructs the Configuration object. This class is mainly used to validate the firewatch configuration given.
 
-        :param jira: A Jira object used to log in and interact with Jira
-        :param fail_with_test_failures: A boolean value. If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
-        :param config_file_path: An optional value, the firewatch config can be stored in a file or an environment var.
+        Args:
+            jira (Jira): A Jira object used to log in and interact with Jira
+            fail_with_test_failures (bool): If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
+            config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -61,10 +62,13 @@ class Configuration:
 
     def _get_rules(self, rules_json: list[dict[Any, Any]]) -> Optional[list[Rule]]:
         """
-        Used to create a list of Rule objects.
+        Creates a list of Rule objects.
 
-        :param rules_json: The JSON list of rules provided by the user.
-        :return: A list of Rule objects.
+        Args:
+            rules_json (list[dict[Any, Any]]): The JSON list of rules provided by the user.
+
+        Returns:
+            Optional[list[Rule]]: A list of Rule objects.
         """
         rules = []
         for line in rules_json:
@@ -79,8 +83,10 @@ class Configuration:
 
     def _get_default_jira_project(self) -> str:
         """
-        Used to get the default jira project from the FIREWATCH_DEFAULT_JIRA_PROJECT environment variable
-        :return: The string of the default environment variable.
+        Gets the default jira project from the FIREWATCH_DEFAULT_JIRA_PROJECT environment variable.
+
+        Returns:
+            str: The string of the default environment variable.
         """
 
         default_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
@@ -95,10 +101,14 @@ class Configuration:
 
     def _get_config_data(self, config_file_path: Optional[str]) -> str:
         """
-        Used to get the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
+        Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
         Will exit with code 1 if either a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
-        :param config_file_path: An optional value, the firewatch config can be stored in a file or an environment var.
-        :return: A string object representing the firewatch config data.
+
+        Args:
+            config_file_path (Optional[str]): The firewatch config can be stored in a file or an environment var.
+
+        Returns:
+            str: A string object representing the firewatch config data.
         """
         if config_file_path is not None:
             # Read the contents of the config file
