@@ -23,9 +23,10 @@ from typing import Optional
 class Rule:
     def __init__(self, rule_dict: dict[Any, Any]) -> None:
         """
-        Builds the Rule object.
+        Initializes the Rule object.
 
-        :param rule_dict: A dictionary object representing a firewatch rule.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a firewatch rule.
         """
 
         logging.basicConfig(level=logging.INFO)
@@ -50,8 +51,11 @@ class Rule:
         """
         Determines the step that a firewatch rule pertains to.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string value representing the full or partial name of a step that this firewatch rule pertains to.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            str: A string value representing the full or partial name of a step that this firewatch rule pertains to.
         """
         try:
             step = rule_dict["step"]
@@ -74,8 +78,11 @@ class Rule:
         """
         Determines the failure_type of a firewatch rule.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string value representing the failure_type of a rule.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            str: A string value representing the failure_type of a rule.
         """
         valid_failure_types = ["pod_failure", "test_failure", "all", "!none"]
 
@@ -106,8 +113,11 @@ class Rule:
         """
         Determines the classification of a firewatch rule.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string value representing the classification of a rule.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            str: A string value representing the classification of a rule.
         """
         try:
             classification = rule_dict["classification"]
@@ -130,8 +140,11 @@ class Rule:
         """
         Determines the Jira Project defined in a firewatch rule.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string value representing the jira_project for a firewatch rule.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            str: A string value representing the jira_project for a firewatch rule.
         """
         try:
             jira_project = rule_dict["jira_project"]
@@ -154,8 +167,11 @@ class Rule:
         """
         Determines if a Jira Epic is defined in a rule. If it is, validate it and return the string.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_epic" in rule_dict.keys():
 
@@ -175,8 +191,11 @@ class Rule:
         """
         Determines if one or more Jira Components are defined in firewatch rule. If it is, return a list of components.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A list of strings representing the component(s) defined in a firewatch rule. If not defined, return None
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[list[str]]: A list of strings representing the component(s) defined in a firewatch rule. If not defined, return None
         """
         components = []
         if "jira_component" in rule_dict.keys():
@@ -209,8 +228,11 @@ class Rule:
         """
         Determines if the jira_affects_version value is set, if so, returns the string of that version affected.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string value representing the affected version for a firewatch rule.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string value representing the affected version for a firewatch rule.
         """
         if "jira_affects_version" in rule_dict.keys():
 
@@ -233,8 +255,11 @@ class Rule:
         """
         Determines if the jira_additional_labels value is set, if so, returns a list of strings of additional labels.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A list of strings representing additional labels.
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[list[str]]: A list of strings representing additional labels.
         """
         labels = []
 
@@ -273,8 +298,11 @@ class Rule:
         """
         Determines if a Jira Assignee is defined in a rule. If it is, validate it and return the string.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_assignee" in rule_dict.keys():
 
@@ -301,8 +329,11 @@ class Rule:
         """
         Determines if a Jira priority is defined in a rule. If it is, validate it and return the string.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A string of the Jira priority to use in a firewatch rule. If one is not defined, return None
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string of the Jira priority to use in a firewatch rule. If one is not defined, return None
         """
         valid_priority_values = ["Blocker", "Critical", "Major", "Normal", "Minor"]
 
@@ -332,8 +363,11 @@ class Rule:
         """
         Determines if this firewatch rule is an ignore rule. If it is, return true, else return false.
 
-        :param rule_dict: A dictionary object representing a user-defined firewatch rule.
-        :return: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            bool: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
         """
         if "ignore" in rule_dict.keys():
 

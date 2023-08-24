@@ -20,10 +20,11 @@ import logging
 class Failure:
     def __init__(self, failed_step: str, failure_type: str):
         """
-        Builds the Failure object.
+        Initializes the Failure object.
 
-        :param failed_step: The failed step
-        :param failure_type: The failure type
+        Args:
+            failed_step (str): The failed step
+            failure_type (str): The failure type
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -37,8 +38,11 @@ class Failure:
         """
         Gets the name of the failed step. Used to validate the value provided.
 
-        :param failed_step: Failed step name.
-        :return: String value representing name of step failed
+        Args:
+            failed_step (str): Failed step name.
+
+        Returns:
+            str: String value representing name of step failed
         """
         if isinstance(failed_step, str):
             return failed_step
@@ -50,8 +54,11 @@ class Failure:
         """
         Gets the failure type. Used to validate the value provided.
 
-        :param failure_type: Failure type.
-        :return: A string value representing failure type
+        Args:
+            failure_type (str): Failure type.
+
+        Returns:
+            str: A string value representing failure type
         """
 
         valid_failure_types = ["pod_failure", "test_failure"]

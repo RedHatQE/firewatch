@@ -32,8 +32,9 @@ class Report:
         """
         Builds the Report object. This class is used to file Jira issues for OpenShift failures.
 
-        :param firewatch_config: A valid firewatch Configuration object.
-        :param job: A valid Job object representing the prow job being checked for failures/reported on.
+        Args:
+            firewatch_config (Configuration): A valid firewatch Configuration object.
+            job (Job): A valid Job object representing the prow job being checked for failures/reported on.
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -87,10 +88,13 @@ class Report:
         """
         Using a list of failures, the firewatch config, and the Job object, file issues in Jira.
 
-        :param failures: A list of Failure objects representing the failures found in a prow job.
-        :param firewatch_config: A valid firewatch Configuration object.
-        :param job: A valid Job object representing the prow job to be checked/reported on.
-        :return: A list of strings representing the bugs filed in Jira.
+        Args:
+            failures (list[Failure]): A list of Failure objects representing the failures found in a prow job.
+            firewatch_config (Configuration): A valid firewatch Configuration object.
+            job (Job): A valid Job object representing the prow job to be checked/reported on.
+
+        Returns:
+            list[str]: A list of strings representing the bugs filed in Jira.
         """
         rule_failure_pairs = []
         bugs_filed = []
@@ -181,10 +185,13 @@ class Report:
         """
         Used to check if a failure matches any rules in the firewatch config.
 
-        :param failure: A Failure object representing a failure found in a prow job.
-        :param rules: A list of Rule objects from the firewatch config.
-        :param default_jira_project: A string object representing the default Jira project to report bugs to if there isn't a matching rule.
-        :return: A list of Rule objects that represents the list of Rules a failure matches.
+        Args:
+            failure (Failure): A Failure object representing a failure found in a prow job.
+            rules (list[Rule]): A list of Rule objects from the firewatch config.
+            default_jira_project (str): A string object representing the default Jira project to report bugs to if there isn't a matching rule.
+
+        Returns:
+            list[Rule]: A list of Rule objects that represents the list of Rules a failure matches.
         """
         matching_rules = []
         ignored_rules = []
@@ -217,10 +224,13 @@ class Report:
         """
         Used to make a comment on a Jira issue that is open but has had a passing job since the issue was filed.
 
-        :param job: Job object of the passing job.
-        :param jira: Jira object.
-        :param issue_id: Issue ID of the open issue to comment on.
-        :return:
+        Args:
+            job (Job): Job object of the passing job.
+            jira (Jira): Jira object.
+            issue_id (str): Issue ID of the open issue to comment on.
+
+        Returns:
+            None
         """
         comment = f"""
                                 h2. *JOB RECENTLY PASSED*
@@ -248,12 +258,15 @@ class Report:
         """
         Used to make a comment on a Jira issue that is a suspected duplicate.
 
-        :param issue_id: Issue ID of the suspected duplicate.
-        :param failed_step: Name of the failed step.
-        :param classification: Classification of the failure.
-        :param job: Job object of the failed job.
-        :param jira: Jira object.
-        :return: None
+        Args:
+            issue_id (str): Issue ID of the suspected duplicate.
+            failed_step (str): Name of the failed step.
+            classification (str): Classification of the failure.
+            job (Job): Job object of the failed job.
+            jira (Jira): Jira object.
+
+        Returns:
+            None
         """
         comment = f"""
                         A duplicate failure was identified in a recent run of the {job.name} job:
@@ -274,9 +287,12 @@ class Report:
         """
         Creates a relation for every issue created for a run.
 
-        :param issues: A list of Jira issue keys to relate to one another.
+        Args:
+            issues (list[str]): A list of Jira issue keys to relate to one another.
+            jira (Jira): Jira object.
 
-        :returns: None
+        Returns:
+            None
         """
         self.logger.info("Relating all Jira issues created for this run.")
         relations = {}  # type: ignore
@@ -307,10 +323,13 @@ class Report:
         Generates a list of filepaths for logs and junit files associated with the step defined in the step_name
         parameter.
 
-        :param step_name: A string object representing the name of the step to gather files for
-        :param logs_dir: A string object representing the path to the logs directory
-        :param junit_dir: A string object representing the path to the junit archives directory
-        :returns: A list of filepaths for logs and junit files associated with the step
+        Args:
+            step_name (str): A string object representing the name of the step to gather files for
+            logs_dir (str): A string object representing the path to the logs directory
+            junit_dir (str): A string object representing the path to the junit archives directory
+
+        Returns:
+            list[str]: A list of filepaths for logs and junit files associated with the step
         """
         attachments = []
 
@@ -341,11 +360,14 @@ class Report:
         """
         Used to generate the description of a bug to be filed in Jira.
 
-        :param step_name: Name of the step that failed.
-        :param classification: Classification of the failure.
-        :param job_name: Name of job that failed.
-        :param build_id: Build ID of failure.
-        :return: String object representing the description.
+        Args:
+            step_name (str): Name of the step that failed.
+            classification (str): Classification of the failure.
+            job_name (Optional[str]): Name of job that failed.
+            build_id (Optional[str]): Build ID of failure.
+
+        Returns:
+            str: String object representing the description.
         """
         description = f"""
                     *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
@@ -370,11 +392,14 @@ class Report:
         """
         Builds a list of labels to be included on the Jira issue.
 
-        :param job_name: Name of failed job.
-        :param step_name: Name of failed step in job.
-        :param failure_type: Failure type.
-        :param jira_additional_labels: An optional list of additional labels to include.
-        :return: A list of strings representing the labels the new Jira issue should include.
+        Args:
+            job_name (Optional[str]): Name of failed job.
+            step_name (str): Name of failed step in job.
+            failure_type (str): Failure type.
+            jira_additional_labels (Optional[list[str]]): An optional list of additional labels to include.
+
+        Returns:
+            list[Optional[str]]: A list of strings representing the labels the new Jira issue should include.
         """
         labels = [
             job_name,
@@ -400,12 +425,15 @@ class Report:
         """
         Used to search for possible duplicate bugs before filing a new bug.
 
-        :param project: The project to search for duplicate bugs in.
-        :param job_name: Name of the failed job.
-        :param failed_step: Name of the failed step.
-        :param failure_type: Failure type.
-        :param jira: Jira object.
-        :return: A list of strings representing duplicate bugs found.
+        Args:
+            project (str): The project to search for duplicate bugs in.
+            job_name (Optional[str]): Name of the failed job.
+            failed_step (str): Name of the failed step.
+            failure_type (str): Failure type.
+            jira (Jira): Jira object.
+
+        Returns:
+            Optional[list[str]]: A list of strings representing duplicate bugs found.
         """
         self.logger.info(
             f'Searching for duplicate bugs in project {project} for a "{failure_type}" failure type in the {failed_step} step.',
@@ -436,9 +464,12 @@ class Report:
         """
         Used to search for open bugs for a specific job.
 
-        :param job_name: A string object representing the job_name to search for.
-        :param jira: Jia object.
-        :return: A list of string representing open bugs for a job. If none are found, None is returned.
+        Args:
+            job_name (Optional[str]): A string object representing the job_name to search for.
+            jira (Jira): Jia object.
+
+        Returns:
+            Optional[list[str]]: A list of string representing open bugs for a job. If none are found, None is returned.
         """
         self.logger.info(f"Searching for open bugs for job {job_name}")
 
