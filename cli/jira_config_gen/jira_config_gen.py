@@ -32,13 +32,13 @@ class JiraConfig:
         """
         Used to build the Jira configuration file for use in the report command.
 
-        :param server_url: Jira server URL, i.e "https://issues.stage.redhat.com"
-        :param token_path: Path to the file holding the Jira server API token
-        :param output_file: Where the rendered config will be stored.
-        :param template_dir: Directory where template is stored
-        :param template_filename: Filename of Jinja template
+        Args:
+            server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
+            token_path (str): Path to the file holding the Jira server API token
+            output_file (str): Where the rendered config will be stored.
+            template_dir (str, optional): Directory where template is stored. Defaults to "/templates".
+            template_filename (str, optional): Filename of Jinja template. Defaults to "jira.config.j2".
         """
-
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
             __name__,
@@ -56,9 +56,11 @@ class JiraConfig:
         """
         Reads the contents of file_path and returns it. The file_path should be the file that holds the Jira API token
 
-        :param file_path: The path to the file that holds the Jira API token
+        Args:
+            file_path (str): The path to the file that holds the Jira API token
 
-        :returns: A string object that represents the Jira API token
+        Returns:
+            str: A string object that represents the Jira API token
         """
         try:
             with open(file_path) as file:
@@ -81,13 +83,15 @@ class JiraConfig:
         """
         Uses Jinja to render the Jira configuration file
 
-        :param server_url: Jira server URL, i.e "https://issues.stage.redhat.com"
-        :param token: Jira server API token
-        :param output_file: Where the rendered config will be stored.
-        :param template_dir: Directory where template is stored
-        :param template_filename: Filename of Jinja template
+        Args:
+            server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
+            token (str): Jira server API token
+            output_file (str): Where the rendered config will be stored.
+            template_dir (str): Directory where template is stored
+            template_filename (str): Filename of Jinja template
 
-        :returns: A string object that represents the path of the rendered template.
+        Returns:
+            str: A string object that represents the path of the rendered template.
         """
 
         # Load Jinja template file
