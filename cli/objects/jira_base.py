@@ -27,9 +27,10 @@ from jira.resources import User
 class Jira:
     def __init__(self, jira_config_path: str) -> None:
         """
-        Constructs the Jira object used for authenticating and interacting with a Jira server
+        Constructs the Jira object used for authenticating and interacting with a Jira server.
 
-        :param jira_config_path: The path to the configuration file that hold authentication credentials
+        Args:
+            jira_config_path (str): The path to the configuration file that hold authentication credentials.
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -75,18 +76,21 @@ class Jira:
         """
         Used to create a Jira issue and attach any given files to that issue.
 
-        :param project: The Jira project the issue should be filed under
-        :param summary: Title or summary of the issue
-        :param description: Description of the issue
-        :param issue_type: Issue type (Bug, Task, etc.)
-        :param component: The component or components you'd like the bug to be associated with. Must be a comma deliminated string to specify multiple components. If not supplied, the bug will not have a component
-        :param epic: The epic ID (PROJECT-8) the new issue should be a part of. If not supplied, the issue will not be associated with an epic
-        :param file_attachments: An optional list of file paths. Each file in the list will be attached to the issue
-        :param labels: An optional list of labels to add to the issue
-        :param affects_version: Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira
-        :param assignee: An optional string for the assignee of an issue. Should be the email address of the user.
-        :param priority: An optional string representing the desired priority of the issue being created.
-        :returns: A Jira Issue object
+        Args:
+            project (str): The Jira project the issue should be filed under.
+            summary (str): Title or summary of the issue.
+            description (str): Description of the issue.
+            issue_type (str): Issue type (Bug, Task, etc.).
+            component (Optional[list[str]]): The component or components you'd like the bug to be associated with. Must be a comma deliminated string to specify multiple components. If not supplied, the bug will not have a component.
+            epic (Optional[str]): The epic ID (PROJECT-8) the new issue should be a part of. If not supplied, the issue will not be associated with an epic.
+            file_attachments (Optional[list[str]]): An optional list of file paths. Each file in the list will be attached to the issue.
+            labels (list[Optional[str]]): An optional list of labels to add to the issue.
+            affects_version (Optional[str]): Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira.
+            assignee (Optional[str]): An optional string for the assignee of an issue. Should be the email address of the user.
+            priority (Optional[str]): An optional string representing the desired priority of the issue being created.
+
+        Returns:
+            Issue: A Jira Issue object.
         """
         issue_dict = {
             "project": {"key": project},
@@ -144,9 +148,13 @@ class Jira:
 
     def search(self, jql_query: str) -> list[str]:
         """
-        Performs a Jira JQL query using the Jira connection and returns the results
-        :param jql_query: JQL query to run
-        :return: List of issues that are returned from the query
+        Performs a Jira JQL query using the Jira connection and returns the results.
+
+        Args:
+            jql_query (str): JQL query to run.
+
+        Returns:
+            list[str]: List of issues that are returned from the query.
         """
         issues = []
         results = self.connection.search_issues(jql_query, validate_query=True)
@@ -158,21 +166,24 @@ class Jira:
 
     def comment(self, issue_id: str, comment: str) -> None:
         """
-        Comments on the issue_id
-        :param issue_id: Issue to comment on
-        :param comment: Comment to add to issue
-        :return: None
+        Comments on the issue_id.
+
+        Args:
+            issue_id (str): Issue to comment on.
+            comment (str): Comment to add to issue.
         """
         self.connection.add_comment(issue_id, comment)
 
     def relate_issues(self, inward_issue: str, outward_issue: str) -> bool:
         """
-        Used to relate two issues in Jira
+        Used to relate two issues in Jira.
 
-        :param inward_issue: The first issue you'd like to relate to the second issue
-        :param outward_issue: The second issue you'd like to relate to the first issue
+        Args:
+            inward_issue (str): The first issue you'd like to relate to the second issue.
+            outward_issue (str): The second issue you'd like to relate to the first issue.
 
-        :returns: A boolean value. True = Issues related successfully, False = Issues not related successfully
+        Returns:
+            bool: True if issues related successfully, False otherwise.
         """
         try:
             self.connection.create_issue_link(
@@ -191,11 +202,13 @@ class Jira:
 
     def project_exists(self, project_key: str) -> bool:
         """
-        Used to validate that the "project_key" exists in the Jira server
+        Used to validate that the "project_key" exists in the Jira server.
 
-        :param project_key: Jira project key you'd like to check
+        Args:
+            project_key (str): Jira project key you'd like to check.
 
-        :returns: A boolean value. True = project exists, False = project does not exist
+        Returns:
+            bool: True if project exists, False otherwise.
         """
         try:
             project = self.connection.project(project_key)
@@ -222,9 +235,13 @@ class Jira:
     def assign_issue(self, user_email: str, issue: str) -> bool:
         """
         Assigns a given issue to the user specified.
-        :param user_email: A string value representing the email address of use the issue should be assigned to.
-        :param issue: A string value representing the issue that should be assigned.
-        :return: A boolean value. If True, the issue has been assigned successfully. If false, it is not assigned.
+
+        Args:
+            user_email (str): A string value representing the email address of use the issue should be assigned to.
+            issue (str): A string value representing the issue that should be assigned.
+
+        Returns:
+            bool: True if the issue has been assigned successfully, False otherwise.
         """
         # Assign the issue
         try:
