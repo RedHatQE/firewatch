@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
+import os
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -26,7 +27,7 @@ class JiraConfig:
         server_url: str,
         token_path: str,
         output_file: str,
-        template_dir: str = "/templates",
+        template_dir: str = os.path.join("/", "firewatch", "cli", "templates"),
         template_filename: str = "jira.config.j2",
     ) -> None:
         """
