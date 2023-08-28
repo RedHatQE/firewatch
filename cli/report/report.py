@@ -18,6 +18,7 @@ import fnmatch
 import logging
 import os
 from datetime import datetime
+from typing import Any
 from typing import Optional
 
 from cli.objects.configuration import Configuration
@@ -96,7 +97,7 @@ class Report:
         Returns:
             list[str]: A list of strings representing the bugs filed in Jira.
         """
-        rule_failure_pairs = []
+        rule_failure_pairs = []  # type: ignore
         bugs_filed = []
 
         # Get rule_failure_pairs
@@ -108,6 +109,8 @@ class Report:
             )
             for rule in rule_matches:
                 rule_failure_pairs.append({"rule": rule, "failure": failure})
+
+        rule_failure_pairs = self.filter_priority_rule_failure_pairs(rule_failure_pairs=rule_failure_pairs)
 
         for pair in rule_failure_pairs:
             # Gather bug information
@@ -175,6 +178,58 @@ class Report:
                 bugs_filed.append(jira_issue.key)
 
         return bugs_filed
+
+    def filter_priority_rule_failure_pairs(
+        self,
+        rule_failure_pairs: list[dict[Any, Any]],
+    ) -> list[dict[Any, Any]]:
+        """
+        Filters a list of rule/failure pairs based on user-defined groups/priorities. If there are multiple rule/failure
+        pairs with a group defined in the rule, it will determine which rule is the highest priority. After filtering
+        out the lower priority rule/failure pairs, it will return the new list of rule/failure pairs.
+
+        Args:
+            rule_failure_pairs (list[dict[Any, Any]]): A list of rule/failure pairs.
+        Returns:
+            list[dict[Any, Any]]: A list of rule/failure pairs that have been filtered for user-defined priorities.
+        """
+
+        groups: dict[Any, Any] = {}  # {"some-group-name": [pair1, pair2, pair3]}
+        filtered_rule_failure_pairs = []
+
+        # Populate groups
+        for pair in rule_failure_pairs:
+            if pair["rule"].group_name and pair["rule"].group_priority:
+                # Add the group if it isn't in groups dictionary
+                if pair["rule"].group_name not in groups:
+                    groups.update({pair["rule"].group_name: []})
+                # Add the pair to list of groups
+                groups[pair["rule"].group_name].append(pair)
+            else:
+                filtered_rule_failure_pairs.append(pair)
+
+        # Find the highest priority pair for each "group" item. This should make the list of pairs for each group
+        # item is only 1 item long.
+        for group in groups:
+            if len(groups[group]) > 1:
+                highest_priority_pair = None
+                for pair in groups[group]:
+                    if not highest_priority_pair:
+                        highest_priority_pair = pair
+                    else:
+                        if (
+                            highest_priority_pair["rule"].group_priority
+                            > pair["rule"].group_priority
+                        ):
+                            highest_priority_pair = pair
+                groups.pop(group)
+                groups.update({group: [highest_priority_pair]})
+        # Add the filtered pairs from the groups dictionary to the filtered_rule_failure_pairs
+        for group in groups:
+            filtered_rule_failure_pairs.append(groups[group][0])
+
+        # Return the filtered rule/failure pairs
+        return filtered_rule_failure_pairs
 
     def failure_matches_rule(
         self,

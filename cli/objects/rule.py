@@ -45,6 +45,8 @@ class Rule:
         self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
         self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.jira_priority = self._get_jira_priority(rule_dict)
+        self.group_name = self._get_group_name(rule_dict)
+        self.group_priority = self._get_group_priority(rule_dict)
         self.ignore = self._get_ignore(rule_dict)
 
     def _get_step(self, rule_dict: dict[Any, Any]) -> str:
@@ -356,6 +358,60 @@ class Rule:
                     f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
                 )
                 exit(1)
+        else:
+            return None
+
+    def _get_group_name(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        """
+        Determines if a group name is defined in a rule. If it is, validate it and return the string.
+
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string representing the group name. If one is not defined, return None
+        """
+        if "group" in rule_dict.keys():
+            if "name" in rule_dict["group"].keys():
+
+                group_name = rule_dict["group"]["name"]
+
+                if isinstance(group_name, str):
+                    return group_name
+                else:
+                    self.logger.error(
+                        f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            else:
+                return None
+        else:
+            return None
+
+    def _get_group_priority(self, rule_dict: dict[Any, Any]) -> Optional[int]:
+        """
+        Determines if a group priority is defined in a rule. If it is, validate it and return the integer.
+
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: An integer that determines the priority of a rule. If one is not defined, return None
+        """
+        if "group" in rule_dict.keys():
+            if "priority" in rule_dict["group"].keys():
+
+                group_priority = rule_dict["group"]["priority"]
+
+                if isinstance(group_priority, int):
+                    return group_priority
+                else:
+                    self.logger.error(
+                        f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            else:
+                return None
         else:
             return None
 
