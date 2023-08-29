@@ -174,7 +174,6 @@ class Rule:
             Optional[str]: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_epic" in rule_dict.keys():
-
             jira_epic = rule_dict["jira_epic"]
 
             if isinstance(jira_epic, str):
@@ -199,7 +198,6 @@ class Rule:
         """
         components = []
         if "jira_component" in rule_dict.keys():
-
             jira_component = rule_dict["jira_component"]
 
             if isinstance(jira_component, str):
@@ -235,7 +233,6 @@ class Rule:
             Optional[str]: A string value representing the affected version for a firewatch rule.
         """
         if "jira_affects_version" in rule_dict.keys():
-
             jira_affects_version = rule_dict["jira_affects_version"]
 
             if isinstance(jira_affects_version, str):
@@ -264,7 +261,6 @@ class Rule:
         labels = []
 
         if "jira_additional_labels" in rule_dict.keys():
-
             jira_additional_labels = rule_dict["jira_additional_labels"]
 
             if isinstance(jira_additional_labels, str):
@@ -305,7 +301,6 @@ class Rule:
             Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
         if "jira_assignee" in rule_dict.keys():
-
             jira_assignee = rule_dict["jira_assignee"]
 
             if isinstance(jira_assignee, str):
@@ -338,7 +333,6 @@ class Rule:
         valid_priority_values = ["Blocker", "Critical", "Major", "Normal", "Minor"]
 
         if "jira_priority" in rule_dict.keys():
-
             jira_priority = (
                 rule_dict["jira_priority"].lower().capitalize()
             )  # The value must be an exact match to the values in valid_priority_values (first letter capitalized, the rest lower)
@@ -370,7 +364,6 @@ class Rule:
             bool: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
         """
         if "ignore" in rule_dict.keys():
-
             ignore = rule_dict["ignore"]
 
             if isinstance(ignore, str):

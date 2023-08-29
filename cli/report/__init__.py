@@ -82,7 +82,6 @@ def report(
     jira_config_path: str,
     fail_with_test_failures: bool,
 ) -> None:
-
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
     config = Configuration(

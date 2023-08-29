@@ -223,7 +223,6 @@ class Job:
             blob_step = blob.name.split("/")[-2]
 
             if blob_name in files_to_download:
-
                 # Create step directory if it does not already exist
                 if not os.path.exists(f"{path}/{blob_step}"):
                     os.mkdir(f"{path}/{blob_step}")
