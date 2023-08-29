@@ -110,7 +110,9 @@ class Report:
             for rule in rule_matches:
                 rule_failure_pairs.append({"rule": rule, "failure": failure})
 
-        rule_failure_pairs = self.filter_priority_rule_failure_pairs(rule_failure_pairs=rule_failure_pairs)
+        rule_failure_pairs = self.filter_priority_rule_failure_pairs(
+            rule_failure_pairs=rule_failure_pairs,
+        )
 
         for pair in rule_failure_pairs:
             # Gather bug information
