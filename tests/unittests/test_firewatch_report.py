@@ -180,7 +180,7 @@ class TestFirewatchReport:
 
         assert compare_description == issue_description
 
-    def test_filter_priority_rule_failure_pairs(self) -> None:
+    def test_filter_priority_rule_failure_pairs_priorities_set(self) -> None:
         # Test when groups/priorities are set
         group_rule_1 = Rule(
             rule_dict={
@@ -223,6 +223,7 @@ class TestFirewatchReport:
             {"rule": group_rule_1, "failure": group_failure_1},
         ]
 
+    def test_filter_priority_rule_failure_pairs_priorities_not_set(self) -> None:
         # Test when groups/priorities not set
         rule_1 = Rule(
             rule_dict={
