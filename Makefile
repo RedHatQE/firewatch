@@ -21,6 +21,6 @@ test:
 run:
 	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch
 
-build-run: docker-build docker-run
+build-run: build run
 
-build-test: docker-build docker-test
+build-test: build test
