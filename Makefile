@@ -9,10 +9,8 @@ test:
 commit: pre-commit test
 
 dev-environment:
-	python -m venv venv
-	. venv/bin/activate
-	pip install tox pre-commit
-	pip install -e .
+	python3 -m pip install pip poetry --upgrade
+	poetry install
 
 build:
 	$(IMAGE_BUILD_CMD) build -t firewatch .
