@@ -373,7 +373,6 @@ class Rule:
         """
         if "group" in rule_dict.keys():
             if "name" in rule_dict["group"].keys():
-
                 group_name = rule_dict["group"]["name"]
 
                 if isinstance(group_name, str):
@@ -400,7 +399,6 @@ class Rule:
         """
         if "group" in rule_dict.keys():
             if "priority" in rule_dict["group"].keys():
-
                 group_priority = rule_dict["group"]["priority"]
 
                 if isinstance(group_priority, int):
