@@ -198,40 +198,28 @@ class Report:
 
         groups: dict[Any, Any] = {}  # {"some-group-name": [pair1, pair2, pair3]}
         filtered_rule_failure_pairs = []
+        none_filtered_failure_pairs = []
 
-        # Populate groups
         for pair in rule_failure_pairs:
-            if pair["rule"].group_name and pair["rule"].group_priority:
-                # Add the group if it isn't in groups dictionary
-                if pair["rule"].group_name not in groups:
-                    groups.update({pair["rule"].group_name: []})
-                # Add the pair to list of groups
-                groups[pair["rule"].group_name].append(pair)
+            rule = pair["rule"]
+            if rule.group_name and rule.group_priority:
+                groups.setdefault(rule.group_name, []).append(pair)
             else:
-                filtered_rule_failure_pairs.append(pair)
+                none_filtered_failure_pairs.append(pair)
 
-        # Find the highest priority pair for each "group" item. This should make the list of pairs for each group
-        # item is only 1 item long.
-        for group in groups:
-            if len(groups[group]) > 1:
-                highest_priority_pair = None
-                for pair in groups[group]:
-                    if not highest_priority_pair:
-                        highest_priority_pair = pair
-                    else:
-                        if (
-                            highest_priority_pair["rule"].group_priority
-                            > pair["rule"].group_priority
-                        ):
-                            highest_priority_pair = pair
-                groups.pop(group)
-                groups.update({group: [highest_priority_pair]})
-        # Add the filtered pairs from the groups dictionary to the filtered_rule_failure_pairs
-        for group in groups:
-            filtered_rule_failure_pairs.append(groups[group][0])
+        for _, group_pair in groups.items():
+            highest_priority = min(
+                _group["rule"].group_priority for _group in group_pair
+            )
+            filtered_rule_failure_pairs.extend(
+                [
+                    _group_pair
+                    for _group_pair in group_pair
+                    if _group_pair["rule"].group_priority == highest_priority
+                ]
+            )
 
-        # Return the filtered rule/failure pairs
-        return filtered_rule_failure_pairs
+        return filtered_rule_failure_pairs + none_filtered_failure_pairs
 
     def failure_matches_rule(
         self,
