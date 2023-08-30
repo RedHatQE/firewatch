@@ -495,7 +495,7 @@ class Report:
         if len(duplicate_bugs) > 0:
             self.logger.info("Possible duplicate bugs found:")
             for bug in duplicate_bugs:
-                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+                self.logger.info(f"{jira.url}/browse/{bug}")
 
             return duplicate_bugs
         else:
@@ -529,7 +529,7 @@ class Report:
         if len(open_bugs) > 0:
             self.logger.info(f"Found open bugs for job {job_name}:")
             for bug in open_bugs:
-                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+                self.logger.info(f"{jira.url}browse/{bug}")
 
             return open_bugs
         else:
