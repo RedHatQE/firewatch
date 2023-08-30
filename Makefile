@@ -13,9 +13,14 @@ dev-environment:
 	pip install -e .
 
 docker-build:
-	docker build -t firewatch .
+	docker build -t firewatch . --no-cache
+
+docker-test:
+	docker run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
 
 docker-run:
-	docker run -it firewatch bash
+	docker run -it --env-file development/env.list --entrypoint /bin/bash firewatch
 
-build-run: docker-build docker-run
+docker-build-run: docker-build docker-run
+
+docker-build-test: docker-build docker-test
