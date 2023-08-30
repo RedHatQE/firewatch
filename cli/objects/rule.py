@@ -59,10 +59,9 @@ class Rule:
         Returns:
             str: A string value representing the full or partial name of a step that this firewatch rule pertains to.
         """
-        try:
-            step = rule_dict["step"]
-        except Exception as ex:
-            self.logger.error(ex)
+        step = rule_dict.get("step")
+
+        if not step:
             self.logger.error(
                 f'Unable to find value for "step" in firewatch rule: "{rule_dict}"',
             )
@@ -88,18 +87,17 @@ class Rule:
         """
         valid_failure_types = ["pod_failure", "test_failure", "all", "!none"]
 
-        try:
-            failure_type = rule_dict["failure_type"].lower()
-        except Exception as ex:
-            self.logger.error(ex)
+        failure_type = rule_dict.get("failure_type")
+
+        if not failure_type:
             self.logger.error(
                 f'Unable to find value for "failure_type" in firewatch rule: "{rule_dict}"',
             )
             exit(1)
 
         if isinstance(failure_type, str):
-            if failure_type in valid_failure_types:
-                return failure_type
+            if failure_type.lower() in valid_failure_types:
+                return failure_type.lower()
             else:
                 self.logger.error(
                     f'Value for "failure_type" is not a valid failure type (pod_failure, test_failure, or all) in firewatch rule: "{rule_dict}"',
@@ -121,10 +119,9 @@ class Rule:
         Returns:
             str: A string value representing the classification of a rule.
         """
-        try:
-            classification = rule_dict["classification"]
-        except Exception as ex:
-            self.logger.error(ex)
+        classification = rule_dict.get("classification")
+
+        if not classification:
             self.logger.error(
                 f'Unable to find value for "classification" in firewatch rule: "{rule_dict}"',
             )
@@ -148,10 +145,9 @@ class Rule:
         Returns:
             str: A string value representing the jira_project for a firewatch rule.
         """
-        try:
-            jira_project = rule_dict["jira_project"]
-        except Exception as ex:
-            self.logger.error(ex)
+        jira_project = rule_dict.get("jira_project")
+
+        if not jira_project:
             self.logger.error(
                 f'Unable to find value for "jira_project" in firewatch rule: "{rule_dict}"',
             )
@@ -175,19 +171,15 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
         """
-        if "jira_epic" in rule_dict.keys():
+        jira_epic = rule_dict.get("jira_epic")
 
-            jira_epic = rule_dict["jira_epic"]
-
-            if isinstance(jira_epic, str):
-                return jira_epic
-            else:
-                self.logger.error(
-                    f'Value for "jira_epic" is not a string in firewatch rule: "{rule_dict}"',
-                )
-                exit(1)
+        if isinstance(jira_epic, str) or not jira_epic:
+            return jira_epic
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_epic" is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_jira_component(self, rule_dict: dict[Any, Any]) -> Optional[list[str]]:
         """
@@ -200,31 +192,28 @@ class Rule:
             Optional[list[str]]: A list of strings representing the component(s) defined in a firewatch rule. If not defined, return None
         """
         components = []
-        if "jira_component" in rule_dict.keys():
+        jira_component = rule_dict.get("jira_component")
 
-            jira_component = rule_dict["jira_component"]
-
-            if isinstance(jira_component, str):
-                components.append(jira_component)
-                return components
-            elif isinstance(jira_component, list):
-                for component in jira_component:
-                    if isinstance(component, str):
-                        components.append(component)
-                    else:
-                        self.logger.error(
-                            f'Component "{component}" in "jira_component" is not a string in firewatch rule: "{rule_dict}"',
-                        )
-                        exit(1)
-                return components
-            else:
-                self.logger.error(
-                    f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
-                )
-                exit(1)
-
+        if isinstance(jira_component, str):
+            components.append(jira_component)
+            return components
+        elif isinstance(jira_component, list):
+            for component in jira_component:
+                if isinstance(component, str):
+                    components.append(component)
+                else:
+                    self.logger.error(
+                        f'Component "{component}" in "jira_component" is not a string in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            return components
+        elif not jira_component:
+            return jira_component
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_jira_affects_version(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -236,19 +225,15 @@ class Rule:
         Returns:
             Optional[str]: A string value representing the affected version for a firewatch rule.
         """
-        if "jira_affects_version" in rule_dict.keys():
+        jira_affects_version = rule_dict.get("jira_affects_version")
 
-            jira_affects_version = rule_dict["jira_affects_version"]
-
-            if isinstance(jira_affects_version, str):
-                return jira_affects_version
-            else:
-                self.logger.error(
-                    f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
-                )
-                exit(1)
+        if isinstance(jira_affects_version, str) or not jira_affects_version:
+            return jira_affects_version
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_jira_additional_labels(
         self,
@@ -264,37 +249,34 @@ class Rule:
             Optional[list[str]]: A list of strings representing additional labels.
         """
         labels = []
+        jira_additional_labels = rule_dict.get("jira_additional_labels")
 
-        if "jira_additional_labels" in rule_dict.keys():
-
-            jira_additional_labels = rule_dict["jira_additional_labels"]
-
-            if isinstance(jira_additional_labels, str):
-                labels.append(jira_additional_labels)
-                return labels
-            elif isinstance(jira_additional_labels, list):
-                for label in jira_additional_labels:
-                    if isinstance(label, str):
-                        if " " in label:
-                            self.logger.error(
-                                f'Label "{label}" in rule {rule_dict} contains spaces. Remove spaces and try again.',
-                            )
-                            exit(1)
-                        else:
-                            labels.append(label)
-                    else:
+        if isinstance(jira_additional_labels, str):
+            labels.append(jira_additional_labels)
+            return labels
+        elif isinstance(jira_additional_labels, list):
+            for label in jira_additional_labels:
+                if isinstance(label, str):
+                    if " " in label:
                         self.logger.error(
-                            f'Label "{label}" in "jira_additional_labels" is not a string in firewatch rule: "{rule_dict}"',
+                            f'Label "{label}" in rule {rule_dict} contains spaces. Remove spaces and try again.',
                         )
                         exit(1)
-                return labels
-            else:
-                self.logger.error(
-                    f'Value for "jira_additional_labels" must be either a list of strings (multiple labels) or a string value (single label) in firewatch rule: "{rule_dict}"',
-                )
-                exit(1)
+                    else:
+                        labels.append(label)
+                else:
+                    self.logger.error(
+                        f'Label "{label}" in "jira_additional_labels" is not a string in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            return labels
+        elif not jira_additional_labels:
+            return jira_additional_labels
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_additional_labels" is not a string or list in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_jira_assignee(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -306,26 +288,24 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
-        if "jira_assignee" in rule_dict.keys():
+        jira_assignee = rule_dict.get("jira_assignee")
 
-            jira_assignee = rule_dict["jira_assignee"]
-
-            if isinstance(jira_assignee, str):
-                regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
-                if re.fullmatch(regex, jira_assignee):
-                    return jira_assignee
-                else:
-                    self.logger.error(
-                        f'Value for "jira_assignee" is not an email address in firewatch rule: "{rule_dict}"',
-                    )
-                    exit(1)
+        if isinstance(jira_assignee, str):
+            regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
+            if re.fullmatch(regex, jira_assignee):
+                return jira_assignee
             else:
                 self.logger.error(
-                    f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
+                    f'Value for "jira_assignee" is not an email address in firewatch rule: "{rule_dict}"',
                 )
                 exit(1)
+        elif not jira_assignee:
+            return jira_assignee
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_jira_priority(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -339,27 +319,25 @@ class Rule:
         """
         valid_priority_values = ["Blocker", "Critical", "Major", "Normal", "Minor"]
 
-        if "jira_priority" in rule_dict.keys():
+        jira_priority = rule_dict.get("jira_priority")
 
-            jira_priority = (
-                rule_dict["jira_priority"].lower().capitalize()
-            )  # The value must be an exact match to the values in valid_priority_values (first letter capitalized, the rest lower)
+        if isinstance(jira_priority, str):
+            jira_priority = jira_priority.lower().capitalize()
 
-            if isinstance(jira_priority, str):
-                if jira_priority in valid_priority_values:
-                    return jira_priority
-                else:
-                    self.logger.error(
-                        f'Value for "jira_priority" is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
-                    )
-                    exit(1)
+            if jira_priority in valid_priority_values:
+                return jira_priority
             else:
                 self.logger.error(
-                    f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
+                    f'Value for "jira_priority" is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
                 )
                 exit(1)
+        elif not jira_priority:
+            return jira_priority
         else:
-            return None
+            self.logger.error(
+                f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_group_name(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -371,21 +349,14 @@ class Rule:
         Returns:
             Optional[str]: A string representing the group name. If one is not defined, return None
         """
-        if "group" in rule_dict.keys():
-            if "name" in rule_dict["group"].keys():
-                group_name = rule_dict["group"]["name"]
-
-                if isinstance(group_name, str):
-                    return group_name
-                else:
-                    self.logger.error(
-                        f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
-                    )
-                    exit(1)
-            else:
-                return None
+        group_name = rule_dict.get("group", {}).get("name")
+        if isinstance(group_name, str) or not group_name:
+            return group_name
         else:
-            return None
+            self.logger.error(
+                f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_group_priority(self, rule_dict: dict[Any, Any]) -> Optional[int]:
         """
@@ -397,21 +368,14 @@ class Rule:
         Returns:
             Optional[str]: An integer that determines the priority of a rule. If one is not defined, return None
         """
-        if "group" in rule_dict.keys():
-            if "priority" in rule_dict["group"].keys():
-                group_priority = rule_dict["group"]["priority"]
-
-                if isinstance(group_priority, int):
-                    return group_priority
-                else:
-                    self.logger.error(
-                        f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
-                    )
-                    exit(1)
-            else:
-                return None
+        group_priority = rule_dict.get("group", {}).get("priority")
+        if isinstance(group_priority, int) or not group_priority:
+            return group_priority
         else:
-            return None
+            self.logger.error(
+                f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_ignore(self, rule_dict: dict[Any, Any]) -> bool:
         """
@@ -423,16 +387,17 @@ class Rule:
         Returns:
             bool: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
         """
-        if "ignore" in rule_dict.keys():
+        ignore = rule_dict.get("ignore", False)
 
-            ignore = rule_dict["ignore"]
-
-            if isinstance(ignore, str):
-                if ignore.lower() == "true":
-                    return True
-                else:
-                    return False
-            elif isinstance(ignore, bool):
-                return ignore
-
-        return False
+        if isinstance(ignore, str):
+            if ignore.lower() == "true":
+                return True
+            else:
+                return False
+        elif isinstance(ignore, bool):
+            return ignore
+        else:
+            self.logger.error(
+                f'Value for "ignore" is not a boolean or string value in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
