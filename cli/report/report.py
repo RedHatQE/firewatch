@@ -216,7 +216,7 @@ class Report:
                     _group_pair
                     for _group_pair in group_pair
                     if _group_pair["rule"].group_priority == highest_priority
-                ]
+                ],
             )
 
         return filtered_rule_failure_pairs + none_filtered_failure_pairs
