@@ -142,6 +142,7 @@ class Job:
         Returns:
             str: A string object representing the path that artifacts have been downloaded to.
         """
+        self.logger.info("Downloading JUnit files...")
 
         # Create the junit download directory if it does not exist
         path = f"{downloads_directory}/artifacts"
@@ -178,7 +179,7 @@ class Job:
                 f"{path}/{blob_step}/{blob_name}"
                 with open(file_path, "xb") as target:
                     blob.download_to_file(target)
-                    self.logger.info(f"{file_path} downloaded successfully...")
+                    self.logger.debug(f"{file_path} downloaded successfully...")
 
         return path
 
@@ -205,6 +206,7 @@ class Job:
         Returns:
             str: A string object representing the path to the downloaded logs.
         """
+        self.logger.info("Downloading log files...")
 
         files_to_download = ["finished.json", "build-log.txt"]
 
@@ -223,7 +225,6 @@ class Job:
             blob_step = blob.name.split("/")[-2]
 
             if blob_name in files_to_download:
-
                 # Create step directory if it does not already exist
                 if not os.path.exists(f"{path}/{blob_step}"):
                     os.mkdir(f"{path}/{blob_step}")
@@ -232,7 +233,7 @@ class Job:
                 file = f"{path}/{blob_step}/{blob_name}"
                 with open(file, "xb") as target:
                     blob.download_to_file(target)
-                    self.logger.info(f"{file} downloaded successfully...")
+                    self.logger.debug(f"{file} downloaded successfully...")
 
         return path
 

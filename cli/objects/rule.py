@@ -171,10 +171,12 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira epic to use in a firewatch rule. If one is not defined, return None
         """
+
         jira_epic = rule_dict.get("jira_epic")
 
         if isinstance(jira_epic, str) or not jira_epic:
             return jira_epic
+
 
         self.logger.error(
             f'Value for "jira_epic" is not a string in firewatch rule: "{rule_dict}"',
@@ -192,6 +194,7 @@ class Rule:
             Optional[list[str]]: A list of strings representing the component(s) defined in a firewatch rule. If not defined, return None
         """
         components = []
+
         jira_component = rule_dict.get("jira_component")
 
         if isinstance(jira_component, str):
@@ -210,6 +213,7 @@ class Rule:
         elif not jira_component:
             return jira_component
 
+
         self.logger.error(
             f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
         )
@@ -225,10 +229,12 @@ class Rule:
         Returns:
             Optional[str]: A string value representing the affected version for a firewatch rule.
         """
+
         jira_affects_version = rule_dict.get("jira_affects_version")
 
         if isinstance(jira_affects_version, str) or not jira_affects_version:
             return jira_affects_version
+
 
         self.logger.error(
             f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
@@ -251,10 +257,12 @@ class Rule:
         labels = []
         jira_additional_labels = rule_dict.get("jira_additional_labels")
 
+
         if isinstance(jira_additional_labels, list):
             for label in jira_additional_labels:
                 if isinstance(label, str):
                     if " " in label:
+
                         self.logger.error(
                             f'Label "{label}" in rule {rule_dict} contains spaces. Remove spaces and try again.',
                         )
@@ -285,6 +293,7 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
+
         jira_assignee = rule_dict.get("jira_assignee")
 
         if isinstance(jira_assignee, str):
@@ -320,6 +329,7 @@ class Rule:
 
         if isinstance(jira_priority, str):
             jira_priority = jira_priority.lower().capitalize()
+
 
             if jira_priority in valid_priority_values:
                 return jira_priority
@@ -384,6 +394,7 @@ class Rule:
         Returns:
             bool: A boolean value that determines if a firewatch rule is an ignore rule. True=ignore, False=don't ignore
         """
+
         ignore = rule_dict.get("ignore", False)
 
         if isinstance(ignore, str):

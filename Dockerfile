@@ -1,4 +1,4 @@
-FROM docker.io/library/python:3.11
+FROM docker.io/library/python:3.11-slim
 
 COPY pyproject.toml poetry.lock README.md /firewatch/
 COPY cli /firewatch/cli/
@@ -9,7 +9,7 @@ ENV POETRY_HOME=/firewatch
 ENV PATH="/firewatch/bin:$PATH"
 
 RUN python3 -m pip install pip poetry --upgrade \
-    && poetry config cache-dir /openshift-cli-installer \
+    && poetry config cache-dir /firewatch \
     && poetry config virtualenvs.in-project true \
     && poetry config installer.max-workers 10 \
     && poetry install \
