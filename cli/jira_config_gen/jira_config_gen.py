@@ -14,11 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 import os
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from simple_logger.logger import get_logger
 
 
 class JiraConfig:
@@ -40,10 +40,7 @@ class JiraConfig:
             template_dir (str, optional): Directory where template is stored. Defaults to "/templates".
             template_filename (str, optional): Filename of Jinja template. Defaults to "jira.config.j2".
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         self.config_file_path = self.render_template(
             server_url=server_url,

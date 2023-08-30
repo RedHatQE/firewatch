@@ -15,11 +15,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import json
-import logging
 import os
 from typing import Any
 from typing import Optional
 from typing import Union
+
+from simple_logger.logger import get_logger
 
 from cli.objects.jira_base import Jira
 from cli.objects.rule import Rule
@@ -40,10 +41,7 @@ class Configuration:
             fail_with_test_failures (bool): If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Jira Connection
         self.jira = jira

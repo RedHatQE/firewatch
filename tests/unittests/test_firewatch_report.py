@@ -14,8 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 import os
+
+from simple_logger.logger import get_logger
 
 import tests.unittests.helpers as helpers
 from cli.objects.failure import Failure
@@ -134,9 +135,7 @@ class TestFirewatchReport:
         )
 
     def test_get_file_attachments(self, tmp_path) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Set up paths
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=tmp_path)

@@ -132,6 +132,23 @@ files = [
 ]
 
 [[package]]
+name = "colorlog"
+version = "6.7.0"
+description = "Add colours to the output of Python's logging module."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "colorlog-6.7.0-py2.py3-none-any.whl", hash = "sha256:0d33ca236784a1ba3ff9c532d4964126d8a2c44f1f0cb1d2b0728196f512f662"},
+    {file = "colorlog-6.7.0.tar.gz", hash = "sha256:bd94bd21c1e13fac7bd3153f4bc3a7dc0eb0974b8bc2fdf1a989e474f6e582e5"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+development = ["black", "flake8", "mypy", "pytest", "types-colorama"]
+
+[[package]]
 name = "defusedxml"
 version = "0.7.1"
 description = "XML bomb protection for Python stdlib modules"
@@ -555,6 +572,20 @@ files = [
 pyasn1 = ">=0.4.6,<0.6.0"
 
 [[package]]
+name = "python-simple-logger"
+version = "1.0.6"
+description = "A simple logger for python"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "python_simple_logger-1.0.6-py3-none-any.whl", hash = "sha256:5a556e56f2739a9b1d2deb2e793fc6b28b03eafddb498dbf8f8b625818fe4dec"},
+    {file = "python_simple_logger-1.0.6.tar.gz", hash = "sha256:7032fa65731c7e9387969773850752d1d923f8b06dfa69aa44b240545394e679"},
+]
+
+[package.dependencies]
+colorlog = ">=6.7.0,<7.0.0"
+
+[[package]]
 name = "requests"
 version = "2.31.0"
 description = "Python HTTP for Humans."
@@ -662,4 +693,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "63437b04e1a91b5605057929a68164af7398d7e28870a5a6e4883898fc7da11a"
+content-hash = "f08c22948ae8e67c0904d9fa2dffb69412c4acbb36b741385ed81eafdc7aef42"

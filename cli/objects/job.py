@@ -15,13 +15,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import json
-import logging
 import os
 from typing import Any
 from typing import Optional
 
 import junitparser
 from google.cloud import storage
+from simple_logger.logger import get_logger
 
 from cli.objects.failure import Failure
 
@@ -43,10 +43,7 @@ class Job:
             build_id (Optional[str]): The build ID that needs to be reported. The value of $BUILD_ID
             gcs_bucket (str): The bucket that Prow job logs are stored
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Set variables
         self.name = name or os.getenv("JOB_NAME")  # type: ignore
