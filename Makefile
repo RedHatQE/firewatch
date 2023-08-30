@@ -1,3 +1,5 @@
+IMAGE_BUILD_CMD=$(shell which podman 2>/dev/null || which docker)
+
 pre-commit:
 	pre-commit run --all-files
 
@@ -12,15 +14,15 @@ dev-environment:
 	pip install tox pre-commit
 	pip install -e .
 
-docker-build:
-	docker build -t firewatch .
+build:
+	$(IMAGE_BUILD_CMD) build -t firewatch .
 
-docker-test:
-	docker run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
+test:
+	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
 
-docker-run:
-	docker run -it --env-file development/env.list --entrypoint /bin/bash firewatch
+run:
+	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch
 
-docker-build-run: docker-build docker-run
+build-run: docker-build docker-run
 
-docker-build-test: docker-build docker-test
+build-test: docker-build docker-test
