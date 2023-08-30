@@ -97,7 +97,7 @@ class Report:
         Returns:
             list[str]: A list of strings representing the bugs filed in Jira.
         """
-        rule_failure_pairs = []  # type: ignore
+        rule_failure_pairs = []
         bugs_filed = []
 
         # Get rule_failure_pairs
