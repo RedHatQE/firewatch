@@ -177,7 +177,6 @@ class Rule:
         if isinstance(jira_epic, str) or not jira_epic:
             return jira_epic
 
-
         self.logger.error(
             f'Value for "jira_epic" is not a string in firewatch rule: "{rule_dict}"',
         )
@@ -213,7 +212,6 @@ class Rule:
         elif not jira_component:
             return jira_component
 
-
         self.logger.error(
             f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
         )
@@ -234,7 +232,6 @@ class Rule:
 
         if isinstance(jira_affects_version, str) or not jira_affects_version:
             return jira_affects_version
-
 
         self.logger.error(
             f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
@@ -257,12 +254,10 @@ class Rule:
         labels = []
         jira_additional_labels = rule_dict.get("jira_additional_labels")
 
-
         if isinstance(jira_additional_labels, list):
             for label in jira_additional_labels:
                 if isinstance(label, str):
                     if " " in label:
-
                         self.logger.error(
                             f'Label "{label}" in rule {rule_dict} contains spaces. Remove spaces and try again.',
                         )
@@ -329,7 +324,6 @@ class Rule:
 
         if isinstance(jira_priority, str):
             jira_priority = jira_priority.lower().capitalize()
-
 
             if jira_priority in valid_priority_values:
                 return jira_priority
