@@ -25,7 +25,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
 
 ## Development Setup
 
-### Local Machine
+### Local Environment
 
 1. Fork the repository on GitHub.
 2. Clone your forked repository to your local machine.
