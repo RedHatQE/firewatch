@@ -2,7 +2,7 @@ FROM docker.io/library/python:3.11-slim
 
 COPY pyproject.toml poetry.lock README.md /firewatch/
 COPY cli /firewatch/cli/
-COPY development /development
+COPY --chmod=0755 development /development
 
 WORKDIR /firewatch
 
@@ -15,7 +15,7 @@ RUN python3 -m pip install pip poetry --upgrade \
     && poetry config installer.max-workers 10 \
     && poetry install \
     && printf '#!/bin/bash \n poetry run firewatch $@' > /usr/bin/firewatch \
-    && chmod +x /usr/bin/firewatch /development/test.sh
+    && chmod +x /usr/bin/firewatch
 
 
 ENTRYPOINT ["firewatch"]
