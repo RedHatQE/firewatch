@@ -53,13 +53,13 @@ from cli.report.report import Report
     "--firewatch_config_path",
     help="The path to the firewatch configuration file",
     required=False,
-    type=click.Path(),
+    type=click.Path(exists=True),
 )
 @click.option(
     "--jira_config_path",
     help="The path to the jira configuration file",
     default="/tmp/jira.config",
-    type=click.Path(),
+    type=click.Path(exists=True),
 )
 @click.option(
     "--fail_with_test_failures",
