@@ -40,8 +40,7 @@ class TestFirewatchJiraConfigGen:
 
         # Set variables
         self.logger = logging.getLogger(__name__)
-        template_dir = str(tmp_path)
-        template_filename = "jira.config.j2"
+        template_path = os.path.join(tmp_path, "jira.config.j2")
         output_path = f"{tmp_path}/jira.config"
         token_path = f"{tmp_path}/TOKEN"
         url = "some-jira-url"
@@ -50,15 +49,14 @@ class TestFirewatchJiraConfigGen:
         with open(token_path, "w") as file:
             file.write("TEST_TOKEN")
 
-        with open(f"{template_dir}/{template_filename}", "w") as file:
+        with open(template_path, "w") as file:
             file.write(str(template))
 
         config = JiraConfig(
             server_url=url,
             token_path=token_path,
             output_file=output_path,
-            template_dir=template_dir,
-            template_filename=template_filename,
+            template_path=template_path,
         )
 
         assert os.path.exists(config.config_file_path)

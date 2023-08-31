@@ -35,22 +35,14 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
 @click.option(
     "--output_file",
     help="Where the rendered config will be stored",
-    required=True,
     default="/tmp/jira.config",
     type=click.STRING,
 )
 @click.option(
-    "--template_dir",
+    "--template_path",
     help="Directory holding templates",
-    required=True,
-    default="/firewatch/cli/templates",
+    default="/firewatch/cli/templates/jira.config.j2",
     type=click.STRING,
-)
-@click.option(
-    "--template_filename",
-    help="Template to use when generating Jira config",
-    required=True,
-    default="jira.config.j2",
 )
 @click.command("jira_config_gen")
 @click.pass_context
@@ -59,13 +51,11 @@ def jira_config_gen(
     server_url: str,
     token_path: str,
     output_file: str,
-    template_dir: str,
-    template_filename: str,
+    template_path: str,
 ) -> None:
     config = JiraConfig(
         server_url=server_url,
         token_path=token_path,
         output_file=output_file,
-        template_dir=template_dir,
-        template_filename=template_filename,
+        template_path=template_path,
     )

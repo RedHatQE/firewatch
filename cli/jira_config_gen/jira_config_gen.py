@@ -15,7 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import logging
-import os
+from pathlib import Path
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -27,8 +27,7 @@ class JiraConfig:
         server_url: str,
         token_path: str,
         output_file: str,
-        template_dir: str = os.path.join("/", "firewatch", "cli", "templates"),
-        template_filename: str = "jira.config.j2",
+        template_path: str,
     ) -> None:
         """
         Used to build the Jira configuration file for use in the report command.
@@ -37,8 +36,7 @@ class JiraConfig:
             server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
             token_path (str): Path to the file holding the Jira server API token
             output_file (str): Where the rendered config will be stored.
-            template_dir (str, optional): Directory where template is stored. Defaults to "/templates".
-            template_filename (str, optional): Filename of Jinja template. Defaults to "jira.config.j2".
+            template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
         """
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(
@@ -49,8 +47,7 @@ class JiraConfig:
             server_url=server_url,
             token=self.token(file_path=token_path),
             output_file=output_file,
-            template_dir=template_dir,
-            template_filename=template_filename,
+            template_path=template_path,
         )
 
     def token(self, file_path: str) -> str:
@@ -78,8 +75,7 @@ class JiraConfig:
         server_url: str,
         token: str,
         output_file: str,
-        template_dir: str,
-        template_filename: str,
+        template_path: str,
     ) -> str:
         """
         Uses Jinja to render the Jira configuration file
@@ -88,12 +84,14 @@ class JiraConfig:
             server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
             token (str): Jira server API token
             output_file (str): Where the rendered config will be stored.
-            template_dir (str): Directory where template is stored
-            template_filename (str): Filename of Jinja template
+            template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
 
         Returns:
             str: A string object that represents the path of the rendered template.
         """
+
+        template_dir = Path(template_path).parent
+        template_filename = Path(template_path).name
 
         # Load Jinja template file
         env = Environment(loader=FileSystemLoader(template_dir))

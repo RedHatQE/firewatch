@@ -63,7 +63,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
     ```
 
 3. Create the Jira config file (execute from the root of the firewatch repository)
-   - `$ echo $JIRA_TOKEN > /tmp/token && poetry run firewatch jira_config_gen --token_path /tmp/token --server_url $JIRA_SERVER --template_dir $(pwd)/cli/templates`
+   - `$ echo $JIRA_TOKEN > /tmp/token && poetry run firewatch jira_config_gen --token_path /tmp/token --server_url $JIRA_SERVER --template_path $(pwd)/cli/templates/jira.config.j2`
 4. Execute firewatch (execute from the root of the firewatch repository)
    - `$ poetry run firewatch report`
 

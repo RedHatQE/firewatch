@@ -46,7 +46,6 @@ from cli.report.report import Report
 @click.option(
     "--gcs_bucket",
     help="The name of the GCS bucket that holds OpenShift CI logs",
-    required=True,
     default="origin-ci-test",
     type=click.STRING,
 )
@@ -54,14 +53,13 @@ from cli.report.report import Report
     "--firewatch_config_path",
     help="The path to the firewatch configuration file",
     required=False,
-    type=click.STRING,
+    type=click.Path(),
 )
 @click.option(
     "--jira_config_path",
     help="The path to the jira configuration file",
-    required=True,
     default="/tmp/jira.config",
-    type=click.STRING,
+    type=click.Path(),
 )
 @click.option(
     "--fail_with_test_failures",
