@@ -25,7 +25,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
 
 ## Development Setup
 
-To set up your development environment for firewatch, please follow these steps:
+### Local Machine
 
 1. Fork the repository on GitHub.
 2. Clone your forked repository to your local machine.
@@ -33,6 +33,19 @@ To set up your development environment for firewatch, please follow these steps:
 4. Install the necessary dependencies: `make dev-environment`
 5. Run pre-commit hooks to ensure code quality: `make pre-commit`
 6. Execute tests to ensure everything is working correctly: `tox` or `make test`
+
+### Docker Dev Environments
+
+1. Open Docker Desktop
+2. Select "Dev Environments"
+3. Click "Get Started"
+4. Populate the "Name" field with "firewatch" (or whatever you want)
+5. Choose a source:
+   - If you select "Existing Git repo", use the address to your fork of the repository
+   - If you select "Local directory", navigate to the your local clone of your firewatch fork
+6. Choose and IDE:
+   - You can either select VS Code or another IDE (if you use another one, you need to know where the binary is located for that IDE)
+   - I haven't had much luck using an IDE other than VS Code for now...
 
 ## Testing Changes
 
