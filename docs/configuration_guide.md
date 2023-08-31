@@ -17,6 +17,7 @@
       * [`jira_assignee`](#jiraassignee)
       * [`jira_priority`](#jirapriority)
       * [`ignore`](#ignore)
+      * [`group`](#group)
 
 ## Jira Issue Creation (`firewatch report`) Configuration
 
@@ -27,8 +28,8 @@ Firewatch was designed to allow for users to define which Jira issues get create
 ```json
 [
     {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
-    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"]},
-    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"]},
+    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "group": {"name": "some-group", "priority": 1}},
+    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
     {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
     {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
 ]
@@ -219,3 +220,30 @@ A value that be set to "true" or "false" and allows the user to define `step`/`f
 - `"ignore": "false"`
   - Do not ignore the `step`/`failure_type` combination when a failure is found that matches this rule.
   - This is the default behavior of all rules. If set to `false`, it does not need to be defined.
+
+#### `group`
+
+A dictionary object that is used to define the group of rules a specific rule belongs to and the priority of the rule within that group.
+This value is useful for when you have one or more steps that are dependent on other steps. If multiple steps are members of the same group,
+and they all fail because one of the steps failed, firewatch will look for the highest priority failure and only report on that failure.
+
+The dictionary object should include a string value for `"name"` and an **integer** value for `"priority"`. For example: `"group": {"name": "some-group-name", "priority": 1}`
+
+**Example:**
+
+In this scenario, we have three steps: `step-1`, `step-2`, and `step-3`. If `step-1` fails, it will cause `step-2` and `step-3` to also fail and if `step-2` fails `step-3` will also fail.
+Because these steps are all dependent on each other, it makes sense to group them together to avoid multiple Jira issues being created for the same failure.
+
+```json
+[
+    {"step": "step-1", "failure_type": "all", "classification": "Misc.", "jira_project": "TEST", "group": {"name": "some-group", "priority": 1}},
+    {"step": "step-2", "failure_type": "all", "classification": "Misc.", "jira_project": "TEST", "group": {"name": "some-group", "priority": 2}},
+    {"step": "step-3", "failure_type": "all", "classification": "Misc.", "jira_project": "TEST", "group": {"name": "some-group", "priority": 3}}
+]
+```
+
+Using the example configuration above:
+
+- If `step-1` fails causing `step-2` and `step-3` to fail, only the rule for `step-1` will be reported because it has the highest priority.
+- If `step-2` fails causing `step-3` to fail, only the rule for `step-2` will be reported because it has the highest priority.
+- If `step-3` fails, only the rule for `step-3` will be reported.

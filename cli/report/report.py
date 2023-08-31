@@ -18,6 +18,7 @@ import fnmatch
 import logging
 import os
 from datetime import datetime
+from typing import Any
 from typing import Optional
 
 from cli.objects.configuration import Configuration
@@ -109,6 +110,10 @@ class Report:
             for rule in rule_matches:
                 rule_failure_pairs.append({"rule": rule, "failure": failure})
 
+        rule_failure_pairs = self.filter_priority_rule_failure_pairs(
+            rule_failure_pairs=rule_failure_pairs,
+        )
+
         for pair in rule_failure_pairs:
             # Gather bug information
             date = datetime.now()
@@ -175,6 +180,46 @@ class Report:
                 bugs_filed.append(jira_issue.key)
 
         return bugs_filed
+
+    def filter_priority_rule_failure_pairs(
+        self,
+        rule_failure_pairs: list[dict[Any, Any]],
+    ) -> list[dict[Any, Any]]:
+        """
+        Filters a list of rule/failure pairs based on user-defined groups/priorities. If there are multiple rule/failure
+        pairs with a group defined in the rule, it will determine which rule is the highest priority. After filtering
+        out the lower priority rule/failure pairs, it will return the new list of rule/failure pairs.
+
+        Args:
+            rule_failure_pairs (list[dict[Any, Any]]): A list of rule/failure pairs.
+        Returns:
+            list[dict[Any, Any]]: A list of rule/failure pairs that have been filtered for user-defined priorities.
+        """
+
+        groups: dict[Any, Any] = {}  # {"some-group-name": [pair1, pair2, pair3]}
+        filtered_rule_failure_pairs = []
+        none_filtered_failure_pairs = []
+
+        for pair in rule_failure_pairs:
+            rule = pair["rule"]
+            if rule.group_name and rule.group_priority:
+                groups.setdefault(rule.group_name, []).append(pair)
+            else:
+                none_filtered_failure_pairs.append(pair)
+
+        for _, group_pair in groups.items():
+            highest_priority = min(
+                _group["rule"].group_priority for _group in group_pair
+            )
+            filtered_rule_failure_pairs.extend(
+                [
+                    _group_pair
+                    for _group_pair in group_pair
+                    if _group_pair["rule"].group_priority == highest_priority
+                ],
+            )
+
+        return filtered_rule_failure_pairs + none_filtered_failure_pairs
 
     def failure_matches_rule(
         self,
@@ -450,7 +495,7 @@ class Report:
         if len(duplicate_bugs) > 0:
             self.logger.info("Possible duplicate bugs found:")
             for bug in duplicate_bugs:
-                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+                self.logger.info(f"{jira.url}/browse/{bug}")
 
             return duplicate_bugs
         else:
@@ -484,7 +529,7 @@ class Report:
         if len(open_bugs) > 0:
             self.logger.info(f"Found open bugs for job {job_name}:")
             for bug in open_bugs:
-                self.logger.info(f"https://issues.redhat.com/browse/{bug}")
+                self.logger.info(f"{jira.url}browse/{bug}")
 
             return open_bugs
         else:
