@@ -40,8 +40,8 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
       - **Example**: [periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws #1696039978221441024](https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws/1696039978221441024)
    2. Fill out `firewatch/development/env.list`
       - Use the ["Defining Environment Variables"](#defining-environment-variables) section to help
-   3. From the root of this repository, run `make docker-build-test` to execute `firewatch report` using the values provided above.
-      - You can also run `make docker-build-run` if you would like a bash terminal for the new build.
+   3. From the root of this repository, run `make build-test` to execute `firewatch report` using the values provided above.
+      - You can also run `make build-run` if you would like a bash terminal for the new build.
 
 ### Local Machine
 
