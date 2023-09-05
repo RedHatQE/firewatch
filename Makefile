@@ -12,15 +12,15 @@ dev-environment:
 	python3 -m pip install pip poetry --upgrade
 	poetry install
 
-build:
+container-build:
 	$(IMAGE_BUILD_CMD) build -t firewatch .
 
-test:
+container-test:
 	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
 
-run:
+container-run:
 	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch
 
-build-run: build run
+container-build-run: container-build container-run
 
-build-test: build test
+container-build-test: container-build container-test
