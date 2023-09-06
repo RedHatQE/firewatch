@@ -10,7 +10,6 @@ repos:
     - id: requirements-txt-fixer
     - id: check-docstring-first
     - id: check-json
-    - id: check-shebang-scripts-are-executable
     - id: check-yaml
 - repo: https://github.com/asottile/reorder-python-imports
   rev: v3.10.0

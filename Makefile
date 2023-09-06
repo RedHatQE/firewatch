@@ -1,3 +1,5 @@
+IMAGE_BUILD_CMD=$(shell which podman 2>/dev/null || which docker)
+
 pre-commit:
 	pre-commit run --all-files
 
@@ -7,15 +9,18 @@ test:
 commit: pre-commit test
 
 dev-environment:
-	python -m venv venv
-	. venv/bin/activate
-	pip install tox pre-commit
-	pip install -e .
+	python3 -m pip install pip poetry --upgrade
+	poetry install
 
-docker-build:
-	docker build -t firewatch .
+container-build:
+	$(IMAGE_BUILD_CMD) build -t firewatch .
 
-docker-run:
-	docker run -it firewatch bash
+container-test:
+	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
 
-build-run: docker-build docker-run
+container-run:
+	$(IMAGE_BUILD_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch
+
+container-build-run: container-build container-run
+
+container-build-test: container-build container-test
