@@ -14,10 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 import re
 from typing import Any
 from typing import Optional
+
+from simple_logger.logger import get_logger
 
 
 class Rule:
@@ -29,10 +30,7 @@ class Rule:
             rule_dict (dict[Any, Any]): A dictionary object representing a firewatch rule.
         """
 
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Build the rule using the rule_dict
         self.step = self._get_step(rule_dict)

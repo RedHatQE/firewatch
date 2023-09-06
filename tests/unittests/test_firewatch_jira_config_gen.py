@@ -17,6 +17,8 @@
 import logging
 import os
 
+from simple_logger.logger import get_logger
+
 from cli.jira_config_gen.jira_config_gen import JiraConfig
 
 
@@ -39,7 +41,7 @@ class TestFirewatchJiraConfigGen:
         """
 
         # Set variables
-        self.logger = logging.getLogger(__name__)
+        self.logger = get_logger(__name__)
         template_path = os.path.join(tmp_path, "jira.config.j2")
         output_path = f"{tmp_path}/jira.config"
         token_path = f"{tmp_path}/TOKEN"

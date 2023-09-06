@@ -14,11 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 from pathlib import Path
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from simple_logger.logger import get_logger
 
 
 class JiraConfig:
@@ -38,10 +38,7 @@ class JiraConfig:
             output_file (str): Where the rendered config will be stored.
             template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         self.config_file_path = self.render_template(
             server_url=server_url,

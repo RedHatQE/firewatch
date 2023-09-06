@@ -15,13 +15,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import json
-import logging
 from typing import Optional
 
 from jira import Issue
 from jira import JIRA
 from jira.exceptions import JIRAError
 from jira.resources import User
+from simple_logger.logger import get_logger
 
 
 class Jira:
@@ -32,10 +32,7 @@ class Jira:
         Args:
             jira_config_path (str): The path to the configuration file that hold authentication credentials.
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
         self.proxies: dict[str, str] = {}
 
         with open(jira_config_path) as jira_config_file:

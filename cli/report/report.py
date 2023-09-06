@@ -15,11 +15,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import fnmatch
-import logging
 import os
 from datetime import datetime
 from typing import Any
 from typing import Optional
+
+from simple_logger.logger import get_logger
 
 from cli.objects.configuration import Configuration
 from cli.objects.failure import Failure
@@ -37,10 +38,7 @@ class Report:
             firewatch_config (Configuration): A valid firewatch Configuration object.
             job (Job): A valid Job object representing the prow job being checked for failures/reported on.
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # If job is a rehearsal, exit 0
         if job.is_rehearsal:

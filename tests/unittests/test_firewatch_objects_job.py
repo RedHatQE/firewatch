@@ -14,10 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
 import os
 
 from google.cloud import storage
+from simple_logger.logger import get_logger
 
 import tests.unittests.helpers as helpers
 from cli.objects.failure import Failure
@@ -26,9 +26,7 @@ from cli.objects.job import Job
 
 class TestFirewatchObjectsJob:
     def test_check_is_rehearsal(self) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         build_id = "12345"
 
@@ -41,9 +39,7 @@ class TestFirewatchObjectsJob:
         assert not Job._check_is_rehearsal(self, job_name=job_name, build_id=build_id)
 
     def test_get_download_path(self) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Test download path that doesn't exist
         build_id = "12345"
@@ -76,9 +72,7 @@ class TestFirewatchObjectsJob:
         assert not Job._check_has_pod_failures(self, failures)
 
     def test_download_junit(self, tmp_path) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         job_name = "periodic-ci-windup-windup-ui-tests-v1.1-mtr-ocp4.14-lp-interop-mtr-interop-aws"
         job_name_safe = "mtr-interop-aws"
@@ -108,9 +102,7 @@ class TestFirewatchObjectsJob:
         assert len(junit_files) > 0
 
     def test_download_logs(self, tmp_path) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         files_to_download = ["finished.json", "build-log.txt"]
 
@@ -141,9 +133,7 @@ class TestFirewatchObjectsJob:
         assert len(log_files) > 0
 
     def test_find_pod_failures(self, tmp_path) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Set up a logs directory
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=tmp_path)
@@ -159,9 +149,7 @@ class TestFirewatchObjectsJob:
         assert len(pod_failures) == 1
 
     def test_find_test_failures(self, tmp_path) -> None:
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         # Set up junit directory
         junit_dir = helpers._get_tmp_junit_dir(tmp_path=tmp_path)

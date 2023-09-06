@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import logging
+from simple_logger.logger import get_logger
 
 
 class Failure:
@@ -26,10 +26,7 @@ class Failure:
             failed_step (str): The failed step
             failure_type (str): The failure type
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(
-            __name__,
-        )
+        self.logger = get_logger(__name__)
 
         self.step = self._get_failed_step(failed_step)
         self.failure_type = self._get_failure_type(failure_type)
