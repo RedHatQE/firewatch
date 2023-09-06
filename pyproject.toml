@@ -58,6 +58,12 @@ python-simple-logger = "^1.0.6"
 [tool.poetry.scripts]
 firewatch = "cli:cli"
 
+[tool.poetry.group.tests.dependencies]
+google-cloud-storage = "^2.10.0"
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.1"
+
 [tool.poetry-dynamic-versioning]
 enable = true
 pattern = "((?P<epoch>\\d+)!)?(?P<base>\\d+(\\.\\d+)*)"

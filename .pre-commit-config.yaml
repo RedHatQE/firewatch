@@ -10,7 +10,6 @@ repos:
     - id: requirements-txt-fixer
     - id: check-docstring-first
     - id: check-json
-    - id: check-shebang-scripts-are-executable
     - id: check-yaml
 - repo: https://github.com/asottile/reorder-python-imports
   rev: v3.10.0
@@ -23,7 +22,7 @@ repos:
   - id: pyupgrade
     args: [--py39-plus]
 - repo: https://github.com/asottile/add-trailing-comma
-  rev: v3.0.1
+  rev: v3.1.0
   hooks:
   - id: add-trailing-comma
 - repo: https://github.com/pre-commit/mirrors-mypy
@@ -41,6 +40,6 @@ repos:
   hooks:
     - id: markdownlint-cli2
 -   repo: https://github.com/PyCQA/autoflake
-    rev: v2.2.0
+    rev: v2.2.1
     hooks:
     -   id: autoflake

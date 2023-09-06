@@ -30,14 +30,19 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
     "--token_path",
     help="Path to the Jira API token",
     required=True,
-    type=click.STRING,
+    type=click.Path(exists=True),
 )
 @click.option(
     "--output_file",
     help="Where the rendered config will be stored",
-    required=True,
     default="/tmp/jira.config",
-    type=click.STRING,
+    type=click.Path(),
+)
+@click.option(
+    "--template_path",
+    help="Directory holding templates",
+    default="/firewatch/cli/templates/jira.config.j2",
+    type=click.Path(exists=True),
 )
 @click.command("jira_config_gen")
 @click.pass_context
@@ -46,9 +51,11 @@ def jira_config_gen(
     server_url: str,
     token_path: str,
     output_file: str,
+    template_path: str,
 ) -> None:
     config = JiraConfig(
         server_url=server_url,
         token_path=token_path,
         output_file=output_file,
+        template_path=template_path,
     )
