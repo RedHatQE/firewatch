@@ -12,12 +12,12 @@ repos:
     - id: check-json
     - id: check-yaml
 - repo: https://github.com/asottile/reorder-python-imports
-  rev: v3.10.0
+  rev: v3.11.0
   hooks:
   - id: reorder-python-imports
     args: [--py3-plus]
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.10.1
+  rev: v3.11.0
   hooks:
   - id: pyupgrade
     args: [--py39-plus]
@@ -36,7 +36,7 @@ repos:
   hooks:
   - id: black
 - repo: https://github.com/DavidAnson/markdownlint-cli2
-  rev: v0.9.2
+  rev: v0.10.0
   hooks:
     - id: markdownlint-cli2
 -   repo: https://github.com/PyCQA/autoflake
