@@ -47,13 +47,12 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
 @click.command("jira_config_gen")
 @click.pass_context
 def jira_config_gen(
-    ctx: click.Context,
     server_url: str,
     token_path: str,
     output_file: str,
     template_path: str,
 ) -> None:
-    config = JiraConfig(
+    JiraConfig(
         server_url=server_url,
         token_path=token_path,
         output_file=output_file,

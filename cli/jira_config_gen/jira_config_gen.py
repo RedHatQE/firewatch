@@ -57,15 +57,8 @@ class JiraConfig:
         Returns:
             str: A string object that represents the Jira API token
         """
-        try:
-            with open(file_path) as file:
-                token = file.read().strip()
-                return token
-        except FileNotFoundError:
-            self.logger.error("File not found:", file_path)
-        except OSError as e:
-            self.logger.error("Error reading file:", e)
-        return "token_not_found"
+        with open(file_path) as file:
+            return file.read().strip()
 
     def render_template(
         self,
