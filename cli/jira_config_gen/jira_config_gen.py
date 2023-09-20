@@ -101,6 +101,6 @@ class JiraConfig:
         with open(output_file, "w") as file:
             file.write(rendered_template)
 
-        self.logger.info(f"Config file written to {output_file}")
+        self.logger.success(f"Config file written to {output_file}")
 
         return output_file
