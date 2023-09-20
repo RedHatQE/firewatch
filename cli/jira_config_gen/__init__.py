@@ -45,7 +45,6 @@ from cli.jira_config_gen.jira_config_gen import JiraConfig
     type=click.Path(exists=True),
 )
 @click.command("jira_config_gen")
-@click.pass_context
 def jira_config_gen(
     server_url: str,
     token_path: str,
