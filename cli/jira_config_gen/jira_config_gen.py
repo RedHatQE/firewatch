@@ -16,6 +16,7 @@
 #
 from pathlib import Path
 
+import click
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from simple_logger.logger import get_logger
@@ -57,8 +58,14 @@ class JiraConfig:
         Returns:
             str: A string object that represents the Jira API token
         """
-        with open(file_path) as file:
-            return file.read().strip()
+        try:
+            with open(file_path) as file:
+                return file.read().strip()
+        except Exception as ex:
+            self.logger.error(
+                f"Failed to read Jira token from {file_path}. error: {ex}",
+            )
+            raise click.Abort()
 
     def render_template(
         self,
