@@ -16,6 +16,7 @@
 #
 from pathlib import Path
 
+import click
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from simple_logger.logger import get_logger
@@ -59,13 +60,12 @@ class JiraConfig:
         """
         try:
             with open(file_path) as file:
-                token = file.read().strip()
-                return token
-        except FileNotFoundError:
-            self.logger.error("File not found:", file_path)
-        except OSError as e:
-            self.logger.error("Error reading file:", e)
-        return "token_not_found"
+                return file.read().strip()
+        except Exception as ex:
+            self.logger.error(
+                f"Failed to read Jira token from {file_path}. error: {ex}",
+            )
+            raise click.Abort()
 
     def render_template(
         self,
@@ -101,6 +101,6 @@ class JiraConfig:
         with open(output_file, "w") as file:
             file.write(rendered_template)
 
-        self.logger.info(f"Config file written to {output_file}")
+        self.logger.success(f"Config file written to {output_file}")
 
         return output_file
