@@ -16,7 +16,6 @@
 #
 import json
 import os
-from typing import Any
 from typing import Optional
 from typing import Union
 
@@ -56,19 +55,32 @@ class Configuration:
         self.config_data = self._get_config_data(config_file_path=config_file_path)
 
         # Create the list of Rule objects using the config data
-        self.rules = self._get_rules(json.loads(self.config_data))
+        self.rules = self._get_rules(self.config_data)
 
-    def _get_rules(self, rules_json: list[dict[Any, Any]]) -> Optional[list[Rule]]:
+    def _get_rules(self, config_data: str) -> Optional[list[Rule]]:
         """
         Creates a list of Rule objects.
 
         Args:
-            rules_json (list[dict[Any, Any]]): The JSON list of rules provided by the user.
+            config_data (str): The config data as a string
 
         Returns:
             Optional[list[Rule]]: A list of Rule objects.
         """
+        try:
+            rules_json = json.loads(config_data)
+        except json.decoder.JSONDecodeError as error:
+            self.logger.error(
+                "Firewatch config contains malformed JSON. Please check for missing or additional commas:",
+            )
+            self.logger.error(error)
+            self.logger.info(
+                "HINT: If there is a comma following the last rule item in the config list, it should be removed.",
+            )
+            exit(1)
+
         rules = []
+
         for line in rules_json:
             rules.append(Rule(line))
         if len(rules) > 0:
