@@ -16,6 +16,7 @@
 #
 import fnmatch
 import os
+import click
 from datetime import datetime
 from typing import Any
 from typing import Optional
@@ -57,7 +58,7 @@ class Report:
                 self.logger.info(
                     "Test failures found and --fail_with_test_failures flag is set. Exiting with exit code 1",
                 )
-                exit(1)
+                raise click.abort()
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 

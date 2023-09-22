@@ -16,6 +16,7 @@
 #
 import json
 import os
+import click
 from typing import Any
 from typing import Optional
 
@@ -273,7 +274,7 @@ class Job:
             return steps
         else:
             self.logger.error(f"No steps found for job {job_name}")
-            exit(1)
+            raise click.abort()
 
     def _get_download_path(self, build_id: Optional[str]) -> str:
         """
