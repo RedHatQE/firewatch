@@ -69,10 +69,11 @@ class Configuration:
         """
         try:
             rules_json = json.loads(config_data)
-        except json.decoder.JSONDecodeError:
+        except json.decoder.JSONDecodeError as error:
             self.logger.error(
-                "Firewatch config contains malformed JSON. Please check for missing or additional commas.",
+                "Firewatch config contains malformed JSON. Please check for missing or additional commas:",
             )
+            self.logger.error(error)
             self.logger.info(
                 "HINT: If there is a comma following the last rule item in the config list, it should be removed.",
             )
