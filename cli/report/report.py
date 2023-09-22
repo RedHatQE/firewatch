@@ -16,11 +16,11 @@
 #
 import fnmatch
 import os
-import click
 from datetime import datetime
 from typing import Any
 from typing import Optional
 
+import click
 from simple_logger.logger import get_logger
 
 from cli.objects.configuration import Configuration

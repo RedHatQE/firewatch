@@ -16,10 +16,10 @@
 #
 import json
 import os
-import click
 from typing import Any
 from typing import Optional
 
+import click
 import junitparser
 from google.cloud import storage
 from simple_logger.logger import get_logger

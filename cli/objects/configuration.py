@@ -16,11 +16,11 @@
 #
 import json
 import os
-import click
 from typing import Any
 from typing import Optional
 from typing import Union
 
+import click
 from simple_logger.logger import get_logger
 
 from cli.objects.jira_base import Jira

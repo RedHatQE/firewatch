@@ -15,10 +15,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import re
-import click
 from typing import Any
 from typing import Optional
 
+import click
 from simple_logger.logger import get_logger
 
 
