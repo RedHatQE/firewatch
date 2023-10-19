@@ -19,6 +19,7 @@ import os
 from typing import Optional
 from typing import Union
 
+import click
 from simple_logger.logger import get_logger
 
 from cli.objects.jira_base import Jira
@@ -89,7 +90,7 @@ class Configuration:
             self.logger.error(
                 "Firewatch config is empty, please populate the configuration and try again.",
             )
-            exit(1)
+            raise click.abort()
 
     def _get_default_jira_project(self) -> str:
         """
@@ -107,7 +108,7 @@ class Configuration:
             self.logger.error(
                 "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try again.",
             )
-            exit(1)
+            raise click.abort()
 
     def _get_config_data(self, config_file_path: Optional[str]) -> str:
         """
@@ -130,7 +131,7 @@ class Configuration:
                 self.logger.error(
                     f"Unable to read configuration file at {config_file_path}. Please verify permissions/path and try again.",
                 )
-                exit(1)
+                raise click.abort()
         else:
             config_data = os.getenv("FIREWATCH_CONFIG")  # type: ignore
             if config_data:
@@ -139,4 +140,4 @@ class Configuration:
                 self.logger.error(
                     "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. Please fix error and try again.",
                 )
-                exit(1)
+                raise click.abort()

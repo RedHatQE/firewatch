@@ -18,6 +18,7 @@ import re
 from typing import Any
 from typing import Optional
 
+import click
 from simple_logger.logger import get_logger
 
 
@@ -63,7 +64,7 @@ class Rule:
             self.logger.error(
                 f'Unable to find value for "step" in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
         if isinstance(step, str):
             return step
@@ -71,7 +72,7 @@ class Rule:
             self.logger.error(
                 f'Value for "step" is not a string in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
     def _get_failure_type(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -91,7 +92,7 @@ class Rule:
             self.logger.error(
                 f'Unable to find value for "failure_type" in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
         if isinstance(failure_type, str):
             if failure_type.lower() in valid_failure_types:
@@ -100,12 +101,12 @@ class Rule:
                 self.logger.error(
                     f'Value for "failure_type" is not a valid failure type (pod_failure, test_failure, or all) in firewatch rule: "{rule_dict}"',
                 )
-                exit(1)
+                raise click.abort()
         else:
             self.logger.error(
                 f'Value for "failure_type" is not a string in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
     def _get_classification(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -123,7 +124,7 @@ class Rule:
             self.logger.error(
                 f'Unable to find value for "classification" in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
         if isinstance(classification, str):
             return classification
@@ -131,7 +132,7 @@ class Rule:
             self.logger.error(
                 f'Value for "classification" is not a string in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
     def _get_jira_project(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -149,7 +150,7 @@ class Rule:
             self.logger.error(
                 f'Unable to find value for "jira_project" in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
         if isinstance(jira_project, str):
             return jira_project
@@ -157,7 +158,7 @@ class Rule:
             self.logger.error(
                 f'Value for "jira_project" is not a string in firewatch rule: "{rule_dict}"',
             )
-            exit(1)
+            raise click.abort()
 
     def _get_jira_epic(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -178,7 +179,7 @@ class Rule:
         self.logger.error(
             f'Value for "jira_epic" is not a string in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_jira_component(self, rule_dict: dict[Any, Any]) -> Optional[list[str]]:
         """
@@ -205,7 +206,7 @@ class Rule:
                     self.logger.error(
                         f'Component "{component}" in "jira_component" is not a string in firewatch rule: "{rule_dict}"',
                     )
-                    exit(1)
+                    raise click.abort()
             return components
         elif not jira_component:
             return jira_component
@@ -213,7 +214,7 @@ class Rule:
         self.logger.error(
             f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_jira_affects_version(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -234,7 +235,7 @@ class Rule:
         self.logger.error(
             f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_jira_additional_labels(
         self,
@@ -259,14 +260,14 @@ class Rule:
                         self.logger.error(
                             f'Label "{label}" in rule {rule_dict} contains spaces. Remove spaces and try again.',
                         )
-                        exit(1)
+                        raise click.abort()
                     else:
                         labels.append(label)
                 else:
                     self.logger.error(
                         f'Label "{label}" in "jira_additional_labels" is not a string in firewatch rule: "{rule_dict}"',
                     )
-                    exit(1)
+                    raise click.abort()
             return labels
         elif not jira_additional_labels:
             return jira_additional_labels
@@ -274,7 +275,7 @@ class Rule:
         self.logger.error(
             f'Value for "jira_additional_labels" is not a list of strings (["label1", "label2"]) in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_jira_assignee(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -297,14 +298,14 @@ class Rule:
                 self.logger.error(
                     f'Value for "jira_assignee" is not an email address in firewatch rule: "{rule_dict}"',
                 )
-                exit(1)
+                raise click.abort()
         elif not jira_assignee:
             return jira_assignee
 
         self.logger.error(
             f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_jira_priority(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -329,14 +330,14 @@ class Rule:
                 self.logger.error(
                     f'Value for "jira_priority" is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
                 )
-                exit(1)
+                raise click.abort()
         elif not jira_priority:
             return jira_priority
 
         self.logger.error(
             f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_group_name(self, rule_dict: dict[Any, Any]) -> Optional[str]:
         """
@@ -355,7 +356,7 @@ class Rule:
         self.logger.error(
             f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_group_priority(self, rule_dict: dict[Any, Any]) -> Optional[int]:
         """
@@ -374,7 +375,7 @@ class Rule:
         self.logger.error(
             f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()
 
     def _get_ignore(self, rule_dict: dict[Any, Any]) -> bool:
         """
@@ -398,4 +399,4 @@ class Rule:
         self.logger.error(
             f'Value for "ignore" is not a boolean or string value in firewatch rule: "{rule_dict}"',
         )
-        exit(1)
+        raise click.abort()

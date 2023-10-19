@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import click
 from simple_logger.logger import get_logger
 
 
@@ -45,7 +46,7 @@ class Failure:
             return failed_step
         else:
             self.logger.error("Failed step must be a string value")
-            exit(1)
+            raise click.abort()
 
     def _get_failure_type(self, failure_type: str) -> str:
         """
@@ -65,4 +66,4 @@ class Failure:
             self.logger.error(
                 f'Failure type "{failure_type}" is either not a string or not a valid failure type.',
             )
-            exit(1)
+            raise click.abort()
