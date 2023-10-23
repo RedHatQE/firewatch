@@ -20,6 +20,7 @@ The firewatch project is in its infancy and currently has limited functionality.
   - If no failures are found, firewatch will search for any open issues on the Jira server provided and add a comment to the issue mentioning that the job has passed since that issue was filed.
     - This functionality also uses the labels on issues created by firewatch.
     - **Note:** If you get a notification on an issue, but would like to continue working on the issue without getting notifications, add the `ignore-passing-notification` label to the issue.
+  - If firewatch config contains job success reporting, a jira will be created reporting the job success
 
 ## Getting Started
 
@@ -39,18 +40,29 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   >
   > For more information how to define these rules, please see the [configuration guide](docs/configuration_guide.md).
 
-  - Example:
+  - Examples:
+    - Failure configuration
 
-    ```yaml
-    FIREWATCH_CONFIG: |
-        [
-            {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component", "jira_assignee": "some-user@redhat.com"},
-            {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
-            {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
-            {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-            {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
-        ]
-    ```
+      ```yaml
+      FIREWATCH_CONFIG: |
+          [
+              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component", "jira_assignee": "some-user@redhat.com"},
+              {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
+              {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
+              {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
+              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
+          ]
+      ```
+
+    - Success and failure configuration
+
+      ```yaml
+      FIREWATCH_CONFIG: |
+          [
+              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component", "jira_assignee": "some-user@redhat.com"},
+              {"job_success": true, "jira_project": "TEST", "jira_epic": "EPIC-123"}
+          ]
+      ```
 
 - `FIREWATCH_JIRA_SERVER`
   - The Jira server to report to.

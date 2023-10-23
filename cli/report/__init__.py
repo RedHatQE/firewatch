@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module building report cli command"""
+import shutil
 from typing import Optional
 
 import click
@@ -94,5 +95,8 @@ def report(
         gcs_bucket=gcs_bucket,
     )
 
-    # Build the Report object and report issues to Jira
-    Report(firewatch_config=config, job=job)
+    try:
+        # Build the Report object and report issues to Jira
+        Report(firewatch_config=config, job=job)
+    except Exception:
+        shutil.rmtree(job.download_path)

@@ -46,12 +46,11 @@ class Report:
 
         # If job has failures, file bugs
         if job.has_failures:
-            bugs_filed = self.file_jira_issues(
+            if bugs_filed := self.file_jira_issues(
                 failures=job.failures,  # type: ignore
                 firewatch_config=firewatch_config,
                 job=job,
-            )
-            if len(bugs_filed) > 1:
+            ):
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
             if firewatch_config.fail_with_test_failures and job.has_test_failures:
                 self.logger.info(
@@ -60,23 +59,38 @@ class Report:
                 exit(1)
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
+            success_rule = [
+                rule for rule in firewatch_config.rules if rule.job_success is True  # type: ignore
+            ]
+            if success_rule:
+                self.logger.info(f"Reporting job {job.name} success in jira")
+                firewatch_config.jira.create_issue(
+                    project=success_rule[0].jira_project,  # type: ignore
+                    summary=f"Success in {job.name}",
+                    description=self._get_success_issue_description(
+                        job_name=job.name,
+                        build_id=job.build_id,
+                    ),
+                    issue_type="Story",
+                    epic=success_rule[0].jira_epic,  # type: ignore
+                    close_issue=True,
+                )
 
             # Look for open bugs and
             open_bugs = self._get_open_bugs(
                 job_name=job.name,
                 jira=firewatch_config.jira,
             )
-            if open_bugs is not None:
-                if len(open_bugs) > 0:
-                    for bug in open_bugs:
-                        self.logger.info(
-                            f"Adding passed job notification to issue {bug}",
-                        )
-                        self.add_passing_job_comment(
-                            job=job,
-                            jira=firewatch_config.jira,
-                            issue_id=bug,
-                        )
+            if open_bugs:
+                for bug in open_bugs:
+                    self.logger.info(
+                        f"Adding passed job notification to issue {bug}",
+                    )
+                    self.add_passing_job_comment(
+                        job=job,
+                        jira=firewatch_config.jira,
+                        issue_id=bug,
+                    )
 
     def file_jira_issues(
         self,
@@ -122,7 +136,7 @@ class Report:
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
             summary = f"Failure in {job.name}, {date.strftime('%m-%d-%Y')}"
-            description = self._get_issue_description(
+            description = self._get_failed_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
                 classification=pair["rule"].classification,  # type: ignore
                 job_name=job.name,
@@ -393,7 +407,7 @@ class Report:
             )
         return attachments
 
-    def _get_issue_description(
+    def _get_failed_issue_description(
         self,
         step_name: str,
         classification: str,
@@ -412,7 +426,7 @@ class Report:
         Returns:
             str: String object representing the description.
         """
-        description = f"""
+        return f"""
                     *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
                     *Build ID:* {build_id}
                     *Classification:* {classification}
@@ -422,8 +436,6 @@ class Report:
 
                     This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
                 """
-
-        return description
 
     def _get_issue_labels(
         self,
@@ -532,3 +544,25 @@ class Report:
             return open_bugs
         else:
             return None
+
+    def _get_success_issue_description(
+        self,
+        job_name: Optional[str],
+        build_id: Optional[str],
+    ) -> str:
+        """
+        Used to generate the description of an issue to be filed in Jira.
+
+        Args:
+            job_name (Optional[str]): Name of job
+            build_id (Optional[str]): Build ID
+
+        Returns:
+            str: String object representing the description.
+        """
+        return f"""
+                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+                    *Build ID:* {build_id}
+
+                    This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+                """

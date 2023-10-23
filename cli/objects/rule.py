@@ -33,19 +33,21 @@ class Rule:
         self.logger = get_logger(__name__)
 
         # Build the rule using the rule_dict
-        self.step = self._get_step(rule_dict)
-        self.failure_type = self._get_failure_type(rule_dict)
-        self.classification = self._get_classification(rule_dict)
+        self.job_success = self._get_success_rule(rule_dict)
         self.jira_project = self._get_jira_project(rule_dict)
         self.jira_epic = self._get_jira_epic(rule_dict)
-        self.jira_component = self._get_jira_component(rule_dict)
-        self.jira_affects_version = self._get_jira_affects_version(rule_dict)
-        self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
-        self.jira_assignee = self._get_jira_assignee(rule_dict)
-        self.jira_priority = self._get_jira_priority(rule_dict)
-        self.group_name = self._get_group_name(rule_dict)
-        self.group_priority = self._get_group_priority(rule_dict)
-        self.ignore = self._get_ignore(rule_dict)
+        if not self.job_success:
+            self.step = self._get_step(rule_dict)
+            self.failure_type = self._get_failure_type(rule_dict)
+            self.classification = self._get_classification(rule_dict)
+            self.jira_component = self._get_jira_component(rule_dict)
+            self.jira_affects_version = self._get_jira_affects_version(rule_dict)
+            self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
+            self.jira_assignee = self._get_jira_assignee(rule_dict)
+            self.jira_priority = self._get_jira_priority(rule_dict)
+            self.group_name = self._get_group_name(rule_dict)
+            self.group_priority = self._get_group_priority(rule_dict)
+            self.ignore = self._get_ignore(rule_dict)
 
     def _get_step(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -397,5 +399,26 @@ class Rule:
 
         self.logger.error(
             f'Value for "ignore" is not a boolean or string value in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_success_rule(self, rule_dict: dict[Any, Any]) -> bool:
+        """
+        Get success rule
+
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            bool: A boolean value that determines if a jira ticket will be opened (with `status: closed`) for success job
+        """
+
+        job_success = rule_dict.get("job_success", False)
+
+        if isinstance(job_success, bool):
+            return job_success
+
+        self.logger.error(
+            f'Value for "job_success" is not a boolean: "{rule_dict}"',
         )
         exit(1)
