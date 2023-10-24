@@ -20,6 +20,7 @@ from typing import Optional
 from jira import Issue
 from jira import JIRA
 from jira.exceptions import JIRAError
+from jira.resources import User
 from simple_logger.logger import get_logger
 
 
@@ -115,7 +116,7 @@ class Jira:
             issue_dict.update({"priority": {"name": priority}})
 
         self.logger.info(
-            "A Jira issue will be reported.",
+            f"A Jira issue will be reported.",
         )
         issue = self.connection.create_issue(issue_dict)
         self.logger.info(
