@@ -266,7 +266,6 @@ class Report:
         for rule in rules:
             if (
                 hasattr(rule, "step")
-                and rule.step
                 and fnmatch.fnmatch(failure.step, rule.step)
                 and (
                     (failure.failure_type == rule.failure_type)
