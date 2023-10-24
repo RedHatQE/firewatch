@@ -60,10 +60,7 @@ class Report:
                 exit(1)
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
-            success_rule = [
-                rule for rule in firewatch_config.rules if rule.job_success is True  # type: ignore
-            ]
-            if success_rule:
+            if success_rule := [rule for rule in firewatch_config.rules if rule.job_success is True]:  # type: ignore
                 self.logger.info(f"Reporting job {job.name} success in jira")
                 firewatch_config.jira.create_issue(
                     project=success_rule[0].jira_project,  # type: ignore
