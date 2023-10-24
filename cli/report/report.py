@@ -264,9 +264,14 @@ class Report:
         default_rule = Rule(default_rule_dict)
 
         for rule in rules:
-            if fnmatch.fnmatch(failure.step, rule.step) and (
-                (failure.failure_type == rule.failure_type)
-                or rule.failure_type == "all"
+            if (
+                hasattr(rule, "step")
+                and rule.step
+                and fnmatch.fnmatch(failure.step, rule.step)
+                and (
+                    (failure.failure_type == rule.failure_type)
+                    or rule.failure_type == "all"
+                )
             ):
                 if rule.ignore:
                     ignored_rules.append(rule)
@@ -431,19 +436,19 @@ class Report:
             str: String object representing the description.
         """
         base_description = f"""
-                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
-                    *Build ID:* {build_id}
-                """
+*Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+*Build ID:* {build_id}
+"""
         if not success_issue:
             base_description += f"""
-                    *Classification:* {classification}
-                    *Failed Step:* {step_name}
+*Classification:* {classification}
+*Failed Step:* {step_name}
 
-                    Please see the link provided above along with the logs and junit files attached to the bug.
-                """
+Please see the link provided above along with the logs and junit files attached to the bug.
+"""
         base_description += f"""
-                    This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
-        """
+This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+"""
 
         return base_description
 
