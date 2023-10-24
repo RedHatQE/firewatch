@@ -60,6 +60,22 @@ class Report:
                 exit(1)
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
+            if success_rule := [
+                rule for rule in firewatch_config.rules if rule.job_success is True  # type: ignore
+            ]:
+                self.logger.info(f"Reporting job {job.name} success in jira")
+                firewatch_config.jira.create_issue(
+                    project=success_rule[0].jira_project,
+                    summary=f"Job {job.name} passed",
+                    description=self._get_issue_description(
+                        job_name=job.name,  # type: ignore
+                        build_id=job.build_id,  # type: ignore
+                        success_issue=True,
+                    ),
+                    issue_type="Story",
+                    epic=success_rule[0].jira_epic,
+                    close_issue=True,
+                )
 
             # Look for open bugs and
             open_bugs = self._get_open_bugs(
@@ -125,8 +141,8 @@ class Report:
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
                 classification=pair["rule"].classification,  # type: ignore
-                job_name=job.name,
-                build_id=job.build_id,
+                job_name=job.name,  # type: ignore
+                build_id=job.build_id,  # type: ignore
             )
             issue_type = "Bug"
             file_attachments = self._get_file_attachments(
@@ -248,9 +264,13 @@ class Report:
         default_rule = Rule(default_rule_dict)
 
         for rule in rules:
-            if fnmatch.fnmatch(failure.step, rule.step) and (
-                (failure.failure_type == rule.failure_type)
-                or rule.failure_type == "all"
+            if (
+                hasattr(rule, "step")
+                and fnmatch.fnmatch(failure.step, rule.step)
+                and (
+                    (failure.failure_type == rule.failure_type)
+                    or rule.failure_type == "all"
+                )
             ):
                 if rule.ignore:
                     ignored_rules.append(rule)
@@ -395,35 +415,41 @@ class Report:
 
     def _get_issue_description(
         self,
-        step_name: str,
-        classification: str,
-        job_name: Optional[str],
-        build_id: Optional[str],
+        job_name: str,
+        build_id: str,
+        step_name: Optional[str] = None,
+        classification: Optional[str] = None,
+        success_issue: Optional[bool] = False,
     ) -> str:
         """
         Used to generate the description of a bug to be filed in Jira.
 
         Args:
-            step_name (str): Name of the step that failed.
-            classification (str): Classification of the failure.
-            job_name (Optional[str]): Name of job that failed.
-            build_id (Optional[str]): Build ID of failure.
+            job_name (str): Name of job that failed.
+            build_id (str): Build ID of failure.
+            step_name (Optional[str]): Name of the step that failed.
+            classification (Optional[str]): Classification of the failure.
+            success_issue (Optional [bool]): Description for success issue if True else for failure
 
         Returns:
             str: String object representing the description.
         """
-        description = f"""
-                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
-                    *Build ID:* {build_id}
-                    *Classification:* {classification}
-                    *Failed Step:* {step_name}
+        base_description = f"""
+*Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+*Build ID:* {build_id}
+"""
+        if not success_issue:
+            base_description += f"""
+*Classification:* {classification}
+*Failed Step:* {step_name}
 
-                    Please see the link provided above along with the logs and junit files attached to the bug.
+Please see the link provided above along with the logs and junit files attached to the bug.
+"""
+        base_description += f"""
+This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+"""
 
-                    This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
-                """
-
-        return description
+        return base_description
 
     def _get_issue_labels(
         self,

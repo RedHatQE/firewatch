@@ -4,11 +4,14 @@
 
 * [Configuring Firewatch](#configuring-firewatch)
   * [Jira Issue Creation (`firewatch report`) Configuration](#jira-issue-creation-firewatch-report-configuration)
-    * [Required Values](#required-values)
+    * [Job Required Values](#job-required-values)
+      * [`jira_project`](#jiraproject)
+    * [Failed Job Required Values](#failed-job-required-values)
       * [`step`](#step)
       * [`failure_type`](#failuretype)
       * [`classification`](#classification)
-      * [`jira_project`](#jiraproject)
+    * [Success Job Required Values](#success-job-required-values)
+      * [`job_success`](#jobsuccess)
     * [Optional Values](#optional-values)
       * [`jira_epic`](#jiraepic)
       * [`jira_component`](#jiracomponent)
@@ -21,7 +24,7 @@
 
 ## Jira Issue Creation (`firewatch report`) Configuration
 
-Firewatch was designed to allow for users to define which Jira issues get created depending on which failures are found in a OpenShift CI failed run. Using an easy-to-define JSON config, users can easily track issues in their OpenShift CI runs efficiently.
+Firewatch was designed to allow for users to define which Jira issues get created depending on which failures are found in a OpenShift CI failed run or report job success. Using an easy-to-define JSON config, users can easily track issues in their OpenShift CI runs efficiently.
 
 **Example:**
 
@@ -31,7 +34,8 @@ Firewatch was designed to allow for users to define which Jira issues get create
     {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "group": {"name": "some-group", "priority": 1}},
     {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
     {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
+    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"},
+    {"job_success": true, "jira_project": "TEST", "jira_epic": "EPIC-123"}
 ]
 ```
 
@@ -39,7 +43,19 @@ The firewatch configuration can be saved to a file (can be stored wherever you w
 
 The firewatch configuration is a list of rules, each rule is defined using the following values:
 
-### Required Values
+### Job Required Values
+
+#### `jira_project`
+
+The Jira project you'd like the issue to be filed under. This should just be a string value of the project key.
+
+**Example:**
+
+- `"jira_project": "LPTOCPCI"`
+
+---
+
+### Failed Job Required Values
 
 #### `step`
 
@@ -98,13 +114,15 @@ This can be any string value and does not affect the way issues are created apar
 
 ---
 
-#### `jira_project`
+### Success Job Required Values
 
-The Jira project you'd like the issue to be filed under. This should just be a string value of the project key.
+#### `job_success`
+
+Boolean indicating whether a (status `closed`) jira will be opened for a successful job run.
 
 **Example:**
 
-- `"jira_project": "LPTOCPCI"`
+- `"job_success": true`
 
 ---
 
@@ -140,6 +158,7 @@ The component/components you would like issues to be added to.
 **Notes:**
 
 - Please verify the component(s) you are planning on using exist in the project defined in the [`jira_project`](#jiraproject) config value.
+- Does not apply to `job_success`
 
 ---
 
@@ -154,6 +173,7 @@ The version affected by this bug. This will result in the "Affects Version/s" fi
 **Notes:**
 
 - The version must exist in the project defined in the [`jira_project`](#jiraproject) config value.
+- Does not apply to `job_success`
 
 ---
 
@@ -168,6 +188,7 @@ A list of additional labels to add to a bug.
 **Notes:**
 
 - The Jira API will not allow these strings to have spaces in them.
+- Does not apply to `job_success`
 
 ---
 
@@ -178,6 +199,7 @@ The email address of the user you would like a bug assigned to if a bug is creat
 **Example:**
 
 - `"jira_assignee": "some-user@redhat.com"`
+- Does not apply to `job_success`
 
 **Notes:**
 
@@ -206,6 +228,7 @@ The priority desired for a bug created using this rule.
   - `Normal`
   - `Minor`
 - This value is _not_ case-sensitive.
+- Does not apply to `job_success`
 
 ---
 
@@ -220,6 +243,10 @@ A value that be set to "true" or "false" and allows the user to define `step`/`f
 - `"ignore": "false"`
   - Do not ignore the `step`/`failure_type` combination when a failure is found that matches this rule.
   - This is the default behavior of all rules. If set to `false`, it does not need to be defined.
+
+**Notes:**
+
+- Does not apply to `job_success`
 
 #### `group`
 
@@ -247,3 +274,7 @@ Using the example configuration above:
 - If `step-1` fails causing `step-2` and `step-3` to fail, only the rule for `step-1` will be reported because it has the highest priority.
 - If `step-2` fails causing `step-3` to fail, only the rule for `step-2` will be reported because it has the highest priority.
 - If `step-3` fails, only the rule for `step-3` will be reported.
+
+**Notes:**
+
+- Does not apply to `job_success`

@@ -160,15 +160,16 @@ class TestFirewatchReport:
         build_id = "12345"
 
         compare_description = f"""
-                    *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
-                    *Build ID:* {build_id}
-                    *Classification:* {classification}
-                    *Failed Step:* {step_name}
+*Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
+*Build ID:* {build_id}
 
-                    Please see the link provided above along with the logs and junit files attached to the bug.
+*Classification:* {classification}
+*Failed Step:* {step_name}
 
-                    This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
-                """
+Please see the link provided above along with the logs and junit files attached to the bug.
+
+This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
+"""
         issue_description = Report._get_issue_description(
             self,
             step_name=step_name,
@@ -254,3 +255,16 @@ class TestFirewatchReport:
         )
 
         assert filtered_rule_failure_pairs == original_rule_failure_pairs
+
+    def test_success_job_rule(self) -> None:
+        # Test when success job is set
+        rule_1 = Rule(
+            rule_dict={
+                "job_success": True,
+                "jira_project": "NONE",
+            },
+        )
+
+        assert rule_1.job_success, "Rule `job_success` is not set to True"
+
+        assert not hasattr(rule_1, "step"), "Rule has `step` attribute"

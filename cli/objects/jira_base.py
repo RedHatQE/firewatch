@@ -69,6 +69,7 @@ class Jira:
         affects_version: Optional[str] = None,
         assignee: Optional[str] = None,
         priority: Optional[str] = None,
+        close_issue: Optional[bool] = False,
     ) -> Issue:
         """
         Used to create a Jira issue and attach any given files to that issue.
@@ -85,6 +86,7 @@ class Jira:
             affects_version (Optional[str]): Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira.
             assignee (Optional[str]): An optional string for the assignee of an issue. Should be the email address of the user.
             priority (Optional[str]): An optional string representing the desired priority of the issue being created.
+            close_issue (Optional[bool]): Close issue if set to True
 
         Returns:
             Issue: A Jira Issue object.
@@ -140,6 +142,13 @@ class Jira:
         if assignee is not None:
             self.assign_issue(user_email=assignee, issue=issue.key)
             self.logger.info(f"Issue {issue} has been assigned to user {assignee}")
+
+        if close_issue:
+            self.connection.transition_issue(
+                issue=issue.key,
+                transition="closed",
+                comment="closed by firewatch",
+            )
 
         return issue
 
