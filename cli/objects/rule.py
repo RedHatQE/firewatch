@@ -36,7 +36,7 @@ class Rule:
         self.job_success = self._get_success_rule(rule_dict)
         self.jira_project = self._get_jira_project(rule_dict)
         self.jira_epic = self._get_jira_epic(rule_dict)
-        if not self.job_success:
+        if "job_success" not in rule_dict:
             self.step = self._get_step(rule_dict)
             self.failure_type = self._get_failure_type(rule_dict)
             self.classification = self._get_classification(rule_dict)

@@ -16,6 +16,7 @@
 #
 import json
 import os
+import shutil
 from typing import Any
 from typing import Optional
 
@@ -453,3 +454,7 @@ class Job:
                     return True
 
         return False
+
+    def delete_job_dir(self) -> None:
+        self.logger.info(f"Delete {self.download_path} dir")
+        shutil.rmtree(self.download_path)
