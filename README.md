@@ -40,8 +40,7 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   >
   > For more information how to define these rules, please see the [configuration guide](docs/configuration_guide.md).
 
-  - Examples:
-    - Failure configuration
+  - Example:
 
       ```yaml
       FIREWATCH_CONFIG: |
@@ -50,16 +49,7 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
               {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
               {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
               {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"}
-          ]
-      ```
-
-    - Success and failure configuration
-
-      ```yaml
-      FIREWATCH_CONFIG: |
-          [
-              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component", "jira_assignee": "some-user@redhat.com"},
+              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"},
               {"job_success": true, "jira_project": "TEST", "jira_epic": "EPIC-123"}
           ]
       ```
