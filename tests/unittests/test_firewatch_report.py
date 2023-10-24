@@ -169,7 +169,7 @@ class TestFirewatchReport:
 
                     This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
                 """
-        issue_description = Report._get_failed_issue_description(
+        issue_description = Report._get_issue_description(
             self,
             step_name=step_name,
             classification=classification,

@@ -20,7 +20,7 @@ The firewatch project is in its infancy and currently has limited functionality.
   - If no failures are found, firewatch will search for any open issues on the Jira server provided and add a comment to the issue mentioning that the job has passed since that issue was filed.
     - This functionality also uses the labels on issues created by firewatch.
     - **Note:** If you get a notification on an issue, but would like to continue working on the issue without getting notifications, add the `ignore-passing-notification` label to the issue.
-  - If firewatch config contains job success reporting, a jira will be created reporting the job success
+  - If firewatch config contains job success reporting, a jira will be created (with status `closed`) reporting the job success
 
 ## Getting Started
 

@@ -16,7 +16,6 @@
 #
 import json
 import os
-import shutil
 from typing import Any
 from typing import Optional
 
@@ -460,7 +459,3 @@ class Job:
                     has_pod_failures = True
 
         return has_pod_failures
-
-    def delete_job_dir(self) -> None:
-        self.logger.info(f"Delete {self.download_path} dir")
-        shutil.rmtree(self.download_path)

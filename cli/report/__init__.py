@@ -94,9 +94,5 @@ def report(
         gcs_bucket=gcs_bucket,
     )
 
-    try:
-        # Build the Report object and report issues to Jira
-        Report(firewatch_config=config, job=job)
-
-    finally:
-        job.delete_job_dir()
+    # Build the Report object and report issues to Jira
+    Report(firewatch_config=config, job=job)
