@@ -4,11 +4,12 @@
 
 * [Configuring Firewatch](#configuring-firewatch)
   * [Jira Issue Creation (`firewatch report`) Configuration](#jira-issue-creation-firewatch-report-configuration)
+    * [Job Required Values](#job-required-values)
+      * [`jira_project`](#jiraproject)
     * [Failed Job Required Values](#failed-job-required-values)
       * [`step`](#step)
       * [`failure_type`](#failuretype)
       * [`classification`](#classification)
-      * [`jira_project`](#jiraproject)
     * [Success Job Required Values](#success-job-required-values)
       * [`job_success`](#jobsuccess)
     * [Optional Values](#optional-values)
@@ -41,6 +42,18 @@ Firewatch was designed to allow for users to define which Jira issues get create
 The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the `report` command, if an argument for `--firewatch_config_path` is not provided, the environment variable will be used.
 
 The firewatch configuration is a list of rules, each rule is defined using the following values:
+
+### Job Required Values
+
+#### `jira_project`
+
+The Jira project you'd like the issue to be filed under. This should just be a string value of the project key.
+
+**Example:**
+
+- `"jira_project": "LPTOCPCI"`
+
+---
 
 ### Failed Job Required Values
 
@@ -98,16 +111,6 @@ How you'd like to classify the issue in Jira. This is not a formal field in Jira
 **Notes:**
 
 This can be any string value and does not affect the way issues are created apart from it being included in the description of the issue.
-
----
-
-#### `jira_project`
-
-The Jira project you'd like the issue to be filed under. This should just be a string value of the project key.
-
-**Example:**
-
-- `"jira_project": "LPTOCPCI"`
 
 ---
 
