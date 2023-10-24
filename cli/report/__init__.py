@@ -68,6 +68,13 @@ from cli.report.report import Report
     default=False,
     type=click.BOOL,
 )
+@click.option(
+    "--keep-job-dir",
+    help="If set, firewatch will not delete the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -79,12 +86,14 @@ def report(
     firewatch_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
+    keep_job_dir: bool,
 ) -> None:
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
     config = Configuration(
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
+        keep_job_dir=keep_job_dir,
         config_file_path=firewatch_config_path,
     )
     job = Job(
