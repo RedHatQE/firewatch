@@ -46,11 +46,12 @@ class Report:
 
         # If job has failures, file bugs
         if job.has_failures:
-            if bugs_filed := self.file_jira_issues(
+            bugs_filed = self.file_jira_issues(
                 failures=job.failures,  # type: ignore
                 firewatch_config=firewatch_config,
                 job=job,
-            ):
+            )
+            if len(bugs_filed) > 1:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
             if firewatch_config.fail_with_test_failures and job.has_test_failures:
                 self.logger.info(
@@ -81,16 +82,17 @@ class Report:
                 job_name=job.name,
                 jira=firewatch_config.jira,
             )
-            if open_bugs:
-                for bug in open_bugs:
-                    self.logger.info(
-                        f"Adding passed job notification to issue {bug}",
-                    )
-                    self.add_passing_job_comment(
-                        job=job,
-                        jira=firewatch_config.jira,
-                        issue_id=bug,
-                    )
+            if open_bugs is not None:
+                if len(open_bugs) > 0:
+                    for bug in open_bugs:
+                        self.logger.info(
+                            f"Adding passed job notification to issue {bug}",
+                        )
+                        self.add_passing_job_comment(
+                            job=job,
+                            jira=firewatch_config.jira,
+                            issue_id=bug,
+                        )
 
     def file_jira_issues(
         self,
@@ -426,7 +428,7 @@ class Report:
         Returns:
             str: String object representing the description.
         """
-        return f"""
+        description = f"""
                     *Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
                     *Build ID:* {build_id}
                     *Classification:* {classification}
@@ -436,6 +438,8 @@ class Report:
 
                     This bug was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
                 """
+
+        return description
 
     def _get_issue_labels(
         self,

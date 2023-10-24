@@ -316,9 +316,12 @@ class Job:
         for test_failure in test_failures:
             failures_list.append(test_failure)
         for pod_failure in pod_failures:
+            already_exists = False
             for existing_failure in failures_list:
-                if existing_failure["step"] != pod_failure["step"]:
-                    failures_list.append(pod_failure)
+                if existing_failure["step"] == pod_failure["step"]:
+                    already_exists = True
+            if not already_exists:
+                failures_list.append(pod_failure)
 
         failures = []
         for failure in failures_list:
@@ -329,7 +332,7 @@ class Job:
                 ),
             )
 
-        if failures:
+        if len(failures) > 0:
             return failures
         else:
             return None
@@ -431,12 +434,14 @@ class Job:
         Returns:
             bool: True if there are test failures, False otherwise.
         """
+        has_test_failures = False
+
         if failures:
             for failure in failures:
                 if failure.failure_type == "test_failure":
-                    return True
+                    has_test_failures = True
 
-        return False
+        return has_test_failures
 
     def _check_has_pod_failures(self, failures: Optional[list[Failure]]) -> bool:
         """
@@ -448,12 +453,13 @@ class Job:
         Returns:
             bool: True if there are pod failures, False otherwise.
         """
+        has_pod_failures = False
         if failures:
             for failure in failures:
                 if failure.failure_type == "pod_failure":
-                    return True
+                    has_pod_failures = True
 
-        return False
+        return has_pod_failures
 
     def delete_job_dir(self) -> None:
         self.logger.info(f"Delete {self.download_path} dir")
