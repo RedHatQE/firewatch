@@ -50,23 +50,23 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
-  --keep-job-dir                If set, firewatch will not delete the job
-                                directory (/tmp/12345) that is created to hold
-                                logs and results for a job following
-                                execution.
-  --fail_with_test_failures     Firewatch will fail with a non-zero exit code
-                                if a test failure is found.
-  --jira_config_path PATH       The path to the jira configuration file
-  --firewatch_config_path PATH  The path to the firewatch configuration file
-  --gcs_bucket TEXT             The name of the GCS bucket that holds
-                                OpenShift CI logs
-  --build_id TEXT               The build ID that needs to be reported. The
-                                value of $BUILD_ID
-  --job_name_safe TEXT          The safe name of a test in a Prow job. The
-                                value of $JOB_NAME_SAFE
-  --job_name TEXT               The full name of a Prow job. The value of
-                                $JOB_NAME
-  --help                        Show this message and exit.
+   --keep-job-dir  BOOL             If set, firewatch will not delete the job
+                                    directory (/tmp/12345) that is created to hold
+                                    logs and results for a job following
+                                    execution.
+  --fail_with_test_failures  BOOL   Firewatch will fail with a non-zero exit code
+                                    if a test failure is found.
+  --jira_config_path PATH           The path to the jira configuration file
+  --firewatch_config_path PATH      The path to the firewatch configuration file
+  --gcs_bucket TEXT                 The name of the GCS bucket that holds
+                                    OpenShift CI logs
+  --build_id TEXT                   The build ID that needs to be reported. The
+                                    value of $BUILD_ID
+  --job_name_safe TEXT              The safe name of a test in a Prow job. The
+                                    value of $JOB_NAME_SAFE
+  --job_name TEXT                   The full name of a Prow job. The value of
+                                    $JOB_NAME
+  --help                            Show this message and exit.
 ```
 
 **Examples:**
