@@ -30,6 +30,7 @@ class Configuration:
         self,
         jira: Jira,
         fail_with_test_failures: bool,
+        keep_job_dir: bool,
         config_file_path: Union[str, None] = None,
     ):
         """
@@ -50,6 +51,9 @@ class Configuration:
 
         # Boolean value representing if the program should fail if test failures are found.
         self.fail_with_test_failures = fail_with_test_failures
+
+        # Boolean value to decide if firewatch should delete the job directory following execution.
+        self.keep_job_dir = keep_job_dir
 
         # Get the config data
         self.config_data = self._get_config_data(config_file_path=config_file_path)

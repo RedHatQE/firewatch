@@ -50,19 +50,23 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
-  --fail_with_test_failures     Firewatch will fail with a non-zero exit code
-                                if a test failure is found.
-  --jira_config_path TEXT       The path to the jira configuration file
-                                [required]
-  --firewatch_config_path TEXT  The path to the firewatch configuration file
-  --gcs_bucket TEXT             The name of the GCS bucket that holds
-                                OpenShift CI logs  [required]
-  --build_id TEXT               The build ID that needs to be reported. The
-                                value of $BUILD_ID
-  --job_name_safe TEXT          The safe name of a test in a Prow job. The
-                                value of $JOB_NAME_SAFE
-  --job_name TEXT               The full name of a Prow job. The value of
-                                $JOB_NAME
+   --keep-job-dir  BOOL             If set, firewatch will not delete the job
+                                    directory (/tmp/12345) that is created to hold
+                                    logs and results for a job following
+                                    execution.
+  --fail_with_test_failures  BOOL   Firewatch will fail with a non-zero exit code
+                                    if a test failure is found.
+  --jira_config_path PATH           The path to the jira configuration file
+  --firewatch_config_path PATH      The path to the firewatch configuration file
+  --gcs_bucket TEXT                 The name of the GCS bucket that holds
+                                    OpenShift CI logs
+  --build_id TEXT                   The build ID that needs to be reported. The
+                                    value of $BUILD_ID
+  --job_name_safe TEXT              The safe name of a test in a Prow job. The
+                                    value of $JOB_NAME_SAFE
+  --job_name TEXT                   The full name of a Prow job. The value of
+                                    $JOB_NAME
+  --help                            Show this message and exit.
 ```
 
 **Examples:**
@@ -80,6 +84,9 @@ $ firewatch report --build_id some_build_id --job_name_safe some_safe_job_name -
 
 # Exit with a non-zero exit code if test failures are found in any JUnit file for a step
 $ firewatch report --fail_with_test_failures
+
+# Don't delete the job directory in /tmp (would usually be used for debugging purposes).
+$ firewatch report --keep-job-dir
 
 ```
 

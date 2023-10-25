@@ -16,6 +16,7 @@
 #
 import fnmatch
 import os
+import shutil
 from datetime import datetime
 from typing import Any
 from typing import Optional
@@ -53,11 +54,6 @@ class Report:
             )
             if len(bugs_filed) > 1:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
-            if firewatch_config.fail_with_test_failures and job.has_test_failures:
-                self.logger.info(
-                    "Test failures found and --fail_with_test_failures flag is set. Exiting with exit code 1",
-                )
-                exit(1)
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
             if success_rule := [
@@ -93,6 +89,17 @@ class Report:
                             jira=firewatch_config.jira,
                             issue_id=bug,
                         )
+        # Delete the job directory
+        if not firewatch_config.keep_job_dir:
+            self.logger.info(f"Deleting job directory: {job.download_path}")
+            shutil.rmtree(job.download_path)
+
+        # Exit with code 1 if the fail_with_test_failures flag is set.
+        if firewatch_config.fail_with_test_failures and job.has_test_failures:
+            self.logger.info(
+                "Test failures found and --fail_with_test_failures flag is set. Exiting with exit code 1",
+            )
+            exit(1)
 
     def file_jira_issues(
         self,
