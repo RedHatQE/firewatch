@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import json
+from typing import Any
 from typing import Optional
 
 from jira import Issue
@@ -152,9 +153,21 @@ class Jira:
 
         return issue
 
-    def search(self, jql_query: str) -> list[str]:
+    def search(self, jql_query: str) -> list[Any]:
         """
-        Performs a Jira JQL query using the Jira connection and returns the results.
+        Performs a Jira JQL query using the Jira connection and returns a list of issues, including all fields.
+
+        Args:
+            jql_query (str): JQL query to run.
+
+        Returns:
+            list[Any]: List of issues that are returned from the query.
+        """
+        return self.connection.search_issues(jql_query, validate_query=True)
+
+    def search_issues(self, jql_query: str) -> list[str]:
+        """
+        Performs a Jira JQL query using the Jira connection and returns a list of strings representing issue keys.
 
         Args:
             jql_query (str): JQL query to run.
