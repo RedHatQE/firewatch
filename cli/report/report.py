@@ -21,6 +21,7 @@ from datetime import datetime
 from typing import Any
 from typing import Optional
 
+import jira
 from simple_logger.logger import get_logger
 
 from cli.objects.configuration import Configuration
@@ -147,9 +148,11 @@ class Report:
             summary = f"Failure in {job.name}, {date.strftime('%m-%d-%Y')}"
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
+                failure_type=pair["failure"].failure_type,  # type: ignore
                 classification=pair["rule"].classification,  # type: ignore
                 job_name=job.name,  # type: ignore
                 build_id=job.build_id,  # type: ignore
+                jira=firewatch_config.jira,  # type: ignore
             )
             issue_type = "Bug"
             file_attachments = self._get_file_attachments(
@@ -425,8 +428,10 @@ class Report:
         job_name: str,
         build_id: str,
         step_name: Optional[str] = None,
+        failure_type: Optional[str] = None,
         classification: Optional[str] = None,
         success_issue: Optional[bool] = False,
+        jira: Optional[Jira] = None,
     ) -> str:
         """
         Used to generate the description of a bug to be filed in Jira.
@@ -441,22 +446,30 @@ class Report:
         Returns:
             str: String object representing the description.
         """
-        base_description = f"""
-*Link:* https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}
-*Build ID:* {build_id}
-"""
+        link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/origin-ci-test/logs/{job_name}/{build_id}]"
+        build_id_line = f"*Build ID:* {build_id}"
+        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]"
+
+        # If the issue is being created for a failure
         if not success_issue:
-            base_description += f"""
-*Classification:* {classification}
-*Failed Step:* {step_name}
+            classification_line = f"*Classification:* {classification}"
+            failed_step_line = f"*Failed Step:* {step_name}"
+            past_bugs = self._get_past_bugs(
+                failed_step=step_name,  # type: ignore
+                failure_type=failure_type,  # type: ignore
+                jira=jira,  # type: ignore
+            )
+            description = f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}"
+            if past_bugs:
+                description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}*:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
 
-Please see the link provided above along with the logs and junit files attached to the bug.
-"""
-        base_description += f"""
-This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]
-"""
+        # If the issue is being created for a success
+        else:
+            description = f"{link_line}\n{build_id_line}"
 
-        return base_description
+        description += f"\n{firewatch_link_line}"
+
+        return description
 
     def _get_issue_labels(
         self,
@@ -521,7 +534,7 @@ This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShi
         # AND has a label that matches the failure type
         # AND the bugs are not closed
         jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND status not in (closed)'
-        duplicate_bugs = jira.search(jql_query=jql_query)
+        duplicate_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(duplicate_bugs) > 0:
             self.logger.info("Possible duplicate bugs found:")
@@ -553,9 +566,9 @@ This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShi
         # has a label that matches the job name
         # AND a label that == "firewatch"
         # AND does NOT have a label that == "ignore-passing-notification"
-        # AND a is not in the "closed" status
+        # AND is not in the "closed" status
         jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND status not in (closed)'
-        open_bugs = jira.search(jql_query=jql_query)
+        open_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(open_bugs) > 0:
             self.logger.info(f"Found open bugs for job {job_name}:")
@@ -565,3 +578,52 @@ This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShi
             return open_bugs
         else:
             return None
+
+    def _get_past_bugs(
+        self,
+        failed_step: str,
+        failure_type: str,
+        jira: Jira,
+    ) -> Optional[list[jira.Issue]]:
+        """
+        Used to search for closed bugs for a specific step and failure type.
+
+        Args:
+            failed_step (str): The name of the failed step to search for bugs under.
+            failure_type (str): The failure type to search for bugs under
+            jira (Jira): Jia object.
+
+        Returns:
+            Optional[list[jira.Issue]]: An optional list of Jira issues from firewatch that are from a specific failed step and failure type.
+        """
+        list_of_issues = jira.search(
+            jql_query=f'labels="{failed_step}" AND labels="{failure_type}" AND status in (closed) ORDER BY created DESC',
+        )
+
+        # Reduce to 10 most recent issues
+        return list_of_issues[:10]
+
+    def _get_past_bugs_table(self, issues: list[jira.Issue], jira: Jira) -> str:
+        """
+        Used to build the table of bugs related to a specific step/failure type that will be put in issue descriptions
+
+        Args:
+            issues (list[jira.Issue]): A list of jira issues.
+            jira (Jira): Jia object.
+
+        Returns:
+            str: A string object representing the table of related Jira issues to be put in a bug description.
+        """
+        table = "||Bug||Date Created||Assignee||"
+        issue_rows = []
+
+        for issue in issues:
+            date_created = issue.get_field("created").split("T")[0]
+            assignee = issue.get_field("assignee")
+            issue_row = f"\n|[{issue.key}|{jira.url}/browse/{issue.key}]|{date_created}|{assignee}|"
+            issue_rows.append(issue_row)
+
+        for row in issue_rows:
+            table += row
+
+        return table

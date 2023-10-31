@@ -1,10 +1,10 @@
 # firewatch
 
-The firewatch project is in its infancy and currently has limited functionality. Ultimately, we'd like this tool to be a way to manage, track, and react to job failures in OpenShift CI.
+Thank you for your interest in the firewatch project! Please find some information about the project below. If you are looking for more information, please see the additional documentation below:
 
-**What may be added in future?**
-
-- Automatic re-tries for user-defined failures in an OpenShift CI job.
+- [CLI Usage Guide](docs/cli_usage_guide.md)
+- [Configuration Guide](docs/configuration_guide.md)
+- [Contribution Guide](docs/CONTRIBUTING.md)
 
 ## Features
 
@@ -14,6 +14,8 @@ The firewatch project is in its infancy and currently has limited functionality.
   - If multiple issues are created for a run, the issues will all be related to each other to help with issue.
   - The issues created have a "classification" section that is defined by the user in their firewatch config.
     - This can be used as a "best-guess" for what may have gone wrong during the job's run.
+  - Firewatch will search for any past issues created by a specific step that has failed in the same way (pod failure or test failure) and list the 10 most recent ones.
+    - This is meant to help the engineer working on the bug to find a solution.
   - Firewatch searches for duplicate issues and makes a comment on the issues rather than filing a second issue.
     - This is done using the labels on issues created by firewatch. These labels should consist of the failure type, failed step, and the job name.
     - If the new failures matches the failure type, failed step, and job name; firewatch will make a comment notifying the user that this failure likely happened again.
@@ -98,7 +100,8 @@ firewatch is released under the [GNU Public License](LICENSE).
 
 If you have any questions, suggestions, or feedback, feel free to reach out to us:
 
-- Project Repository: [https://github.com/CSPI-QE/firewatch](https://github.com/CSPI-QE/firewatch)
-- Issue Tracker: [https://github.com/CSPI-QE/firewatch/issues](https://github.com/CSPI-QE/firewatch/issues)
+- Project Repository: [CSPI-QE/firewatch](https://github.com/CSPI-QE/firewatch)
+- Issue Tracker: [CSPI-QE/firewatch Issues](https://github.com/CSPI-QE/firewatch/issues)
+- Slack: [#ocp-ci-firewatch-tool](https://redhat-internal.slack.com/archives/C062WMK4MCM)
 
 We appreciate your interest in firewatch!
