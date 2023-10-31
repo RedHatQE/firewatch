@@ -176,7 +176,7 @@ class Jira:
             list[str]: List of issues that are returned from the query.
         """
         issues = []
-        results = self.connection.search_issues(jql_query, validate_query=True)
+        results = self.search(jql_query)
 
         for issue in results:
             issues.append(issue.key)
