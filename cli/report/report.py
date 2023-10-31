@@ -597,7 +597,7 @@ class Report:
             Optional[list[jira.Issue]]: An optional list of Jira issues from firewatch that are from a specific failed step and failure type.
         """
         list_of_issues = jira.search(
-            jql_query=f'labels="{failed_step}" AND labels="{failure_type}" ORDER BY created DESC',
+            jql_query=f'labels="{failed_step}" AND labels="{failure_type}" AND status in (closed) ORDER BY created DESC',
         )
 
         # Reduce to 10 most recent issues
