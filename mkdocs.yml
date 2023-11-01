@@ -1,0 +1,10 @@
+site_name: 'Firewatch Documentation'
+
+nav:
+  - Home: README.md
+  - 'CLI Usage Guide': docs/cli_usage_guide.md
+  - 'Configuration Guide': docs/configuration_guide.md
+  - 'Contribution Guide': docs/contribution_guide.md
+
+plugins:
+  - techdocs-core
