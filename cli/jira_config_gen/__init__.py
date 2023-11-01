@@ -14,37 +14,37 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-"""Module building jira_config_gen cli command"""
+"""Module building jira-config-gen cli command"""
 import click
 
 from cli.jira_config_gen.jira_config_gen import JiraConfig
 
 
 @click.option(
-    "--server_url",
+    "--server-url",
     help='Jira server URL, i.e "https://issues.stage.redhat.com"',
     required=True,
     type=click.STRING,
 )
 @click.option(
-    "--token_path",
+    "--token-path",
     help="Path to the Jira API token",
     required=True,
     type=click.Path(exists=True),
 )
 @click.option(
-    "--output_file",
+    "--output-file",
     help="Where the rendered config will be stored",
     default="/tmp/jira.config",
     type=click.Path(),
 )
 @click.option(
-    "--template_path",
+    "--template-path",
     help="Directory holding templates",
     default="/firewatch/cli/templates/jira.config.j2",
     type=click.Path(exists=True),
 )
-@click.command("jira_config_gen")
+@click.command("jira-config-gen")
 def jira_config_gen(
     server_url: str,
     token_path: str,

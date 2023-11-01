@@ -39,7 +39,7 @@ Firewatch was designed to allow for users to define which Jira issues get create
 ]
 ```
 
-The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the `report` command, if an argument for `--firewatch_config_path` is not provided, the environment variable will be used.
+The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the `report` command, if an argument for `--firewatch-config-path` is not provided, the environment variable will be used.
 
 The firewatch configuration is a list of rules, each rule is defined using the following values:
 

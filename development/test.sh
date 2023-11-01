@@ -2,7 +2,7 @@
 
 # Build Jira config
 echo "${JIRA_TOKEN}" > /tmp/token
-firewatch jira_config_gen --token_path /tmp/token --server_url "${JIRA_SERVER_URL}"
+firewatch jira-config-gen --token-path /tmp/token --server-url "${JIRA_SERVER_URL}"
 
 # Execute Firewatch
 firewatch report
