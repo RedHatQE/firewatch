@@ -9,7 +9,7 @@
   * [Configuration](#configuration)
   * [Usage](#usage)
     * [`report`](#report)
-    * [`jira_config_gen`](#jiraconfiggen)
+    * [`jira-config-gen`](#jiraconfiggen)
 
 ## Installation
 
@@ -41,7 +41,7 @@ Many of the arguments for this command have set defaults or will use an environm
 
 **Pre-requisites:**
 
-1. A Jira configuration file must exist. Use the `jira_config_gen` command to generate the configuration file.
+1. A Jira configuration file must exist. Use the `jira-config-gen` command to generate the configuration file.
 2. A firewatch config must be defined. Use the [Configuration section above](#configuration) to generate your configuration.
 
 **Arguments:**
@@ -54,17 +54,17 @@ Options:
                                     directory (/tmp/12345) that is created to hold
                                     logs and results for a job following
                                     execution.
-  --fail_with_test_failures  BOOL   Firewatch will fail with a non-zero exit code
+  --fail-with-test-failures  BOOL   Firewatch will fail with a non-zero exit code
                                     if a test failure is found.
-  --jira_config_path PATH           The path to the jira configuration file
-  --firewatch_config_path PATH      The path to the firewatch configuration file
-  --gcs_bucket TEXT                 The name of the GCS bucket that holds
+  --jira-config-path PATH           The path to the jira configuration file
+  --firewatch-config-path PATH      The path to the firewatch configuration file
+  --gcs-bucket TEXT                 The name of the GCS bucket that holds
                                     OpenShift CI logs
-  --build_id TEXT                   The build ID that needs to be reported. The
+  --build-id TEXT                   The build ID that needs to be reported. The
                                     value of $BUILD_ID
-  --job_name_safe TEXT              The safe name of a test in a Prow job. The
+  --job-name-safe TEXT              The safe name of a test in a Prow job. The
                                     value of $JOB_NAME_SAFE
-  --job_name TEXT                   The full name of a Prow job. The value of
+  --job-name TEXT                   The full name of a Prow job. The value of
                                     $JOB_NAME
   --help                            Show this message and exit.
 ```
@@ -80,10 +80,10 @@ $ export FIREWATCH_CONFIG="[{"step": "some-step-name","failure_type":"pod_failur
 $ firewatch report
 
 # Using CLI arguments
-$ firewatch report --build_id some_build_id --job_name_safe some_safe_job_name --job_name some_job_name --firewatch_config_path /some/path/to/firewatch_config.json
+$ firewatch report --build-id some_build_id --job-name-safe some_safe_job_name --job_name some_job_name --firewatch-config-path /some/path/to/firewatch_config.json
 
 # Exit with a non-zero exit code if test failures are found in any JUnit file for a step
-$ firewatch report --fail_with_test_failures
+$ firewatch report --fail-with-test-failures
 
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir
@@ -142,19 +142,19 @@ If Any issues are found that match all the conditions above, we can be fairly co
 >
 > This comment was created using firewatch in OpenShift CI.
 
-### `jira_config_gen`
+### `jira-config-gen`
 
-The `jira_config_gen` command is used to generate the Jira configuration file used when firewatch interacts with a Jira server.
+The `jira-config-gen` command is used to generate the Jira configuration file used when firewatch interacts with a Jira server.
 
 **Arguments:**
 
 ```commandline
-Usage: firewatch jira_config_gen [OPTIONS]
+Usage: firewatch jira-config-gen [OPTIONS]
 
 Options:
-  --output_file TEXT  Where the rendered config will be stored  [required]
-  --token_path TEXT   Path to the Jira API token  [required]
-  --server_url TEXT   Jira server URL, i.e "https://issues.stage.redhat.com"
+  --output-file TEXT  Where the rendered config will be stored  [required]
+  --token-path TEXT   Path to the Jira API token  [required]
+  --server-url TEXT   Jira server URL, i.e "https://issues.stage.redhat.com"
                       [required]
   --help              Show this message and exit.
 ```
@@ -163,8 +163,8 @@ Options:
 
 ```commandline
 # Create a configuration file in the default location (/tmp/jira.config)
-$ firewatch jira_config_gen --token_path {Path to file containing Jira API token} --server_url https://some.jira.server.com
+$ firewatch jira-config-gen --token-path {Path to file containing Jira API token} --server-url https://some.jira.server.com
 
 # Create a configuration file in a different location (/some/path/jira.config)
-$ firewatch jira_config_gen --token_path {Path to file containing Jira API token} --server_url https://some.jira.server.com --output_file /some/path
+$ firewatch jira-config-gen --token-path {Path to file containing Jira API token} --server-url https://some.jira.server.com --output-file /some/path
 ```

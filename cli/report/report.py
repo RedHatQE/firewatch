@@ -98,7 +98,7 @@ class Report:
         # Exit with code 1 if the fail_with_test_failures flag is set.
         if firewatch_config.fail_with_test_failures and job.has_test_failures:
             self.logger.info(
-                "Test failures found and --fail_with_test_failures flag is set. Exiting with exit code 1",
+                "Test failures found and --fail-with-test-failures flag is set. Exiting with exit code 1",
             )
             exit(1)
 

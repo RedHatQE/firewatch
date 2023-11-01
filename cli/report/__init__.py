@@ -26,43 +26,43 @@ from cli.report.report import Report
 
 
 @click.option(
-    "--job_name",
+    "--job-name",
     help="The full name of a Prow job. The value of $JOB_NAME",
     required=False,
     type=click.STRING,
 )
 @click.option(
-    "--job_name_safe",
+    "--job-name-safe",
     help="The safe name of a test in a Prow job. The value of $JOB_NAME_SAFE",
     required=False,
     type=click.STRING,
 )
 @click.option(
-    "--build_id",
+    "--build-id",
     help="The build ID that needs to be reported. The value of $BUILD_ID",
     required=False,
     type=click.STRING,
 )
 @click.option(
-    "--gcs_bucket",
+    "--gcs-bucket",
     help="The name of the GCS bucket that holds OpenShift CI logs",
     default="origin-ci-test",
     type=click.STRING,
 )
 @click.option(
-    "--firewatch_config_path",
+    "--firewatch-config-path",
     help="The path to the firewatch configuration file",
     required=False,
     type=click.Path(exists=True),
 )
 @click.option(
-    "--jira_config_path",
+    "--jira-config-path",
     help="The path to the jira configuration file",
     default="/tmp/jira.config",
     type=click.Path(exists=True),
 )
 @click.option(
-    "--fail_with_test_failures",
+    "--fail-with-test-failures",
     help="Firewatch will fail with a non-zero exit code if a test failure is found.",
     is_flag=True,
     default=False,
