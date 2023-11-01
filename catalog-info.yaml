@@ -15,8 +15,6 @@ metadata:
       title: Repository
     - url: https://github.com/CSPI-QE/firewatch/issues
       title: Issue Tracker
-    - url: https://github.com/openshift/release/blob/master/ci-operator/step-registry/firewatch/report-issues/firewatch-report-issues-ref.yaml
-      title: OpenShift CI Step
     - url: https://redhat-internal.slack.com/archives/C062WMK4MCM
       title: Slack Channel
   annotations:
