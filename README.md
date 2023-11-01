@@ -4,7 +4,7 @@ Thank you for your interest in the firewatch project! Please find some informati
 
 - [CLI Usage Guide](docs/cli_usage_guide.md)
 - [Configuration Guide](docs/configuration_guide.md)
-- [Contribution Guide](docs/CONTRIBUTING.md)
+- [Contribution Guide](docs/contribution_guide.md)
 
 ## Features
 
@@ -90,7 +90,7 @@ If you'd like to run firewatch locally, use the following instructions:
 
 ## Contributing
 
-We welcome contributions to firewatch! If you'd like to contribute, please review our [Contribution Guidelines](docs/CONTRIBUTING.md) for more information on how to get started.
+We welcome contributions to firewatch! If you'd like to contribute, please review our [Contribution Guidelines](docs/contribution_guide.md) for more information on how to get started.
 
 ## License
 

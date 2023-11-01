@@ -3,13 +3,22 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: firewatch
-  title: Firewatch
-  description: Firewatch automatically creates Jira issues for OpenShift CI jobs
+  title: firewatch
+  description: Create Jira issues for OpenShift CI failures
   tags:
     - prog:python
     - cat:test-reporting
     - feat:extdeps
   namespace: quality-community
+  links:
+    - url: https://github.com/CSPI-QE/firewatch
+      title: Repository
+    - url: https://github.com/CSPI-QE/firewatch/issues
+      title: Issue Tracker
+    - url: https://github.com/openshift/release/blob/master/ci-operator/step-registry/firewatch/report-issues/firewatch-report-issues-ref.yaml
+      title: OpenShift CI Step
+    - url: https://redhat-internal.slack.com/archives/C062WMK4MCM
+      title: Slack Channel
   annotations:
     github.com/project-slug: CSPI-QE/firewatch
     backstage.io/techdocs-ref: dir:.
