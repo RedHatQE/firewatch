@@ -1,0 +1,19 @@
+# Catalog entry for Backstage [backstage.io]
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: firewatch
+  title: Firewatch
+  description: Firewatch automatically creates Jira issues for OpenShift CI jobs
+  tags:
+    - prog:python
+    - cat:test-reporting
+    - feat:extdeps
+  namespace: quality-community
+  annotations:
+    github.com/project-slug: CSPI-QE/firewatch
+    backstage.io/techdocs-ref: dir: .
+spec:
+  type: library
+  owner: group: redhat/cspi-qe
+  lifecycle: production
