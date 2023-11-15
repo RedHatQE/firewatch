@@ -25,7 +25,7 @@ class TestFirewatchObjectsRule:
             "classification": "test classification",
             "jira_project": "TEST",
             "jira_epic": "TEST-1234",
-            "jira_component": "test component",
+            "jira_component": ["test component"],
             "jira_affects_version": "test version",
             "jira_additional_labels": ["some-label-1", "some-label-2"],
             "jira_assignee": "some-email@redhat.com",
@@ -40,7 +40,7 @@ class TestFirewatchObjectsRule:
         assert rule.classification == test_rule_dict["classification"]
         assert rule.jira_project == test_rule_dict["jira_project"]
         assert rule.jira_epic == test_rule_dict["jira_epic"]
-        assert test_rule_dict["jira_component"] in rule.jira_component
+        assert rule.jira_component == test_rule_dict["jira_component"]
         assert rule.jira_affects_version == test_rule_dict["jira_affects_version"]
         assert ("some-label-1" in rule.jira_additional_labels) and (
             "some-label-2" in rule.jira_additional_labels
@@ -92,13 +92,6 @@ class TestFirewatchObjectsRule:
         assert jira_epic is None
 
     def test_get_jira_component(self) -> None:
-        # Test when single component is defined
-        test_rule_dict = {"jira_component": "test component"}
-        jira_component = Rule._get_jira_component(self, test_rule_dict)
-        assert isinstance(jira_component, list)
-        assert "test component" in jira_component
-
-        # Test when multiple components are defined
         test_rule_dict = {"jira_component": ["test component 1", "test component 2"]}
         jira_component = Rule._get_jira_component(self, test_rule_dict)
         assert isinstance(jira_component, list)

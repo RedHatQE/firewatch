@@ -30,7 +30,7 @@ Firewatch was designed to allow for users to define which Jira issues get create
 
 ```json
 [
-    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": "some-component"},
+    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": ["some-component"]},
     {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "group": {"name": "some-group", "priority": 1}},
     {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
     {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
@@ -148,12 +148,10 @@ The epic you would like issues to be related to. This value should just be the I
 
 The component/components you would like issues to be added to.
 
-**Example:**
+**Examples:**
 
-- Using a single component:
-  - `"jira_component": "component-name"`
-- Using multiple components:
-  - `"jira_component": ["component-1", "component-2"]`
+- `"jira_component": ["component-1"]`
+- `"jira_component": ["component-1", "component-2"]`
 
 **Notes:**
 

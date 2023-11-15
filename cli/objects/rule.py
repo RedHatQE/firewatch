@@ -196,10 +196,7 @@ class Rule:
 
         jira_component = rule_dict.get("jira_component")
 
-        if isinstance(jira_component, str):
-            components.append(jira_component)
-            return components
-        elif isinstance(jira_component, list):
+        if isinstance(jira_component, list):
             for component in jira_component:
                 if isinstance(component, str):
                     components.append(component)
@@ -213,7 +210,7 @@ class Rule:
             return jira_component
 
         self.logger.error(
-            f'Value for "jira_component" must be either a list of strings (multiple components) or a string value (single component) in firewatch rule: "{rule_dict}"',
+            f'Value for "jira_component" must be a list of strings (multiple components) in firewatch rule: "{rule_dict}"',
         )
         exit(1)
 
