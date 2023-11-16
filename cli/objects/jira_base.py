@@ -148,7 +148,7 @@ class Jira:
             self.connection.transition_issue(
                 issue=issue.key,
                 transition="closed",
-                comment="closed by firewatch",
+                comment="Closed by firewatch.",
             )
 
         return issue
