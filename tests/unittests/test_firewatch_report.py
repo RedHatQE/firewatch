@@ -228,16 +228,3 @@ class TestFirewatchReport:
         )
 
         assert filtered_rule_failure_pairs == original_rule_failure_pairs
-
-    def test_success_job_rule(self) -> None:
-        # Test when success job is set
-        rule_1 = Rule(
-            rule_dict={
-                "job_success": True,
-                "jira_project": "NONE",
-            },
-        )
-
-        assert rule_1.job_success, "Rule `job_success` is not set to True"
-
-        assert not hasattr(rule_1, "step"), "Rule has `step` attribute"

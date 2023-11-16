@@ -57,22 +57,10 @@ class Report:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
         else:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
-            if success_rule := [
-                rule for rule in firewatch_config.rules if rule.job_success is True  # type: ignore
-            ]:
-                self.logger.info(f"Reporting job {job.name} success in jira")
-                firewatch_config.jira.create_issue(
-                    project=success_rule[0].jira_project,
-                    summary=f"Job {job.name} passed",
-                    description=self._get_issue_description(
-                        job_name=job.name,  # type: ignore
-                        build_id=job.build_id,  # type: ignore
-                        success_issue=True,
-                    ),
-                    issue_type="Story",
-                    epic=success_rule[0].jira_epic,
-                    close_issue=True,
-                )
+
+            # Report success
+            if firewatch_config.report_success:
+                self.report_success(job=job, firewatch_config=firewatch_config)
 
             # Look for open bugs and
             open_bugs = self._get_open_bugs(
@@ -145,7 +133,7 @@ class Report:
             affects_version = pair["rule"].jira_affects_version  # type: ignore
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
-            summary = f"Failure in {job.name}, {date.strftime('%m-%d-%Y')}"
+            summary = f"Failure in {job.name} - {date.strftime('%m-%d-%Y')}"
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
                 failure_type=pair["failure"].failure_type,  # type: ignore
@@ -204,6 +192,30 @@ class Report:
                 bugs_filed.append(jira_issue.key)
 
         return bugs_filed
+
+    def report_success(self, job: Job, firewatch_config: Configuration) -> None:
+        """
+        Reports a success story to Jira in the default Jira project and the default Jira epic.
+        Args:
+            firewatch_config (Configuration): A valid firewatch Configuration object.
+            job (Job): A valid Job object representing the prow job to be reported on.
+        Returns:
+            None
+        """
+        self.logger.info(f"Reporting job {job.name} success.")
+        date = datetime.now()
+        firewatch_config.jira.create_issue(
+            project=firewatch_config.default_jira_project,
+            summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
+            description=self._get_issue_description(
+                job_name=job.name,  # type: ignore
+                build_id=job.build_id,  # type: ignore
+                success_issue=True,
+            ),
+            issue_type="Story",
+            epic=firewatch_config.default_jira_epic,
+            close_issue=True,
+        )
 
     def filter_priority_rule_failure_pairs(
         self,

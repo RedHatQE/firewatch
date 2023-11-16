@@ -50,23 +50,27 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
-   --keep-job-dir  BOOL             If set, firewatch will not delete the job
-                                    directory (/tmp/12345) that is created to hold
-                                    logs and results for a job following
-                                    execution.
-  --fail-with-test-failures  BOOL   Firewatch will fail with a non-zero exit code
-                                    if a test failure is found.
-  --jira-config-path PATH           The path to the jira configuration file
-  --firewatch-config-path PATH      The path to the firewatch configuration file
-  --gcs-bucket TEXT                 The name of the GCS bucket that holds
-                                    OpenShift CI logs
-  --build-id TEXT                   The build ID that needs to be reported. The
-                                    value of $BUILD_ID
-  --job-name-safe TEXT              The safe name of a test in a Prow job. The
-                                    value of $JOB_NAME_SAFE
-  --job-name TEXT                   The full name of a Prow job. The value of
-                                    $JOB_NAME
-  --help                            Show this message and exit.
+  --report-success              If set, firewatch will create a Jira story in
+                                the default Jira project and default Jira epic
+                                reporting the success. The story will be
+                                closed immediately.
+  --keep-job-dir                If set, firewatch will not delete the job
+                                directory (/tmp/12345) that is created to hold
+                                logs and results for a job following
+                                execution.
+  --fail-with-test-failures     Firewatch will fail with a non-zero exit code
+                                if a test failure is found.
+  --jira-config-path PATH       The path to the jira configuration file
+  --firewatch-config-path PATH  The path to the firewatch configuration file
+  --gcs-bucket TEXT             The name of the GCS bucket that holds
+                                OpenShift CI logs
+  --build-id TEXT               The build ID that needs to be reported. The
+                                value of $BUILD_ID
+  --job-name-safe TEXT          The safe name of a test in a Prow job. The
+                                value of $JOB_NAME_SAFE
+  --job-name TEXT               The full name of a Prow job. The value of
+                                $JOB_NAME
+  --help                        Show this message and exit.
 ```
 
 **Examples:**
@@ -76,6 +80,9 @@ Options:
 $ export BUILD_ID="some_build_id"
 $ export JOB_NAME_SAFE="some_safe_job_name"
 $ export JOB_NAME="some_job_name"
+$ export FIREWATCH_DEFAULT_JIRA_PROJECT="PROJECT"
+# $FIREWATCH_DEFAULT_JIRA_EPIC is optional
+$ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123
 $ export FIREWATCH_CONFIG="[{"step": "some-step-name","failure_type":"pod_failure", "classification": "some best guess classification", "jira_project": "PROJECT"}]"
 $ firewatch report
 
@@ -87,6 +94,9 @@ $ firewatch report --fail-with-test-failures
 
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir
+
+# Report a success story to Jira. The story will be created in the $FIREWATCH_DEFAULT_JIRA_PROJECT project and in the $FIREWATCH_DEFAULT_JIRA_EPIC epic
+$ firewatch report --report-success
 
 ```
 
