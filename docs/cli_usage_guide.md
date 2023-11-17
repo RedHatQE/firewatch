@@ -82,7 +82,7 @@ $ export JOB_NAME_SAFE="some_safe_job_name"
 $ export JOB_NAME="some_job_name"
 $ export FIREWATCH_DEFAULT_JIRA_PROJECT="PROJECT"
 # $FIREWATCH_DEFAULT_JIRA_EPIC is optional
-$ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123
+$ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123"
 $ export FIREWATCH_CONFIG="[{"step": "some-step-name","failure_type":"pod_failure", "classification": "some best guess classification", "jira_project": "PROJECT"}]"
 $ firewatch report
 
