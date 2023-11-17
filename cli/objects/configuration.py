@@ -31,6 +31,7 @@ class Configuration:
         jira: Jira,
         fail_with_test_failures: bool,
         keep_job_dir: bool,
+        report_success: bool,
         config_file_path: Union[str, None] = None,
     ):
         """
@@ -39,6 +40,8 @@ class Configuration:
         Args:
             jira (Jira): A Jira object used to log in and interact with Jira
             fail_with_test_failures (bool): If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
+            keep_job_dir (bool): If true, firewatch will not delete the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.
+            report_success (bool): If true, firewatch will create a Jira story reporting the success. The story will be closed immediately.
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
         """
         self.logger = get_logger(__name__)
@@ -46,14 +49,18 @@ class Configuration:
         # Jira Connection
         self.jira = jira
 
-        # Check if DEFAULT_JIRA_PROJECT
+        # Get defaults
         self.default_jira_project = self._get_default_jira_project()
+        self.default_jira_epic = self._get_default_jira_epic()
 
         # Boolean value representing if the program should fail if test failures are found.
         self.fail_with_test_failures = fail_with_test_failures
 
         # Boolean value to decide if firewatch should delete the job directory following execution.
         self.keep_job_dir = keep_job_dir
+
+        # Boolean value to decide if firewatch should report a success to Jira
+        self.report_success = report_success
 
         # Get the config data
         self.config_data = self._get_config_data(config_file_path=config_file_path)
@@ -97,21 +104,45 @@ class Configuration:
 
     def _get_default_jira_project(self) -> str:
         """
-        Gets the default jira project from the FIREWATCH_DEFAULT_JIRA_PROJECT environment variable.
+        Gets the default jira project from the $FIREWATCH_DEFAULT_JIRA_PROJECT environment variable.
 
         Returns:
-            str: The string of the default environment variable.
+            str: The default Jira project name defined in environment variable.
         """
 
         default_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
 
-        if default_project:
+        # Verify that value is a string if it exists, return
+        if isinstance(default_project, str):
             return default_project
-        else:
+        elif not default_project:
             self.logger.error(
                 "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try again.",
             )
             exit(1)
+        else:
+            self.logger.error(
+                f'Value for "$FIREWATCH_DEFAULT_JIRA_PROJECT" is not a string: "{default_project}"',
+            )
+            exit(1)
+
+    def _get_default_jira_epic(self) -> Optional[str]:
+        """
+        Gets the default Jira epic from the $FIREWATCH_DEFAULT_JIRA_EPIC environment variables and validates that it is a string.
+
+        Returns:
+            Optional[str]: The default Jira project name defined in environment variable.
+        """
+        default_epic = os.getenv("FIREWATCH_DEFAULT_JIRA_EPIC")
+
+        # Verify that value is a string if it exists, return
+        if isinstance(default_epic, str) or not default_epic:
+            return default_epic
+
+        self.logger.error(
+            f'Value for "$FIREWATCH_DEFAULT_JIRA_EPIC" is not a string: "{default_epic}"',
+        )
+        exit(1)
 
     def _get_config_data(self, config_file_path: Optional[str]) -> str:
         """
