@@ -107,7 +107,7 @@ class Configuration:
         Gets the default jira project from the $FIREWATCH_DEFAULT_JIRA_PROJECT environment variable.
 
         Returns:
-            str: The string of the default Jira project environment variable.
+            str: The default Jira project name defined in environment variable.
         """
 
         default_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
@@ -131,7 +131,7 @@ class Configuration:
         Gets the default Jira epic from the $FIREWATCH_DEFAULT_JIRA_EPIC environment variables and validates that it is a string.
 
         Returns:
-            Optional[str]: The string of the default Jira epic environment variable.
+            Optional[str]: The default Jira project name defined in environment variable.
         """
         default_epic = os.getenv("FIREWATCH_DEFAULT_JIRA_EPIC")
 
