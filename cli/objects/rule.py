@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import json
 import os
 import re
 from typing import Any
@@ -144,11 +145,15 @@ class Rule:
         Returns:
             str: A string value representing the jira_project for a firewatch rule.
         """
+        # Check if the jira_project is defined in the rule, if not, check the environment variable
         jira_project = rule_dict.get("jira_project")
+
+        if jira_project == "!default" or not jira_project:
+            jira_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
 
         if not jira_project:
             self.logger.error(
-                f'Unable to find value for "jira_project" in firewatch rule: "{rule_dict}"',
+                f'Unable to find value for "jira_project" in firewatch rule and $FIREWATCH_DEFAULT_JIRA_PROJECT environemnt variable is not defined: "{rule_dict}"',
             )
             exit(1)
 
@@ -156,7 +161,7 @@ class Rule:
             return jira_project
         else:
             self.logger.error(
-                f'Value for "jira_project" is not a string in firewatch rule: "{rule_dict}"',
+                f'Value for "jira_project" or $FIREWATCH_DEFAULT_JIRA_PROJECT is not a string in firewatch rule: "{rule_dict}"',
             )
             exit(1)
 
@@ -198,6 +203,25 @@ class Rule:
         jira_component = rule_dict.get("jira_component")
 
         if isinstance(jira_component, list):
+            # If the list contains "!default", include the list in the environment variable
+            if "!default" in jira_component:
+                default_components = os.getenv("FIREWATCH_DEFAULT_JIRA_COMPONENTS")
+                if default_components:
+                    try:
+                        default_components = json.loads(default_components)
+                    except json.JSONDecodeError:
+                        self.logger.error(
+                            f'Invalid JSON format for FIREWATCH_DEFAULT_JIRA_COMPONENTS environment variable: "{default_components}"',
+                        )
+                        exit(1)
+                if default_components:
+                    jira_component.remove("!default")
+                    jira_component.extend(default_components)
+                else:
+                    self.logger.error(
+                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_COMPONENTS is not set.",
+                    )
+
             for component in jira_component:
                 if isinstance(component, str):
                     components.append(component)
@@ -229,10 +253,12 @@ class Rule:
         jira_affects_version = rule_dict.get("jira_affects_version")
 
         if isinstance(jira_affects_version, str) or not jira_affects_version:
+            if jira_affects_version == "!default":
+                return os.getenv("FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION")
             return jira_affects_version
 
         self.logger.error(
-            f'Value for "jira_affects_version" is not a string in firewatch rule: "{rule_dict}"',
+            f'Value for "jira_affects_version" or $FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION is not a string in firewatch rule: "{rule_dict}"',
         )
         exit(1)
 
@@ -250,9 +276,29 @@ class Rule:
             Optional[list[str]]: A list of strings representing additional labels.
         """
         labels = []
+
         jira_additional_labels = rule_dict.get("jira_additional_labels")
 
         if isinstance(jira_additional_labels, list):
+            # If the list contains "!default", include the list in the environment variable
+            if "!default" in jira_additional_labels:
+                default_labels = os.getenv("FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS")
+                if default_labels:
+                    try:
+                        default_labels = json.loads(default_labels)
+                    except json.JSONDecodeError:
+                        self.logger.error(
+                            f'Invalid JSON format for $FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS environment variable: "{default_labels}"',
+                        )
+                        exit(1)
+                if default_labels:
+                    jira_additional_labels.remove("!default")
+                    jira_additional_labels.extend(default_labels)
+                else:
+                    self.logger.error(
+                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS is not set.",
+                    )
+
             for label in jira_additional_labels:
                 if isinstance(label, str):
                     if " " in label:
@@ -286,23 +332,28 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
-
+        regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
         jira_assignee = rule_dict.get("jira_assignee")
 
+        # If the value is "!default", check the environment variable
+        if jira_assignee == "!default":
+            jira_assignee = os.getenv("FIREWATCH_DEFAULT_JIRA_ASSIGNEE")
+
         if isinstance(jira_assignee, str):
-            regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
+            # if the value is an email address, return it
             if re.fullmatch(regex, jira_assignee):
                 return jira_assignee
             else:
                 self.logger.error(
-                    f'Value for "jira_assignee" is not an email address in firewatch rule: "{rule_dict}"',
+                    f'Value for "jira_assignee" or $FIREWATCH_DEFAULT_JIRA_ASSIGNEE is not an email address in firewatch rule: "{rule_dict}"',
                 )
                 exit(1)
+
         elif not jira_assignee:
             return jira_assignee
 
         self.logger.error(
-            f'Value for "jira_assignee" is not a string in firewatch rule: "{rule_dict}"',
+            f'Value for "jira_assignee" or $FIREWATCH_DEFAULT_JIRA_ASSIGNEE is not a string in firewatch rule: "{rule_dict}"',
         )
         exit(1)
 
@@ -321,20 +372,52 @@ class Rule:
         jira_priority = rule_dict.get("jira_priority")
 
         if isinstance(jira_priority, str):
-            jira_priority = jira_priority.lower().capitalize()
+            # If the value is "!default", check the environment variable
+            if jira_priority == "!default":
+                jira_priority = os.getenv("FIREWATCH_DEFAULT_JIRA_PRIORITY")
+
+            jira_priority = (
+                jira_priority.lower().capitalize()
+                if isinstance(jira_priority, str)
+                else None
+            )
 
             if jira_priority in valid_priority_values:
                 return jira_priority
             else:
                 self.logger.error(
-                    f'Value for "jira_priority" is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
+                    f'Value for "jira_priority" or $FIREWATCH_DEFAULT_JIRA_PRIORITY is not a valid value ({valid_priority_values}) in firewatch rule: "{rule_dict}" ',
                 )
                 exit(1)
         elif not jira_priority:
             return jira_priority
 
         self.logger.error(
-            f'Value for "jira_priority" is not a string in firewatch rule: "{rule_dict}"',
+            f'Value for "jira_priority" or $FIREWATCH_DEFAULT_JIRA_PRIORITY is not a string in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_jira_security_level(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        """
+        Determines if a Jira security level is defined in a rule. If it is, validate it and return the string.
+
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A string of the Jira security level to use in a firewatch rule. If one is not defined, return None
+        """
+        jira_security_level = rule_dict.get("jira_security_level")
+
+        if isinstance(jira_security_level, str) or not jira_security_level:
+            # If the value is "!default", check the environment variable
+            if jira_security_level == "!default":
+                jira_security_level = os.getenv("FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL")
+
+            return jira_security_level
+
+        self.logger.error(
+            f'Value for "jira_security_level" or $FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL is not a string in firewatch rule: "{rule_dict}"',
         )
         exit(1)
 
@@ -348,14 +431,23 @@ class Rule:
         Returns:
             Optional[str]: A string representing the group name. If one is not defined, return None
         """
-        group_name = rule_dict.get("group", {}).get("name")
-        if isinstance(group_name, str) or not group_name:
-            return group_name
 
-        self.logger.error(
-            f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
-        )
-        exit(1)
+        if isinstance(rule_dict.get("group"), dict):
+            group_name = rule_dict.get("group", {}).get("name")
+            if isinstance(group_name, str) or not group_name:
+                return group_name
+
+            self.logger.error(
+                f'Value for "name" in the "group" key is not a string in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
+        elif not rule_dict.get("group"):
+            return None
+        else:
+            self.logger.error(
+                f'Value for "group" is not a dictionary in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_group_priority(self, rule_dict: dict[Any, Any]) -> Optional[int]:
         """
@@ -367,14 +459,22 @@ class Rule:
         Returns:
             Optional[str]: An integer that determines the priority of a rule. If one is not defined, return None
         """
-        group_priority = rule_dict.get("group", {}).get("priority")
-        if isinstance(group_priority, int) or not group_priority:
-            return group_priority
+        if isinstance(rule_dict.get("group"), dict):
+            group_priority = rule_dict.get("group", {}).get("priority")
+            if isinstance(group_priority, int) or not group_priority:
+                return group_priority
 
-        self.logger.error(
-            f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
-        )
-        exit(1)
+            self.logger.error(
+                f'Value for "priority" in the "group" key is not a integer in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
+        elif not rule_dict.get("group"):
+            return None
+        else:
+            self.logger.error(
+                f'Value for "group" is not a dictionary in firewatch rule: "{rule_dict}"',
+            )
+            exit(1)
 
     def _get_ignore(self, rule_dict: dict[Any, Any]) -> bool:
         """

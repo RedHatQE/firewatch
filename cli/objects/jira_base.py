@@ -70,6 +70,7 @@ class Jira:
         affects_version: Optional[str] = None,
         assignee: Optional[str] = None,
         priority: Optional[str] = None,
+        security: Optional[str] = None,
         close_issue: Optional[bool] = False,
     ) -> Issue:
         """
@@ -87,6 +88,7 @@ class Jira:
             affects_version (Optional[str]): Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira.
             assignee (Optional[str]): An optional string for the assignee of an issue. Should be the email address of the user.
             priority (Optional[str]): An optional string representing the desired priority of the issue being created.
+            security (Optional[str]): An optional string representing the desired security level of the issue being created.
             close_issue (Optional[bool]): Close issue if set to True
 
         Returns:
@@ -115,6 +117,14 @@ class Jira:
 
         if priority:
             issue_dict.update({"priority": {"name": priority}})
+
+        if security:
+            security_id = self._get_security_level_id(
+                security_level=security,
+                project_key=project,
+            )
+            if security_id:
+                issue_dict.update({"security": {"id": security_id}})
 
         self.logger.info(
             f"A Jira issue will be reported.",
@@ -269,3 +279,32 @@ class Jira:
             self.logger.error(f"Unable to assign issue {issue} to user {user_email}.")
             self.logger.error(ex)
             return False
+
+    def _get_security_level_id(
+        self,
+        security_level: str,
+        project_key: str,
+    ) -> Optional[str]:
+        """
+        Used to get the security level ID for a given security level.
+
+        Args:
+            security_level (str): The security level you'd like to get the ID for.
+            project_key (str): The project key the security level is associated with.
+
+        Returns:
+            Optional[str]: The security level ID.
+        """
+
+        project = self.connection.project(project_key)
+        project.issueSecurityScheme()
+        security_levels = self.connection.securityLevels()
+
+        for level in security_levels:
+            if level.name.lower() == security_level.lower():
+                return level.id
+
+        self.logger.error(
+            f"Security level {security_level} not found in {project_key}, no security level will be applied.",
+        )
+        return None
