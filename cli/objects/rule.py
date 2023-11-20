@@ -205,13 +205,13 @@ class Rule:
         if isinstance(jira_component, list):
             # If the list contains "!default", include the list in the environment variable
             if "!default" in jira_component:
-                default_components = os.getenv("FIREWATCH_DEFAULT_JIRA_COMPONENTS")
+                default_components = os.getenv("FIREWATCH_DEFAULT_JIRA_COMPONENT")
                 if default_components:
                     try:
                         default_components = json.loads(default_components)
                     except json.JSONDecodeError:
                         self.logger.error(
-                            f'Invalid JSON format for FIREWATCH_DEFAULT_JIRA_COMPONENTS environment variable: "{default_components}"',
+                            f'Invalid JSON format for FIREWATCH_DEFAULT_JIRA_COMPONENT environment variable: "{default_components}"',
                         )
                         exit(1)
                 if default_components:
@@ -219,7 +219,7 @@ class Rule:
                     jira_component.extend(default_components)
                 else:
                     self.logger.error(
-                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_COMPONENTS is not set.",
+                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_COMPONENT is not set.",
                     )
 
             for component in jira_component:

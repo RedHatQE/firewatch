@@ -33,7 +33,7 @@ class TestRuleGetJiraComponent:
     @patch.dict(
         "os.environ",
         {
-            "FIREWATCH_DEFAULT_JIRA_COMPONENTS": '["DEFAULT-COMPONENT", "ANOTHER-COMPONENT"]',
+            "FIREWATCH_DEFAULT_JIRA_COMPONENT": '["DEFAULT-COMPONENT", "ANOTHER-COMPONENT"]',
         },
     )
     def test_get_jira_component_default(self):
