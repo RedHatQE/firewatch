@@ -70,7 +70,7 @@ class Jira:
         affects_version: Optional[str] = None,
         assignee: Optional[str] = None,
         priority: Optional[str] = None,
-        security: Optional[str] = None,
+        security_level: Optional[str] = None,
         close_issue: Optional[bool] = False,
     ) -> Issue:
         """
@@ -88,7 +88,7 @@ class Jira:
             affects_version (Optional[str]): Value for version affected. Bugs created using this will populate the "Affects Version/s" field in Jira.
             assignee (Optional[str]): An optional string for the assignee of an issue. Should be the email address of the user.
             priority (Optional[str]): An optional string representing the desired priority of the issue being created.
-            security (Optional[str]): An optional string representing the desired security level of the issue being created.
+            security_level (Optional[str]): An optional string representing the desired security level of the issue being created.
             close_issue (Optional[bool]): Close issue if set to True
 
         Returns:
@@ -118,9 +118,9 @@ class Jira:
         if priority:
             issue_dict.update({"priority": {"name": priority}})
 
-        if security:
+        if security_level:
             security_id = self._get_security_level_id(
-                security_level=security,
+                security_level=security_level,
                 project_key=project,
             )
             if security_id:
@@ -297,8 +297,8 @@ class Jira:
         """
 
         project = self.connection.project(project_key)
-        project.issueSecurityScheme()
-        security_levels = self.connection.securityLevels()
+        security_scheme = self.connection.project_issue_security_level_scheme(project.id)
+        security_levels = security_scheme.levels
 
         for level in security_levels:
             if level.name.lower() == security_level.lower():

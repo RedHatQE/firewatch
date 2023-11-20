@@ -45,6 +45,7 @@ class Rule:
         self.jira_additional_labels = self._get_jira_additional_labels(rule_dict)
         self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.jira_priority = self._get_jira_priority(rule_dict)
+        self.jira_security_level = self._get_jira_security_level(rule_dict)
         self.group_name = self._get_group_name(rule_dict)
         self.group_priority = self._get_group_priority(rule_dict)
         self.ignore = self._get_ignore(rule_dict)
