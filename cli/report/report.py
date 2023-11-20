@@ -133,6 +133,7 @@ class Report:
             affects_version = pair["rule"].jira_affects_version  # type: ignore
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
+            security_level = pair["rule"].jira_security_level  # type: ignore
             summary = f"Failure in {job.name} - {date.strftime('%m-%d-%Y')}"
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
@@ -188,6 +189,7 @@ class Report:
                     affects_version=affects_version,
                     assignee=assignee,
                     priority=priority,
+                    security_level=security_level,
                 )
                 bugs_filed.append(jira_issue.key)
 
