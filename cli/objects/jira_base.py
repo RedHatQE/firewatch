@@ -297,10 +297,9 @@ class Jira:
         """
 
         project = self.connection.project(project_key)
-        security_scheme = self.connection.project_issue_security_level_scheme(
+        security_levels = self.connection.project_issue_security_level_scheme(
             project.id,
-        )
-        security_levels = security_scheme.levels
+        ).levels
 
         for level in security_levels:
             if level.name.lower() == security_level.lower():
