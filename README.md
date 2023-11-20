@@ -47,11 +47,11 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
       ```yaml
       FIREWATCH_CONFIG: |
           [
-              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com"},
-              {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
-              {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
+              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
+              {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
+              {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
               {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"},
+              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
           ]
       ```
 
@@ -71,9 +71,31 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
     - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
     - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
 
+**OPTIONAL DEFAULT VARIABLES:**
+
 - `FIREWATCH_DEFAULT_JIRA_EPIC` [OPTIONAL]
   - The default Jira epic to report issues to where the "jira_epic" value is set to "!default".
-  - Also where success stories are reported.
+  - Also, where success stories are reported.
+- `FIREWATCH_DEFAULT_JIRA_COMPONENTS` [OPTIONAL]
+  - The list of default Jira components that issues will be reported under where the "jira_component" list contains "!default".
+  - For example:
+    - IF `$FIREWATCH_DEFAULT_JIRA_COMPONENTS` = `["default-1", "default-2"]`
+    - AND `"jira_component": ["component-1", "!default"]`
+    - THEN when an issue is created under the rule containing the `"jira_component"` rule above, the components will be set to `["component-1", "default-1", "default-2"]`.
+- `FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION` [OPTIONAL]
+  - The default value for "Affects Version" in Jira issues where the "jira_affects_version" value is set to "!default".
+- `FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS` [OPTIONAL]
+  - The list of default Jira labels to be applied to issues where the "jira_additional_labels" list contains "!default".
+  - For example:
+    - IF `$FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS` = `["default-1", "default-2"]`
+    - AND `"jira_additional_labels": ["label-1", "!default"]`
+    - THEN when an issue is created under the rule containing the `"jira_additional_labels"` rule above, the labels will be set to `["label-1", "default-1", "default-2"]`.
+- `FIREWATCH_DEFAULT_JIRA_ASSIGNEE` [OPTIONAL]
+  - The default value for the assignee of issues where the "jira_assignee" value is set to "!default".
+- `FIREWATCH_DEFAULT_JIRA_PRIORITY` [OPTIONAL]
+  - The default value for the priority of issues where the "jira_priority" value is set to "!default".
+- `FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL` [OPTIONAL]
+  - The default value for the security level of issues where the "jira_security_level" value is set to "!default".
 
 ### Local Usage
 

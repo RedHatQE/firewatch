@@ -16,6 +16,7 @@
       * [`jira_additional_labels`](#jiraadditionallabels)
       * [`jira_assignee`](#jiraassignee)
       * [`jira_priority`](#jirapriority)
+      * [`jira_security_level`](#jirasecuritylevel)
       * [`ignore`](#ignore)
       * [`group`](#group)
 
@@ -27,11 +28,11 @@ Firewatch was designed to allow for users to define which Jira issues get create
 
 ```json
 [
-    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "PROJECT", "jira_component": ["some-component"]},
-    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2"], "group": {"name": "some-group", "priority": 1}},
-    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_additional_labels": ["test-label-1", "test-label-2"], "group": {"name": "some-group", "priority": 2}},
+    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
+    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
+    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
     {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "EPIC-123", "jira_affects_version": "4.14"},
+    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
 ]
 ```
 
@@ -41,13 +42,16 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 
 ### Required Values
 
-#### `jira_project`
+#### `jira_project`*
 
-The Jira project you'd like the issue to be filed under. This should just be a string value of the project key.
+The Jira project you'd like the issue to be filed under. This should just be a string value of the project key. You can either use the default project defined in the `FIREWATCH_DEFAULT_JIRA_PROJECT` environment variable (either do not define `jira_project` or define it as `"!default"`) or you can define a project for each rule.
 
 **Example:**
 
 - `"jira_project": "LPTOCPCI"`
+- `"jira_project": "!default"` (
+  - `$FIREWATCH_DEFAULT_JIRA_PROJECT` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_PROJECT="LPTOCPCI"`
 
 ---
 
@@ -117,6 +121,9 @@ The epic you would like issues to be related to. This value should just be the I
 **Example:**
 
 - `"jira_epic": "TEST-1234"`
+- `"jira_epic": "!default"`
+  - `$FIREWATCH_DEFAULT_JIRA_EPIC` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_EPIC="TEST-1234"`
 
 **Notes:**
 
@@ -134,6 +141,9 @@ The component/components you would like issues to be added to.
 
 - `"jira_component": ["component-1"]`
 - `"jira_component": ["component-1", "component-2"]`
+- `jira_component": ["component-1", "component-2", "!default"]` or `"jira_component": ["!default"]`
+  - `$FIREWATCH_DEFAULT_JIRA_COMPONENTS` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_COMPONENTS='["default-1", "default-2"]'`
 
 **Notes:**
 
@@ -148,6 +158,9 @@ The version affected by this bug. This will result in the "Affects Version/s" fi
 **Example:**
 
 - `"jira_affects_version": "4.14"`
+- `"jira_affects_version": "!default"`
+  - `$FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION="4.14"`
 
 **Notes:**
 
@@ -161,7 +174,11 @@ A list of additional labels to add to a bug.
 
 **Example:**
 
+- `"jira_additional_labels": ["test-label-1"]`
 - `"jira_additional_labels": ["test-label-1", "test-label-2"]`
+- `"jira_additional_labels": ["test-label-1", "test-label-2", "!default"]` or `"jira_additional_labels": ["!default"]`
+  - `$FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS='["default-1", "default-2"]'`
 
 **Notes:**
 
@@ -176,6 +193,9 @@ The email address of the user you would like a bug assigned to if a bug is creat
 **Example:**
 
 - `"jira_assignee": "some-user@redhat.com"`
+- `"jira_assignee": "!default"`
+  - `$FIREWATCH_DEFAULT_JIRA_ASSIGNEE` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_ASSIGNEE="some-user@email.com"`
 
 **Notes:**
 
@@ -194,6 +214,9 @@ The priority desired for a bug created using this rule.
 - `"jira_priority": "MAJOR"`
 - `"jira_priority": "Normal"`
 - `"jira_priority": "minor"`
+- `"jira_priority": "!default"`
+  - `$FIREWATCH_DEFAULT_JIRA_PRIORITY` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_PRIORITY="Major"`
 
 **Notes:**
 
@@ -204,6 +227,23 @@ The priority desired for a bug created using this rule.
   - `Normal`
   - `Minor`
 - This value is _not_ case-sensitive.
+
+---
+
+### `jira_security_level`
+
+The security level desired for a bug created using this rule.
+
+**Example(s):**
+
+- `"jira_security_level": "Restricted"`
+- `"jira_security_level": "!default"`
+  - `$FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL="Restricted"`
+
+**Notes:**
+
+- If you are using Red Hat's Jira server, the list of available security levels can be found [here](https://issues.redhat.com/secure/ShowConstantsHelp.jspa?decorator=popup#SecurityLevels).
 
 ---
 
