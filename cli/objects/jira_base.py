@@ -297,7 +297,9 @@ class Jira:
         """
 
         project = self.connection.project(project_key)
-        security_scheme = self.connection.project_issue_security_level_scheme(project.id)
+        security_scheme = self.connection.project_issue_security_level_scheme(
+            project.id,
+        )
         security_levels = security_scheme.levels
 
         for level in security_levels:
