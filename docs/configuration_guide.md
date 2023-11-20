@@ -142,8 +142,8 @@ The component/components you would like issues to be added to.
 - `"jira_component": ["component-1"]`
 - `"jira_component": ["component-1", "component-2"]`
 - `jira_component": ["component-1", "component-2", "!default"]` or `"jira_component": ["!default"]`
-  - `$FIREWATCH_DEFAULT_JIRA_COMPONENTS` environment variable must be defined.
-  - Example: `export FIREWATCH_DEFAULT_JIRA_COMPONENTS='["default-1", "default-2"]'`
+  - `$FIREWATCH_DEFAULT_JIRA_COMPONENT` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_COMPONENT='["default-1", "default-2"]'`
 
 **Notes:**
 

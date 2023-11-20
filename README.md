@@ -76,10 +76,10 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
 - `FIREWATCH_DEFAULT_JIRA_EPIC` [OPTIONAL]
   - The default Jira epic to report issues to where the "jira_epic" value is set to "!default".
   - Also, where success stories are reported.
-- `FIREWATCH_DEFAULT_JIRA_COMPONENTS` [OPTIONAL]
+- `FIREWATCH_DEFAULT_JIRA_COMPONENT` [OPTIONAL]
   - The list of default Jira components that issues will be reported under where the "jira_component" list contains "!default".
   - For example:
-    - IF `$FIREWATCH_DEFAULT_JIRA_COMPONENTS` = `["default-1", "default-2"]`
+    - IF `$FIREWATCH_DEFAULT_JIRA_COMPONENT` = `["default-1", "default-2"]`
     - AND `"jira_component": ["component-1", "!default"]`
     - THEN when an issue is created under the rule containing the `"jira_component"` rule above, the components will be set to `["component-1", "default-1", "default-2"]`.
 - `FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION` [OPTIONAL]
