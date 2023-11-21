@@ -81,8 +81,16 @@ $ export BUILD_ID="some_build_id"
 $ export JOB_NAME_SAFE="some_safe_job_name"
 $ export JOB_NAME="some_job_name"
 $ export FIREWATCH_DEFAULT_JIRA_PROJECT="PROJECT"
-# $FIREWATCH_DEFAULT_JIRA_EPIC is optional
-$ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123"
+
+# OPTIONAL DEFAULTS
+# $ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123"
+# $ export FIREWATCH_DEFAULT_JIRA_COMPONENT='["default-component"]'
+# $ export FIREWATCH_DEFAULT_JIRA_AFFECTS_VERSION="4.14"
+# $ export FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS='["default-label"]'
+# $ export FIREWATCH_DEFAULT_JIRA_ASSIGNEE="some-user@redhat"
+# $ export FIREWATCH_DEFAULT_JIRA_PRIORITY="major"
+# $ export FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL="some-security-level"
+
 $ export FIREWATCH_CONFIG="[{"step": "some-step-name","failure_type":"pod_failure", "classification": "some best guess classification", "jira_project": "PROJECT"}]"
 $ firewatch report
 
