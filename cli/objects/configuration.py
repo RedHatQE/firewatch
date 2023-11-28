@@ -16,6 +16,7 @@
 #
 import json
 import os
+from typing import Any
 from typing import Optional
 from typing import Union
 
@@ -31,7 +32,6 @@ class Configuration:
         jira: Jira,
         fail_with_test_failures: bool,
         keep_job_dir: bool,
-        report_success: bool,
         config_file_path: Union[str, None] = None,
     ):
         """
@@ -59,41 +59,42 @@ class Configuration:
         # Boolean value to decide if firewatch should delete the job directory following execution.
         self.keep_job_dir = keep_job_dir
 
-        # Boolean value to decide if firewatch should report a success to Jira
-        self.report_success = report_success
-
         # Get the config data
         self.config_data = self._get_config_data(config_file_path=config_file_path)
 
-        # Create the list of Rule objects using the config data
-        self.rules = self._get_rules(self.config_data)
+        # Create the lists of Rule objects using the config data
+        self.success_rules = (
+            self._get_rules(
+                rules_list=self.config_data.get("success_rules", []),
+                rule_type="success",
+            )
+            if self.config_data.get("success_rules", [])
+            else None
+        )
+        self.failure_rules = self._get_rules(
+            rules_list=self.config_data.get("failure_rules", []),
+            rule_type="failure",
+        )
 
-    def _get_rules(self, config_data: str) -> Optional[list[Rule]]:
+    def _get_rules(
+        self,
+        rules_list: list[dict[Any, Any]],
+        rule_type: str,
+    ) -> Optional[list[Rule]]:
         """
         Creates a list of Rule objects.
 
         Args:
-            config_data (str): The config data as a string
+            rules_list (list[dict]): A list of rules as a dictionary.
+            rule_type (str): The type of rule to create. Either "success" or "failure".
 
         Returns:
             Optional[list[Rule]]: A list of Rule objects.
         """
-        try:
-            rules_json = json.loads(config_data)
-        except json.decoder.JSONDecodeError as error:
-            self.logger.error(
-                "Firewatch config contains malformed JSON. Please check for missing or additional commas:",
-            )
-            self.logger.error(error)
-            self.logger.info(
-                "HINT: If there is a comma following the last rule item in the config list, it should be removed.",
-            )
-            exit(1)
-
         rules = []
 
-        for line in rules_json:
-            rules.append(Rule(line))
+        for line in rules_list:
+            rules.append(Rule(rule_dict=line, rule_type=rule_type))
         if len(rules) > 0:
             return rules
         else:
@@ -144,7 +145,7 @@ class Configuration:
         )
         exit(1)
 
-    def _get_config_data(self, config_file_path: Optional[str]) -> str:
+    def _get_config_data(self, config_file_path: Optional[str]) -> dict[Any, Any]:
         """
         Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
         Will exit with code 1 if either a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
@@ -153,14 +154,13 @@ class Configuration:
             config_file_path (Optional[str]): The firewatch config can be stored in a file or an environment var.
 
         Returns:
-            str: A string object representing the firewatch config data.
+            dict[Any, Any]: A dictionary object representing the firewatch config data.
         """
         if config_file_path is not None:
             # Read the contents of the config file
             try:
                 with open(config_file_path) as file:
                     config_data = file.read()
-                    return config_data
             except Exception:
                 self.logger.error(
                     f"Unable to read configuration file at {config_file_path}. Please verify permissions/path and try again.",
@@ -168,10 +168,23 @@ class Configuration:
                 exit(1)
         else:
             config_data = os.getenv("FIREWATCH_CONFIG")  # type: ignore
-            if config_data:
-                return config_data
-            else:
+            if not config_data:
                 self.logger.error(
                     "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. Please fix error and try again.",
                 )
                 exit(1)
+
+        # Verify that the config data is properly formatted JSON
+        try:
+            config_data = json.loads(config_data)
+        except json.decoder.JSONDecodeError as error:
+            self.logger.error(
+                "Firewatch config contains malformed JSON. Please check for missing or additional commas:",
+            )
+            self.logger.error(error)
+            self.logger.info(
+                'HINT: If there is a comma following the last rule item in the "rules" list, it should be removed.',
+            )
+            exit(1)
+
+        return config_data  # type: ignore

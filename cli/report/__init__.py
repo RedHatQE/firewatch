@@ -75,13 +75,6 @@ from cli.report.report import Report
     default=False,
     type=click.BOOL,
 )
-@click.option(
-    "--report-success",
-    help="If set, firewatch will create a Jira story in the default Jira project and default Jira epic reporting the success. The story will be closed immediately.",
-    is_flag=True,
-    default=False,
-    type=click.BOOL,
-)
 @click.command("report")
 @click.pass_context
 def report(
@@ -94,7 +87,6 @@ def report(
     jira_config_path: str,
     fail_with_test_failures: bool,
     keep_job_dir: bool,
-    report_success: bool,
 ) -> None:
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
@@ -102,7 +94,6 @@ def report(
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
         keep_job_dir=keep_job_dir,
-        report_success=report_success,
         config_file_path=firewatch_config_path,
     )
     job = Job(

@@ -12,12 +12,13 @@ class TestGetRuleClassification:
         self.mock_logger = MagicMock()
         mock_get_logger.return_value = self.mock_logger
         self.rule = Rule(
-            {
+            rule_dict={
                 "step": "dummy",
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
             },
+            rule_type="failure",
         )
 
     def test_get_classification_valid(self):

@@ -317,7 +317,7 @@ class Job:
         for pod_failure in pod_failures:
             already_exists = False
             for existing_failure in failures_list:
-                if existing_failure["step"] == pod_failure["step"]:
+                if existing_failure.get("step") == pod_failure.get("step"):
                     already_exists = True
             if not already_exists:
                 failures_list.append(pod_failure)
@@ -326,8 +326,8 @@ class Job:
         for failure in failures_list:
             failures.append(
                 Failure(
-                    failed_step=failure["step"],
-                    failure_type=failure["failure_type"],
+                    failed_step=failure.get("step"),  # type: ignore
+                    failure_type=failure.get("failure_type"),  # type: ignore
                 ),
             )
 

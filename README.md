@@ -22,7 +22,8 @@ Thank you for your interest in the firewatch project! Please find some informati
   - If no failures are found, firewatch will search for any open issues on the Jira server provided and add a comment to the issue mentioning that the job has passed since that issue was filed.
     - This functionality also uses the labels on issues created by firewatch.
     - **Note:** If you get a notification on an issue, but would like to continue working on the issue without getting notifications, add the `ignore-passing-notification` label to the issue.
-  - An optional Jira story can be created (with status `closed`) reporting the job success by using the `--report-success` option.
+  - You can optionally report successful runs by defining the `"success_rules"` section in the config.
+    - For each rule in this section, a Jira story will be created (with status `closed`) reporting the job success.
 
 ## Getting Started
 
@@ -46,18 +47,27 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
 
       ```yaml
       FIREWATCH_CONFIG: |
-          [
-              {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
-              {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
-              {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
-              {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-              {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
-          ]
+        {
+          "failure_rules":
+            [
+                {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
+                {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
+                {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
+                {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
+                {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
+            ]
+
+          # OPTIONAL
+          "success_rules":
+            [
+              {"jira_project": "PROJECT", "jira_epic": "PROJECT-123", "jira_component": ["some-component"], "jira_affects_version": "!default", "jira_assignee": "some-user@redhat.com", "jira_priority": "major", "jira_security_level": "Restricted", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"]},
+              {"jira_project": "!default"},
+            ]
+        }
       ```
 
 - `FIREWATCH_DEFAULT_JIRA_PROJECT` [REQUIRED]
   - The default Jira project to report issues to.
-  - Also where success stories are reported.
 - `FIREWATCH_JIRA_SERVER`
   - The Jira server to report to.
   - DEFAULT: `https://issues.stage.redhat.com`
@@ -70,18 +80,11 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   - BEHAVIOR:
     - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
     - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
-- `FIREWATCH_REPORT_SUCCESS`
-  - A variable that will determine if a Jira story will be created reporting the job success.
-  - DEFAULT: `"false"`
-  - BEHAVIOR:
-    - `"false"`: A Jira story will not be created reporting the job success.
-    - `"true"`: A Jira story will be created reporting the job success to the project defined in `$FIREWATCH_DEFAULT_JIRA_PROJECT` and (optionally) the epic defined in `$FIREWATCH_DEFAULT_JIRA_EPIC`.
 
 **OPTIONAL DEFAULT VARIABLES:**
 
 - `FIREWATCH_DEFAULT_JIRA_EPIC` [OPTIONAL]
   - The default Jira epic to report issues to where the "jira_epic" value is set to "!default".
-  - Also, where success stories are reported.
 - `FIREWATCH_DEFAULT_JIRA_COMPONENT` [OPTIONAL]
   - The list of default Jira components that issues will be reported under where the "jira_component" list contains "!default".
   - For example:

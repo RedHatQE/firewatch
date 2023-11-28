@@ -24,20 +24,25 @@ from simple_logger.logger import get_logger
 
 
 class Rule:
-    def __init__(self, rule_dict: dict[Any, Any]) -> None:
+    def __init__(self, rule_dict: dict[Any, Any], rule_type: str) -> None:
         """
         Initializes the Rule object.
 
         Args:
             rule_dict (dict[Any, Any]): A dictionary object representing a firewatch rule.
+            rule_type (str): A string value representing the type of rule.
         """
 
         self.logger = get_logger(__name__)
-
         # Build the rule using the rule_dict
-        self.step = self._get_step(rule_dict)
-        self.failure_type = self._get_failure_type(rule_dict)
-        self.classification = self._get_classification(rule_dict)
+        if rule_type == "failure":
+            self.step = self._get_step(rule_dict)
+            self.failure_type = self._get_failure_type(rule_dict)
+            self.classification = self._get_classification(rule_dict)
+            self.group_name = self._get_group_name(rule_dict)
+            self.group_priority = self._get_group_priority(rule_dict)
+            self.ignore = self._get_ignore(rule_dict)
+
         self.jira_project = self._get_jira_project(rule_dict)
         self.jira_epic = self._get_jira_epic(rule_dict)
         self.jira_component = self._get_jira_component(rule_dict)
@@ -46,9 +51,6 @@ class Rule:
         self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.jira_priority = self._get_jira_priority(rule_dict)
         self.jira_security_level = self._get_jira_security_level(rule_dict)
-        self.group_name = self._get_group_name(rule_dict)
-        self.group_priority = self._get_group_priority(rule_dict)
-        self.ignore = self._get_ignore(rule_dict)
 
     def _get_step(self, rule_dict: dict[Any, Any]) -> str:
         """

@@ -6,12 +6,13 @@ from cli.objects.rule import Rule
 class TestRuleGetJiraAffectsVersion:
     def setup_method(self):
         self.rule = Rule(
-            {
+            rule_dict={
                 "step": "dummy",
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
             },
+            rule_type="failure",
         )
 
     def test_get_jira_affects_version_defined(self):

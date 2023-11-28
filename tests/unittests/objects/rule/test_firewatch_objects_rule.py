@@ -21,7 +21,7 @@ class TestRule:
         }
 
     def test_rule_init(self):
-        rule = Rule(self.rule_dict)
+        rule = Rule(rule_dict=self.rule_dict, rule_type="failure")
         assert rule.step == "step1"
         assert rule.failure_type == "pod_failure"
         assert rule.classification == "classification1"

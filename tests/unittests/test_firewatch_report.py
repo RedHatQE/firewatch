@@ -37,7 +37,7 @@ class TestFirewatchReport:
                 self,
                 job_name=job_name,
                 step_name=step_name,
-                failure_type=failure_type,
+                type=failure_type,
                 jira_additional_labels=[],
             ),
         )
@@ -50,7 +50,7 @@ class TestFirewatchReport:
                 self,
                 job_name=job_name,
                 step_name=step_name,
-                failure_type=failure_type,
+                type=failure_type,
                 jira_additional_labels=additional_labels,
             ),
         )
@@ -75,6 +75,7 @@ class TestFirewatchReport:
                 "jira_project": "NONE",
                 "ignore": "true",
             },
+            rule_type="failure",
         )
         no_match_rule = Rule(
             rule_dict={
@@ -83,6 +84,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
             },
+            rule_type="failure",
         )
         match_rule = Rule(
             rule_dict={
@@ -91,6 +93,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
             },
+            rule_type="failure",
         )
         default_rule_dict = {
             "step": "!none",
@@ -98,7 +101,7 @@ class TestFirewatchReport:
             "classification": "!none",
             "jira_project": default_jira_project,
         }
-        default_rule = Rule(default_rule_dict)
+        default_rule = Rule(default_rule_dict, rule_type="failure")
 
         # Test a failure that does not match any rule
         rules = [no_match_rule]
@@ -163,6 +166,7 @@ class TestFirewatchReport:
                 "jira_project": "NONE",
                 "group": {"name": "failed-steps", "priority": 1},
             },
+            rule_type="failure",
         )
         group_rule_2 = Rule(
             rule_dict={
@@ -172,6 +176,7 @@ class TestFirewatchReport:
                 "jira_project": "NONE",
                 "group": {"name": "failed-steps", "priority": 2},
             },
+            rule_type="failure",
         )
         group_failure_1 = Failure(
             failed_step="failed-step-1",
@@ -205,6 +210,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
             },
+            rule_type="failure",
         )
         rule_2 = Rule(
             rule_dict={
@@ -213,6 +219,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
             },
+            rule_type="failure",
         )
         failure_1 = Failure(failed_step="failed-step-1", failure_type="test_failure")
         failure_2 = Failure(failed_step="failed-step-2", failure_type="test_failure")
