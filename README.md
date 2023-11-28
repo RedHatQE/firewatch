@@ -70,6 +70,12 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   - BEHAVIOR:
     - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
     - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
+- `FIREWATCH_REPORT_SUCCESS`
+  - A variable that will determine if a Jira story will be created reporting the job success.
+  - DEFAULT: `"false"`
+  - BEHAVIOR:
+    - `"false"`: A Jira story will not be created reporting the job success.
+    - `"true"`: A Jira story will be created reporting the job success to the project defined in `$FIREWATCH_DEFAULT_JIRA_PROJECT` and (optionally) the epic defined in `$FIREWATCH_DEFAULT_JIRA_EPIC`.
 
 **OPTIONAL DEFAULT VARIABLES:**
 
