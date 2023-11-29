@@ -564,7 +564,7 @@ class Report:
         # AND has a label that matches the failed step name
         # AND has a label that matches the failure type
         # AND the bugs are not closed
-        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND status not in (closed)'
+        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND resolution = Unresolved'
         duplicate_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(duplicate_bugs) > 0:
@@ -597,8 +597,8 @@ class Report:
         # has a label that matches the job name
         # AND a label that == "firewatch"
         # AND does NOT have a label that == "ignore-passing-notification"
-        # AND is not in the "closed" status
-        jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND status not in (closed)'
+        # AND is unresolved
+        jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND resolution = Unresolved'
         open_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(open_bugs) > 0:
@@ -628,7 +628,7 @@ class Report:
             Optional[list[jira.Issue]]: An optional list of Jira issues from firewatch that are from a specific failed step and failure type.
         """
         list_of_issues = jira.search(
-            jql_query=f'labels="{failed_step}" AND labels="{failure_type}" AND status in (closed) ORDER BY created DESC',
+            jql_query=f'labels="{failed_step}" AND labels="{failure_type}" AND resolution != Unresolved ORDER BY created DESC',
         )
 
         # Reduce to 10 most recent issues
