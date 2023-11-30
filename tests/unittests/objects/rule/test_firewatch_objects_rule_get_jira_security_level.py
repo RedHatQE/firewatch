@@ -10,7 +10,7 @@ class TestRuleGetJiraSecurityLevel:
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_jira_security_level_defined(self):

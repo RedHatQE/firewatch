@@ -17,7 +17,7 @@ class TestRuleGetStep:
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_step_valid(self):

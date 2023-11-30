@@ -11,7 +11,7 @@ class TestRuleGetGroupName:
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_group_name_defined(self):

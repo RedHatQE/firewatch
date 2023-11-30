@@ -12,7 +12,7 @@ class TestRuleGetJiraProject:
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
-            }
+            },
         )
         self.rule.logger = MagicMock()
 

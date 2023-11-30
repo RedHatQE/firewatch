@@ -1,4 +1,5 @@
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 from cli.objects.rule import Rule
 

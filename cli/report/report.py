@@ -280,7 +280,7 @@ class Report:
         failure: Failure,
         rules: list[FailureRule],
         default_jira_project: str,
-    ) -> list[Rule]:
+    ) -> list[FailureRule]:
         """
         Used to check if a failure matches any rules in the firewatch config.
 

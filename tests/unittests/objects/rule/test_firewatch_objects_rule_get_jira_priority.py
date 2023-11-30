@@ -10,7 +10,7 @@ class TestRuleGetJiraPriority:
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_jira_priority_defined(self):

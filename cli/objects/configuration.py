@@ -63,10 +63,17 @@ class Configuration:
         self.config_data = self._get_config_data(config_file_path=config_file_path)
 
         # Create the lists of Rule objects using the config data
-        self.success_rules = self._get_success_rules(rules_list=self.config_data.get("success_rules"))
-        self.failure_rules = self._get_failure_rules(rules_list=self.config_data.get("failure_rules"))
+        self.success_rules = self._get_success_rules(
+            rules_list=self.config_data.get("success_rules"),
+        )
+        self.failure_rules = self._get_failure_rules(
+            rules_list=self.config_data.get("failure_rules"),
+        )
 
-    def _get_failure_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[FailureRule]]:
+    def _get_failure_rules(
+        self,
+        rules_list: Optional[list[dict[Any, Any]]],
+    ) -> Optional[list[FailureRule]]:
         """
         Creates a list of FailureRule objects.
 
@@ -86,7 +93,10 @@ class Configuration:
         )
         exit(1)
 
-    def _get_success_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[Rule]]:
+    def _get_success_rules(
+        self,
+        rules_list: Optional[list[dict[Any, Any]]],
+    ) -> Optional[list[Rule]]:
         """
         Creates a list of Rule objects.
 
@@ -102,36 +112,6 @@ class Configuration:
                 return rules
 
         return None
-
-    def _get_rules(
-        self,
-        rules_list: list[dict[Any, Any]],
-        rule_type: str,
-    ) -> Optional[list[Rule]]:
-        """
-        Creates a list of Rule objects.
-
-        Args:
-            rules_list (list[dict]): A list of rules as a dictionary.
-            rule_type (str): The type of rule to create. Either "success" or "failure".
-
-        Returns:
-            Optional[list[Rule]]: A list of Rule objects.
-        """
-        rules = []
-
-        for line in rules_list:
-            if rule_type == "failure":
-                rules.append(FailureRule(rule_dict=line))
-            elif rule_type == "success":
-                rules.append(Rule(rule_dict=line))
-        if len(rules) > 0:
-            return rules
-        else:
-            self.logger.error(
-                "Firewatch config is empty, please populate the configuration and try again.",
-            )
-            exit(1)
 
     def _get_default_jira_project(self) -> str:
         """

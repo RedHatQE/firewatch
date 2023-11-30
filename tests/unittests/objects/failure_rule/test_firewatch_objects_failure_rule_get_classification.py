@@ -17,7 +17,7 @@ class TestGetRuleClassification:
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_classification_valid(self):

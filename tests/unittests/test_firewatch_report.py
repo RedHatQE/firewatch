@@ -74,7 +74,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
                 "ignore": "true",
-            }
+            },
         )
         no_match_rule = FailureRule(
             rule_dict={
@@ -82,7 +82,7 @@ class TestFirewatchReport:
                 "failure_type": "test_failure",
                 "classification": "NONE",
                 "jira_project": "NONE",
-            }
+            },
         )
         match_rule = FailureRule(
             rule_dict={
@@ -90,7 +90,7 @@ class TestFirewatchReport:
                 "failure_type": "test_failure",
                 "classification": "NONE",
                 "jira_project": "NONE",
-            }
+            },
         )
         default_rule_dict = {
             "step": "!none",
@@ -162,7 +162,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
                 "group": {"name": "failed-steps", "priority": 1},
-            }
+            },
         )
         group_rule_2 = FailureRule(
             rule_dict={
@@ -171,7 +171,7 @@ class TestFirewatchReport:
                 "classification": "NONE",
                 "jira_project": "NONE",
                 "group": {"name": "failed-steps", "priority": 2},
-            }
+            },
         )
         group_failure_1 = Failure(
             failed_step="failed-step-1",
@@ -204,7 +204,7 @@ class TestFirewatchReport:
                 "failure_type": "test_failure",
                 "classification": "NONE",
                 "jira_project": "NONE",
-            }
+            },
         )
         rule_2 = FailureRule(
             rule_dict={
@@ -212,7 +212,7 @@ class TestFirewatchReport:
                 "failure_type": "test_failure",
                 "classification": "NONE",
                 "jira_project": "NONE",
-            }
+            },
         )
         failure_1 = Failure(failed_step="failed-step-1", failure_type="test_failure")
         failure_2 = Failure(failed_step="failed-step-2", failure_type="test_failure")
