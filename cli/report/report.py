@@ -26,6 +26,7 @@ from simple_logger.logger import get_logger
 
 from cli.objects.configuration import Configuration
 from cli.objects.failure import Failure
+from cli.objects.failure_rule import FailureRule
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
 from cli.objects.rule import Rule
@@ -127,41 +128,41 @@ class Report:
         for pair in rule_failure_pairs:
             # Gather bug information
             date = datetime.now()
-            project = pair.get("rule").jira_project  # type: ignore
-            epic = pair.get("rule").jira_epic  # type: ignore
-            component = pair.get("rule").jira_component  # type: ignore
-            affects_version = pair.get("rule").jira_affects_version  # type: ignore
-            assignee = pair.get("rule").jira_assignee  # type: ignore
-            priority = pair.get("rule").jira_priority  # type: ignore
-            security_level = pair.get("rule").jira_security_level  # type: ignore
+            project = pair["rule"].jira_project  # type: ignore
+            epic = pair["rule"].jira_epic  # type: ignore
+            component = pair["rule"].jira_component  # type: ignore
+            affects_version = pair["rule"].jira_affects_version  # type: ignore
+            assignee = pair["rule"].jira_assignee  # type: ignore
+            priority = pair["rule"].jira_priority  # type: ignore
+            security_level = pair["rule"].jira_security_level  # type: ignore
             summary = f"Failure in {job.name} - {date.strftime('%m-%d-%Y')}"
             description = self._get_issue_description(
-                step_name=pair.get("failure").step,  # type: ignore
-                failure_type=pair.get("failure").failure_type,  # type: ignore
-                classification=pair.get("rule").classification,  # type: ignore
+                step_name=pair["failure"].step,  # type: ignore
+                failure_type=pair["failure"].failure_type,  # type: ignore
+                classification=pair["rule"].classification,  # type: ignore
                 job_name=job.name,  # type: ignore
                 build_id=job.build_id,  # type: ignore
                 jira=firewatch_config.jira,  # type: ignore
             )
             issue_type = "Bug"
             file_attachments = self._get_file_attachments(
-                step_name=pair.get("failure").step,  # type: ignore
+                step_name=pair["failure"].step,  # type: ignore
                 logs_dir=job.logs_dir,
                 junit_dir=job.junit_dir,
             )
             labels = self._get_issue_labels(
                 job_name=job.name,
-                step_name=pair.get("failure").step,  # type: ignore
-                type=pair.get("failure").failure_type,  # type: ignore
-                jira_additional_labels=pair.get("rule").jira_additional_labels,  # type: ignore
+                step_name=pair["failure"].step,  # type: ignore
+                type=pair["failure"].failure_type,  # type: ignore
+                jira_additional_labels=pair["rule"].jira_additional_labels,  # type: ignore
             )
 
             # Find duplicate bugs
             duplicate_bugs = self._get_duplicate_bugs(
                 project=project,
                 job_name=job.name,
-                failed_step=pair.get("failure").step,  # type: ignore
-                failure_type=pair.get("failure").failure_type,  # type: ignore
+                failed_step=pair["failure"].step,  # type: ignore
+                failure_type=pair["failure"].failure_type,  # type: ignore
                 jira=firewatch_config.jira,
             )
 
@@ -170,8 +171,8 @@ class Report:
                 for bug in duplicate_bugs:
                     self.add_duplicate_comment(
                         issue_id=bug,
-                        failed_step=pair.get("failure").step,  # type: ignore
-                        classification=pair.get("rule").classification,  # type: ignore
+                        failed_step=pair["failure"].step,  # type: ignore
+                        classification=pair["rule"].classification,  # type: ignore
                         job=job,
                         jira=firewatch_config.jira,
                     )
@@ -254,7 +255,7 @@ class Report:
         none_filtered_failure_pairs = []
 
         for pair in rule_failure_pairs:
-            rule = pair.get("rule")
+            rule = pair["rule"]
             if rule.group_name and rule.group_priority:  # type: ignore
                 groups.setdefault(rule.group_name, []).append(pair)  # type: ignore
             else:
@@ -268,7 +269,7 @@ class Report:
                 [
                     _group_pair
                     for _group_pair in group_pair
-                    if _group_pair.get("rule").group_priority == highest_priority
+                    if _group_pair["rule"].group_priority == highest_priority
                 ],
             )
 
@@ -277,7 +278,7 @@ class Report:
     def failure_matches_rule(
         self,
         failure: Failure,
-        rules: list[Rule],
+        rules: list[FailureRule],
         default_jira_project: str,
     ) -> list[Rule]:
         """
@@ -300,7 +301,7 @@ class Report:
             "classification": "!none",
             "jira_project": default_jira_project,
         }
-        default_rule = Rule(default_rule_dict, rule_type="failure")
+        default_rule = FailureRule(default_rule_dict)
 
         for rule in rules:
             if (
@@ -564,7 +565,8 @@ class Report:
         # AND has a label that matches the failed step name
         # AND has a label that matches the failure type
         # AND the bugs are not closed
-        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND resolution = Unresolved'
+        # AND issue is of type "bug"
+        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" AND resolution = Unresolved AND Issuetype = bug'
         duplicate_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(duplicate_bugs) > 0:
@@ -598,7 +600,8 @@ class Report:
         # AND a label that == "firewatch"
         # AND does NOT have a label that == "ignore-passing-notification"
         # AND is unresolved
-        jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND resolution = Unresolved'
+        # AND issue is of type "bug"
+        jql_query = f'labels="{job_name}" AND labels="firewatch" AND labels!="ignore-passing-notification" AND resolution = Unresolved AND Issuetype = bug'
         open_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(open_bugs) > 0:

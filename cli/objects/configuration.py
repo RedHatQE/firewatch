@@ -22,6 +22,7 @@ from typing import Union
 
 from simple_logger.logger import get_logger
 
+from cli.objects.failure_rule import FailureRule
 from cli.objects.jira_base import Jira
 from cli.objects.rule import Rule
 
@@ -51,7 +52,6 @@ class Configuration:
 
         # Get defaults
         self.default_jira_project = self._get_default_jira_project()
-        self.default_jira_epic = self._get_default_jira_epic()
 
         # Boolean value representing if the program should fail if test failures are found.
         self.fail_with_test_failures = fail_with_test_failures
@@ -63,18 +63,45 @@ class Configuration:
         self.config_data = self._get_config_data(config_file_path=config_file_path)
 
         # Create the lists of Rule objects using the config data
-        self.success_rules = (
-            self._get_rules(
-                rules_list=self.config_data.get("success_rules", []),
-                rule_type="success",
-            )
-            if self.config_data.get("success_rules", [])
-            else None
+        self.success_rules = self._get_success_rules(rules_list=self.config_data.get("success_rules"))
+        self.failure_rules = self._get_failure_rules(rules_list=self.config_data.get("failure_rules"))
+
+    def _get_failure_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[FailureRule]]:
+        """
+        Creates a list of FailureRule objects.
+
+        Returns:
+            Optional[list[FailureRule]]: A list of FailureRule objects.
+        """
+        if rules_list is not None:
+            rules = []
+            for line in rules_list:
+                rules.append(FailureRule(rule_dict=line))
+
+            if len(rules) > 0:
+                return rules
+
+        self.logger.error(
+            'Firewatch config does not contain any "failure_rules". Please populate the configuration and try again.',
         )
-        self.failure_rules = self._get_rules(
-            rules_list=self.config_data.get("failure_rules", []),
-            rule_type="failure",
-        )
+        exit(1)
+
+    def _get_success_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[Rule]]:
+        """
+        Creates a list of Rule objects.
+
+        Returns:
+            Optional[list[Rule]]: A list of Rule objects.
+        """
+        if rules_list is not None:
+            rules = []
+            for line in rules_list:
+                rules.append(Rule(rule_dict=line))
+
+            if len(rules) > 0:
+                return rules
+
+        return None
 
     def _get_rules(
         self,
@@ -94,7 +121,10 @@ class Configuration:
         rules = []
 
         for line in rules_list:
-            rules.append(Rule(rule_dict=line, rule_type=rule_type))
+            if rule_type == "failure":
+                rules.append(FailureRule(rule_dict=line))
+            elif rule_type == "success":
+                rules.append(Rule(rule_dict=line))
         if len(rules) > 0:
             return rules
         else:
