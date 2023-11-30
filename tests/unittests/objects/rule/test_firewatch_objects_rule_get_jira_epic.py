@@ -7,10 +7,7 @@ from cli.objects.rule import Rule
 class TestRuleGetJiraEpic:
     def setup_method(self):
         self.rule = Rule(
-            {
-                "step": "dummy",
-                "failure_type": "all",
-                "classification": "test classification",
+            rule_dict={
                 "jira_project": "TEST",
             },
         )

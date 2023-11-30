@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from cli.objects.failure_rule import FailureRule
 
 
 class TestRuleGetFailureType:
@@ -11,8 +11,8 @@ class TestRuleGetFailureType:
     def setup_method(self, method, mock_get_logger):
         self.mock_logger = MagicMock()
         mock_get_logger.return_value = self.mock_logger
-        self.rule = Rule(
-            {
+        self.rule = FailureRule(
+            rule_dict={
                 "step": "dummy",
                 "failure_type": "all",
                 "classification": "test classification",

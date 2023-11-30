@@ -2,47 +2,94 @@
 
 ## Table of Contents
 
-* [Configuring Firewatch](#configuring-firewatch)
-  * [Jira Issue Creation (`firewatch report`) Configuration](#jira-issue-creation-firewatch-report-configuration)
-    * [Required Values](#required-values)
-      * [`jira_project`](#jiraproject)
-      * [`step`](#step)
-      * [`failure_type`](#failuretype)
-      * [`classification`](#classification)
-    * [Optional Values](#optional-values)
-      * [`jira_epic`](#jiraepic)
-      * [`jira_component`](#jiracomponent)
-      * [`jira_affects_version`](#jiraaffectsversion)
-      * [`jira_additional_labels`](#jiraadditionallabels)
-      * [`jira_assignee`](#jiraassignee)
-      * [`jira_priority`](#jirapriority)
-      * [`jira_security_level`](#jirasecuritylevel)
-      * [`ignore`](#ignore)
-      * [`group`](#group)
+- [Jira Issue Creation Configuration](#jira-issue-creation-configuration)
+  - [Getting Started](#getting-started)
+    - [Usage in OpenShift CI](#usage-in-openshift-ci)
+  - [Rule Configuration Value Definitions](#rule-configuration-value-definitions)
+    - [`jira_project`](#jiraproject)
+    - [`step`](#step)
+    - [`failure_type`](#failuretype)
+    - [`classification`](#classification)
+    - [`jira_epic`](#jiraepic)
+    - [`jira_component`](#jiracomponent)
+    - [`jira_affects_version`](#jiraaffectsversion)
+    - [`jira_additional_labels`](#jiraadditionallabels)
+    - [`jira_assignee`](#jiraassignee)
+    - [`jira_priority`](#jirapriority)
+    - [`jira_security_level`](#jirasecuritylevel)
+    - [`ignore`](#ignore)
+    - [`group`](#group)
 
-## Jira Issue Creation (`firewatch report`) Configuration
+## Jira Issue Creation Configuration
 
-Firewatch was designed to allow for users to define which Jira issues get created depending on which failures are found in a OpenShift CI failed run. Using an easy-to-define JSON config, users can easily track issues in their OpenShift CI runs efficiently.
+Firewatch was designed to allow for users to define which Jira issues get created depending on which failures are found in an OpenShift CI failed run or reporting a success in a successful run. Using an easy-to-define JSON config, users can track issues in their OpenShift CI runs efficiently.
 
 **Example:**
 
 ```json
-[
-    {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
-    {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
-    {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
-    {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-    {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
-]
+{
+  "failure_rules":
+    [
+        {"step": "exact-step-name", "failure_type": "pod_failure", "classification": "Infrastructure", "jira_project": "!default", "jira_component": ["some-component"], "jira_assignee": "some-user@redhat.com", "jira_security_level": "Restricted"},
+        {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
+        {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
+        {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
+        {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
+    ],
+
+  #OPTIONAL
+  "success_rules":
+    [
+      {"jira_project": "PROJECT", "jira_epic": "PROJECT-123", "jira_component": ["some-component"], "jira_affects_version": "!default", "jira_assignee": "some-user@redhat.com", "jira_priority": "major", "jira_security_level": "Restricted", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"]},
+      {"jira_project": "!default"},
+    ]
+}
 ```
 
 The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the `report` command, if an argument for `--firewatch-config-path` is not provided, the environment variable will be used.
 
 The firewatch configuration is a list of rules, each rule is defined using the following values:
 
-### Required Values
+### `failure_rules`
 
-#### `jira_project`*
+**Required Values**:
+
+- [`jira_project`](#jiraproject)
+- [`step`](#step)
+- [`failure_type`](#failuretype)
+- [`classification`](#classification)
+
+**Optional Values**:
+
+- [`jira_epic`](#jiraepic)
+- [`jira_component`](#jiracomponent)
+- [`jira_affects_version`](#jiraaffectsversion)
+- [`jira_additional_labels`](#jiraadditionallabels)
+- [`jira_assignee`](#jiraassignee)
+- [`jira_priority`](#jirapriority)
+- [`jira_security_level`](#jirasecuritylevel)
+- [`ignore`](#ignore)
+- [`group`](#group)
+
+### `success_rules` (OPTIONAL)
+
+**Required Values**:
+
+- [`jira_project`](#jiraproject)
+
+**Optional Values**:
+
+- [`jira_epic`](#jiraepic)
+- [`jira_component`](#jiracomponent)
+- [`jira_affects_version`](#jiraaffectsversion)
+- [`jira_additional_labels`](#jiraadditionallabels)
+- [`jira_assignee`](#jiraassignee)
+- [`jira_priority`](#jirapriority)
+- [`jira_security_level`](#jirasecuritylevel)
+
+## Rule Configuration Value Definitions
+
+### `jira_project`
 
 The Jira project you'd like the issue to be filed under. This should just be a string value of the project key. You can either use the default project defined in the `FIREWATCH_DEFAULT_JIRA_PROJECT` environment variable (either do not define `jira_project` or define it as `"!default"`) or you can define a project for each rule.
 
@@ -55,7 +102,7 @@ The Jira project you'd like the issue to be filed under. This should just be a s
 
 ---
 
-#### `step`
+### `step`
 
 The exact or partial name of a step in OpenShift CI. Using this value, we can usually determine what may have gone wrong during an OpenShift CI run.
 
@@ -76,7 +123,7 @@ Say you have multiple steps whose names start with `infra-setup-` and you can co
 
 ---
 
-#### `failure_type`
+### `failure_type`
 
 The type of failure you'd like issues to be created for.
 
@@ -98,7 +145,7 @@ This value **MUST** be one of the options outlined above.
 
 ---
 
-#### `classification`
+### `classification`
 
 How you'd like to classify the issue in Jira. This is not a formal field in Jira, but will be included in the issue description. This is meant to act as a "best-guess" value for why the failure happened.
 
@@ -112,9 +159,7 @@ This can be any string value and does not affect the way issues are created apar
 
 ---
 
-### Optional Values
-
-#### `jira_epic`
+### `jira_epic`
 
 The epic you would like issues to be related to. This value should just be the ID of the epic you would like to use.
 
@@ -133,7 +178,7 @@ The epic you would like issues to be related to. This value should just be the I
 
 ---
 
-#### `jira_component`
+### `jira_component`
 
 The component/components you would like issues to be added to.
 
@@ -151,7 +196,7 @@ The component/components you would like issues to be added to.
 
 ---
 
-#### `jira_affects_version`
+### `jira_affects_version`
 
 The version affected by this bug. This will result in the "Affects Version/s" field in Jira to be populated.
 
@@ -168,7 +213,7 @@ The version affected by this bug. This will result in the "Affects Version/s" fi
 
 ---
 
-#### `jira_additional_labels`
+### `jira_additional_labels`
 
 A list of additional labels to add to a bug.
 
@@ -186,7 +231,7 @@ A list of additional labels to add to a bug.
 
 ---
 
-#### `jira_assignee`
+### `jira_assignee`
 
 The email address of the user you would like a bug assigned to if a bug is created.
 
@@ -203,7 +248,7 @@ The email address of the user you would like a bug assigned to if a bug is creat
 
 ---
 
-#### `jira_priority`
+### `jira_priority`
 
 The priority desired for a bug created using this rule.
 
@@ -247,7 +292,7 @@ The security level desired for a bug created using this rule.
 
 ---
 
-#### `ignore`
+### `ignore`
 
 A value that be set to "true" or "false" and allows the user to define `step`/`failure_type` combinations that should be ignored when creating tickets.
 
@@ -259,7 +304,7 @@ A value that be set to "true" or "false" and allows the user to define `step`/`f
   - Do not ignore the `step`/`failure_type` combination when a failure is found that matches this rule.
   - This is the default behavior of all rules. If set to `false`, it does not need to be defined.
 
-#### `group`
+### `group`
 
 A dictionary object that is used to define the group of rules a specific rule belongs to and the priority of the rule within that group.
 This value is useful for when you have one or more steps that are dependent on other steps. If multiple steps are members of the same group,

@@ -20,7 +20,7 @@ from simple_logger.logger import get_logger
 
 import tests.unittests.helpers as helpers
 from cli.objects.failure import Failure
-from cli.objects.rule import Rule
+from cli.objects.failure_rule import FailureRule
 from cli.report.report import Report
 
 
@@ -37,7 +37,7 @@ class TestFirewatchReport:
                 self,
                 job_name=job_name,
                 step_name=step_name,
-                failure_type=failure_type,
+                type=failure_type,
                 jira_additional_labels=[],
             ),
         )
@@ -50,7 +50,7 @@ class TestFirewatchReport:
                 self,
                 job_name=job_name,
                 step_name=step_name,
-                failure_type=failure_type,
+                type=failure_type,
                 jira_additional_labels=additional_labels,
             ),
         )
@@ -67,7 +67,7 @@ class TestFirewatchReport:
     def test_failure_matches_rule(self) -> None:
         default_jira_project = "TEST"
         failure = Failure(failed_step="failed-step", failure_type="test_failure")
-        ignore_rule = Rule(
+        ignore_rule = FailureRule(
             rule_dict={
                 "step": "failed-step",
                 "failure_type": "test_failure",
@@ -76,7 +76,7 @@ class TestFirewatchReport:
                 "ignore": "true",
             },
         )
-        no_match_rule = Rule(
+        no_match_rule = FailureRule(
             rule_dict={
                 "step": "other-step",
                 "failure_type": "test_failure",
@@ -84,7 +84,7 @@ class TestFirewatchReport:
                 "jira_project": "NONE",
             },
         )
-        match_rule = Rule(
+        match_rule = FailureRule(
             rule_dict={
                 "step": "failed-step",
                 "failure_type": "test_failure",
@@ -98,7 +98,7 @@ class TestFirewatchReport:
             "classification": "!none",
             "jira_project": default_jira_project,
         }
-        default_rule = Rule(default_rule_dict)
+        default_rule = FailureRule(default_rule_dict)
 
         # Test a failure that does not match any rule
         rules = [no_match_rule]
@@ -155,7 +155,7 @@ class TestFirewatchReport:
 
     def test_filter_priority_rule_failure_pairs_priorities_set(self) -> None:
         # Test when groups/priorities are set
-        group_rule_1 = Rule(
+        group_rule_1 = FailureRule(
             rule_dict={
                 "step": "failed-step-1",
                 "failure_type": "test_failure",
@@ -164,7 +164,7 @@ class TestFirewatchReport:
                 "group": {"name": "failed-steps", "priority": 1},
             },
         )
-        group_rule_2 = Rule(
+        group_rule_2 = FailureRule(
             rule_dict={
                 "step": "failed-step-2",
                 "failure_type": "test_failure",
@@ -198,7 +198,7 @@ class TestFirewatchReport:
 
     def test_filter_priority_rule_failure_pairs_priorities_not_set(self) -> None:
         # Test when groups/priorities not set
-        rule_1 = Rule(
+        rule_1 = FailureRule(
             rule_dict={
                 "step": "failed-step-1",
                 "failure_type": "test_failure",
@@ -206,7 +206,7 @@ class TestFirewatchReport:
                 "jira_project": "NONE",
             },
         )
-        rule_2 = Rule(
+        rule_2 = FailureRule(
             rule_dict={
                 "step": "failed-step-2",
                 "failure_type": "test_failure",

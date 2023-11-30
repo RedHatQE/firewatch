@@ -39,11 +39,11 @@ class Jira:
         with open(jira_config_path) as jira_config_file:
             jira_config = json.load(jira_config_file)
 
-        self.url = jira_config["url"]
-        self.token = jira_config["token"]
+        self.url = jira_config.get("url")
+        self.token = jira_config.get("token")
 
         if "proxies" in jira_config:
-            self.proxies = jira_config["proxies"]
+            self.proxies = jira_config.get("proxies")
             self.connection = JIRA(
                 server=self.url,
                 token_auth=self.token,
@@ -158,7 +158,7 @@ class Jira:
             self.connection.transition_issue(
                 issue=issue.key,
                 transition="closed",
-                comment="Closed by firewatch.",
+                comment="Closed by [firewatch|https://github.com/CSPI-QE/firewatch].",
             )
 
         return issue

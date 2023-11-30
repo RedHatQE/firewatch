@@ -50,10 +50,6 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
-  --report-success              If set, firewatch will create a Jira story in
-                                the default Jira project and default Jira epic
-                                reporting the success. The story will be
-                                closed immediately.
   --keep-job-dir                If set, firewatch will not delete the job
                                 directory (/tmp/12345) that is created to hold
                                 logs and results for a job following
@@ -102,9 +98,6 @@ $ firewatch report --fail-with-test-failures
 
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir
-
-# Report a success story to Jira. The story will be created in the $FIREWATCH_DEFAULT_JIRA_PROJECT project and in the $FIREWATCH_DEFAULT_JIRA_EPIC epic
-$ firewatch report --report-success
 
 ```
 
