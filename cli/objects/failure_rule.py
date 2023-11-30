@@ -7,11 +7,11 @@ from cli.objects.rule import Rule
 class FailureRule(Rule):
     def __init__(self, rule_dict: dict[Any, Any]):
         """
-                Initializes the FailureRule object which inherits the Rule object.
+        Initializes the FailureRule object which inherits the Rule object.
 
-                Args:
-                    rule_dict (dict[Any, Any]): A dictionary object representing a firewatch rule.
-                """
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a firewatch rule.
+        """
         super().__init__(rule_dict=rule_dict)
 
         self.step = self._get_step(rule_dict=rule_dict)
