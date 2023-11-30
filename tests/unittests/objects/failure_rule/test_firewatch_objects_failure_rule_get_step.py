@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from cli.objects.failure_rule import FailureRule
 
 
 class TestRuleGetStep:
@@ -11,14 +11,13 @@ class TestRuleGetStep:
     def setup_method(self, method, mock_get_logger):
         self.mock_logger = MagicMock()
         mock_get_logger.return_value = self.mock_logger
-        self.rule = Rule(
+        self.rule = FailureRule(
             rule_dict={
                 "step": "dummy",
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            },
-            rule_type="failure",
+            }
         )
 
     def test_get_step_valid(self):

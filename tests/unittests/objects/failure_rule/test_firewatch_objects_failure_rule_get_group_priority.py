@@ -1,18 +1,17 @@
 import pytest
 
-from cli.objects.rule import Rule
+from cli.objects.failure_rule import FailureRule
 
 
 class TestRuleGetGroupPriority:
     def setup_method(self):
-        self.rule = Rule(
+        self.rule = FailureRule(
             rule_dict={
                 "step": "dummy",
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            },
-            rule_type="failure",
+            }
         )
 
     def test_get_group_priority_defined(self):
