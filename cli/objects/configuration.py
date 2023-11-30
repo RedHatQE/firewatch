@@ -63,10 +63,16 @@ class Configuration:
         self.config_data = self._get_config_data(config_file_path=config_file_path)
 
         # Create the lists of Rule objects using the config data
-        self.success_rules = self._get_success_rules(rules_list=self.config_data.get("success_rules"))
-        self.failure_rules = self._get_failure_rules(rules_list=self.config_data.get("failure_rules"))
+        self.success_rules = self._get_success_rules(
+            rules_list=self.config_data.get("success_rules")
+        )
+        self.failure_rules = self._get_failure_rules(
+            rules_list=self.config_data.get("failure_rules")
+        )
 
-    def _get_failure_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[FailureRule]]:
+    def _get_failure_rules(
+        self, rules_list: list[dict[Any, Any]]
+    ) -> Optional[list[FailureRule]]:
         """
         Creates a list of FailureRule objects.
 
@@ -86,7 +92,9 @@ class Configuration:
         )
         exit(1)
 
-    def _get_success_rules(self, rules_list: list[dict[Any, Any]],) -> Optional[list[Rule]]:
+    def _get_success_rules(
+        self, rules_list: list[dict[Any, Any]]
+    ) -> Optional[list[Rule]]:
         """
         Creates a list of Rule objects.
 

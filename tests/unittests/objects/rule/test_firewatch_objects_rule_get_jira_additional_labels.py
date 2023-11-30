@@ -10,7 +10,7 @@ class TestRuleGetJiraAdditionalLabels:
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_jira_additional_labels_defined(self):

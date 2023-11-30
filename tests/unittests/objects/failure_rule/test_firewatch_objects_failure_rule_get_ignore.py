@@ -11,7 +11,7 @@ class TestRuleGetIgnore:
                 "failure_type": "all",
                 "classification": "test classification",
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_ignore_defined_boolean(self):

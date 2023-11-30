@@ -10,7 +10,7 @@ class TestRuleGetJiraAssignee:
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
-            }
+            },
         )
 
     def test_get_jira_assignee_defined(self):
