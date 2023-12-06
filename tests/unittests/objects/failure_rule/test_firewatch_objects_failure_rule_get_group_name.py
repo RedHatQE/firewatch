@@ -1,10 +1,15 @@
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
 
 from cli.objects.failure_rule import FailureRule
 
 
-class TestRuleGetGroupName:
-    def setup_method(self):
+class TestGetGroupName(unittest.TestCase):
+    @patch("cli.objects.rule.get_logger")
+    def setUp(self, mock_get_logger):
         self.rule = FailureRule(
             rule_dict={
                 "step": "dummy",
@@ -13,6 +18,11 @@ class TestRuleGetGroupName:
                 "jira_project": "TEST",
             },
         )
+        self.mock_logger = patch("cli.objects.job.get_logger")
+        self.mock_logger.start().return_value = MagicMock()
+
+    def tearDown(self):
+        patch.stopall()
 
     def test_get_group_name_defined(self):
         test_rule_dict = {"group": {"name": "test_group"}}

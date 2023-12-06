@@ -16,7 +16,6 @@
 #
 import os
 import shutil
-from pathlib import Path
 
 
 def _create_successful_step_junit(
@@ -71,14 +70,14 @@ def _create_failed_step_pod(logs_dir: str, step_name: str = "failed-step") -> st
     return failed_path
 
 
-def _get_tmp_logs_dir(tmp_path: Path) -> str:
+def _get_tmp_logs_dir(tmp_path: str) -> str:
     logs_dir = f"{tmp_path}/logs"
     if not os.path.exists(logs_dir):
         os.mkdir(logs_dir)
     return logs_dir
 
 
-def _get_tmp_junit_dir(tmp_path: Path) -> str:
+def _get_tmp_junit_dir(tmp_path: str) -> str:
     junit_dir = f"{tmp_path}/artifacts"
     if not os.path.exists(junit_dir):
         os.mkdir(junit_dir)

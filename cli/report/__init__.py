@@ -25,6 +25,26 @@ from cli.objects.job import Job
 from cli.report.report import Report
 
 
+def validate_verbose_test_failure_reporting_ticket_limit(
+    ctx: click.Context,
+    param: click.Parameter,
+    value: int,
+) -> Optional[int]:
+    """
+    Validates the verbose_test_reporting_ticket_limit option. If verbose_test_reporting_ticket_limit is set, verbose_test_reporting must also be set.
+
+    :param ctx: Click context
+    :param param: Click parameter. The param argument is not used in the function, but it is required to match the expected type of the callback argument in the click.option decorator.
+    :param value: Value of click parameter
+    :return: The value of the click parameter.
+    """
+    if value is not None and not ctx.params.get("verbose_test_failure_reporting"):
+        raise click.BadParameter(
+            "You must set --verbose-test-reporting when --verbose-test-reporting-ticket-limit is set.",
+        )
+    return value
+
+
 @click.option(
     "--job-name",
     help="The full name of a Prow job. The value of $JOB_NAME",
@@ -75,6 +95,20 @@ from cli.report.report import Report
     default=False,
     type=click.BOOL,
 )
+@click.option(
+    "--verbose-test-failure-reporting",
+    help="If set, firewatch will report a bug for each test failure found.",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+)
+@click.option(
+    "--verbose-test-failure-reporting-ticket-limit",
+    help="Used to limit the number of bugs created when --verbose-test-reporting is set. If not specified, the default limit is 10.",
+    required=False,
+    type=click.INT,
+    callback=validate_verbose_test_failure_reporting_ticket_limit,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -87,6 +121,8 @@ def report(
     jira_config_path: str,
     fail_with_test_failures: bool,
     keep_job_dir: bool,
+    verbose_test_failure_reporting: bool,
+    verbose_test_failure_reporting_ticket_limit: Optional[int],
 ) -> None:
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
@@ -94,6 +130,8 @@ def report(
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
         keep_job_dir=keep_job_dir,
+        verbose_test_failure_reporting=verbose_test_failure_reporting,
+        verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
         config_file_path=firewatch_config_path,
     )
     job = Job(
@@ -101,6 +139,7 @@ def report(
         name_safe=job_name_safe,
         build_id=build_id,
         gcs_bucket=gcs_bucket,
+        firewatch_config=config,
     )
 
     # Build the Report object and report issues to Jira

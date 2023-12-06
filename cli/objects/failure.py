@@ -14,38 +14,37 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from typing import Optional
+
 from simple_logger.logger import get_logger
 
 
 class Failure:
-    def __init__(self, failed_step: str, failure_type: str):
+    def __init__(
+        self,
+        failed_step: str,
+        failure_type: str,
+        failed_test_name: Optional[str] = None,
+        failed_test_junit_path: Optional[str] = None,
+    ):
         """
         Initializes the Failure object.
 
         Args:
             failed_step (str): The failed step
             failure_type (str): The failure type
+            failed_test_name (Optional[str], optional): The failed test name. Defaults to None.
+            failed_test_junit_path (Optional[str], optional): The path to the failed test's junit file. Defaults to None.
         """
         self.logger = get_logger(__name__)
 
-        self.step = self._get_failed_step(failed_step)
+        self.step = failed_step
         self.failure_type = self._get_failure_type(failure_type)
 
-    def _get_failed_step(self, failed_step: str) -> str:
-        """
-        Gets the name of the failed step. Used to validate the value provided.
-
-        Args:
-            failed_step (str): Failed step name.
-
-        Returns:
-            str: String value representing name of step failed
-        """
-        if isinstance(failed_step, str):
-            return failed_step
-        else:
-            self.logger.error("Failed step must be a string value")
-            exit(1)
+        # if the failure is a test failure, set additional attributes
+        if self.failure_type == "test_failure":
+            self.failed_test_name = failed_test_name
+            self.failed_test_junit_path = failed_test_junit_path
 
     def _get_failure_type(self, failure_type: str) -> str:
         """
