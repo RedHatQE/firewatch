@@ -33,6 +33,8 @@ class Configuration:
         jira: Jira,
         fail_with_test_failures: bool,
         keep_job_dir: bool,
+        verbose_test_failure_reporting: bool,
+        verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
     ):
         """
@@ -42,7 +44,8 @@ class Configuration:
             jira (Jira): A Jira object used to log in and interact with Jira
             fail_with_test_failures (bool): If a test failure is found, after bugs are filed, firewatch will exit with a non-zero exit code
             keep_job_dir (bool): If true, firewatch will not delete the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.
-            report_success (bool): If true, firewatch will create a Jira story reporting the success. The story will be closed immediately.
+            verbose_test_reporting (bool): If true, firewatch will report all test failures found in the job.
+            verbose_test_reporting_ticket_limit (Optional[int]): Used as a safeguard to prevent firewatch from filing too many bugs. If verbose_test_reporting is set to true, this value will be used to limit the number of bugs filed. Defaults to 10.
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
         """
         self.logger = get_logger(__name__)
@@ -58,6 +61,12 @@ class Configuration:
 
         # Boolean value to decide if firewatch should delete the job directory following execution.
         self.keep_job_dir = keep_job_dir
+
+        # Boolean value to decide if firewatch should report all test failures found in the job.
+        self.verbose_test_failure_reporting = verbose_test_failure_reporting
+        self.verbose_test_failure_reporting_ticket_limit = (
+            verbose_test_failure_reporting_ticket_limit
+        )
 
         # Get the config data
         self.config_data = self._get_config_data(config_file_path=config_file_path)
