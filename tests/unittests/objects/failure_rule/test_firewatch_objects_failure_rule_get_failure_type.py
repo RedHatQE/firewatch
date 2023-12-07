@@ -1,6 +1,5 @@
 import pytest
 
-from cli.objects.failure_rule import FailureRule
 from tests.unittests.objects.failure_rule.failure_rule_base_test import (
     FailureRuleBaseTest,
 )

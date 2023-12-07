@@ -1,7 +1,5 @@
 import unittest
 
-import pytest
-
 from cli.objects.failure_rule import FailureRule
 
 

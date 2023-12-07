@@ -29,7 +29,6 @@ from cli.objects.failure import Failure
 from cli.objects.failure_rule import FailureRule
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
-from cli.objects.rule import Rule
 
 
 class Report:

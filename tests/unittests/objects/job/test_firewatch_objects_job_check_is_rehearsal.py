@@ -1,4 +1,3 @@
-from cli.objects.configuration import Configuration
 from cli.objects.job import Job
 from tests.unittests.objects.job.job_base_test import JobBaseTest
 

@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from cli.objects.rule import Rule
 from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
