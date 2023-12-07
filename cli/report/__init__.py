@@ -38,7 +38,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     :param value: Value of click parameter
     :return: The value of the click parameter.
     """
-    if value is not None and not ctx.params.get("verbose_test_reporting"):
+    if value is not None and not ctx.params.get("verbose_test_failure_reporting"):
         raise click.BadParameter(
             "You must set --verbose-test-reporting when --verbose-test-reporting-ticket-limit is set.",
         )
