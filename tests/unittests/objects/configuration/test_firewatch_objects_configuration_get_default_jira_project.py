@@ -1,9 +1,10 @@
 import os
-import unittest
-from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from cli.objects.configuration import Configuration
+from tests.unittests.objects.configuration.configuration_base_test import (
+    ConfigurationBaseTest,
+)
 
 
 @patch.dict(
@@ -12,15 +13,7 @@ from cli.objects.configuration import Configuration
         "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}',
     },
 )
-class TestGetDefaultJiraProject(unittest.TestCase):
-    @patch("cli.objects.configuration.Jira")
-    def setUp(self, mock_jira):
-        self.mock_jira = mock_jira
-        mock_jira.return_value = MagicMock()
-
-    def tearDown(self):
-        patch.stopall()
-
+class TestGetDefaultJiraProject(ConfigurationBaseTest):
     @patch.dict(os.environ, {"FIREWATCH_DEFAULT_JIRA_PROJECT": "TEST"})
     def test_configuration_gets_default_jira_project_with_valid_env_var(self):
         config = Configuration(self.mock_jira, True, True, True, 10, None)

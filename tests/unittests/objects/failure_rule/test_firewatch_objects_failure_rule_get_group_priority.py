@@ -1,29 +1,12 @@
-import unittest
-from unittest.mock import MagicMock
-from unittest.mock import patch
-
 import pytest
 
 from cli.objects.failure_rule import FailureRule
+from tests.unittests.objects.failure_rule.failure_rule_base_test import (
+    FailureRuleBaseTest,
+)
 
 
-class TestGetGroupPriority(unittest.TestCase):
-    @patch("cli.objects.rule.get_logger")
-    def setUp(self, mock_get_logger):
-        self.rule = FailureRule(
-            rule_dict={
-                "step": "dummy",
-                "failure_type": "all",
-                "classification": "test classification",
-                "jira_project": "TEST",
-            },
-        )
-        self.mock_logger = patch("cli.objects.job.get_logger")
-        self.mock_logger.start().return_value = MagicMock()
-
-    def tearDown(self):
-        patch.stopall()
-
+class TestGetGroupPriority(FailureRuleBaseTest):
     def test_get_group_priority_defined(self):
         test_rule_dict = {"group": {"priority": 1}}
         result = self.rule._get_group_priority(test_rule_dict)
