@@ -1,14 +1,15 @@
 import os
-import unittest
 import tempfile
-from unittest.mock import patch, mock_open, MagicMock
+import unittest
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 from cli.jira_config_gen.jira_config_gen import JiraConfig
 
 
 class TestJiraConfig(unittest.TestCase):
-
     def setUp(self):
-        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger = patch("cli.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
         self.template = """
                 {

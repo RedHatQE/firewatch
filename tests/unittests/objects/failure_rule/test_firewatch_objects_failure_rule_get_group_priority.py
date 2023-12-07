@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 
@@ -7,7 +8,6 @@ from cli.objects.failure_rule import FailureRule
 
 
 class TestGetGroupPriority(unittest.TestCase):
-
     @patch("cli.objects.rule.get_logger")
     def setUp(self, mock_get_logger):
         self.rule = FailureRule(
@@ -18,7 +18,7 @@ class TestGetGroupPriority(unittest.TestCase):
                 "jira_project": "TEST",
             },
         )
-        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger = patch("cli.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
 
     def tearDown(self):

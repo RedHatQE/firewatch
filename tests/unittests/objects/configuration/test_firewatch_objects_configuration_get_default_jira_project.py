@@ -1,15 +1,19 @@
 import os
 import unittest
-
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from cli.objects.configuration import Configuration
 
 
-@patch.dict(os.environ, {"FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'})
+@patch.dict(
+    os.environ,
+    {
+        "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+    },
+)
 class TestGetDefaultJiraProject(unittest.TestCase):
-
-    @patch('cli.objects.configuration.Jira')
+    @patch("cli.objects.configuration.Jira")
     def setUp(self, mock_jira):
         self.mock_jira = mock_jira
         mock_jira.return_value = MagicMock()

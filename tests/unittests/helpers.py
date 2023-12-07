@@ -16,7 +16,6 @@
 #
 import os
 import shutil
-from pathlib import Path
 
 
 def _create_successful_step_junit(

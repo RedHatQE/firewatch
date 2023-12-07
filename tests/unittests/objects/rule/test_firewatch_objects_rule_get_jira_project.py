@@ -15,7 +15,7 @@ class TestGetJiraProject(unittest.TestCase):
                 "jira_project": "TEST",
             },
         )
-        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger = patch("cli.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
 
     def tearDown(self):
