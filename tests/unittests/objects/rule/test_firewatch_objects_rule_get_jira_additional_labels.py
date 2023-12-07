@@ -1,17 +1,23 @@
-from unittest.mock import patch
+import unittest
+from unittest.mock import patch, MagicMock
 
 import pytest
 
 from cli.objects.rule import Rule
 
 
-class TestRuleGetJiraAdditionalLabels:
-    def setup_method(self):
+class TestGetJiraAdditionalLabels(unittest.TestCase):
+    def setUp(self):
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
             },
         )
+        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger.start().return_value = MagicMock()
+
+    def tearDown(self):
+        patch.stopall()
 
     def test_get_jira_additional_labels_defined(self):
         test_rule_dict = {"jira_additional_labels": ["label1", "label2"]}

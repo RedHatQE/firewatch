@@ -1,10 +1,12 @@
+import unittest
+
 import pytest
 
 from cli.objects.failure_rule import FailureRule
 
 
-class TestFailureRule:
-    def setup_method(self):
+class TestFailureRule(unittest.TestCase):
+    def setUp(self):
         self.rule_dict = {
             "step": "step1",
             "failure_type": "pod_failure",

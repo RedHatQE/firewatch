@@ -1,3 +1,4 @@
+import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -6,14 +7,18 @@ import pytest
 from cli.objects.rule import Rule
 
 
-class TestRuleGetJiraComponent:
-    def setup_method(self):
+class TestGetJiraComponent(unittest.TestCase):
+    def setUp(self):
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
             },
         )
-        self.rule.logger = MagicMock()
+        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger.start().return_value = MagicMock()
+
+    def tearDown(self):
+        patch.stopall()
 
     def test_get_jira_component_defined(self):
         test_rule_dict = {"jira_component": ["TEST-COMPONENT"]}

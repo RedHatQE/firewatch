@@ -1,17 +1,22 @@
+import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from cli.objects.rule import Rule
 
 
-class TestRuleGetJiraEpic:
-    def setup_method(self):
+class TestGetJiraEpic(unittest.TestCase):
+    def setUp(self):
         self.rule = Rule(
             rule_dict={
                 "jira_project": "TEST",
             },
         )
-        self.rule.logger = MagicMock()
+        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger.start().return_value = MagicMock()
+
+    def tearDown(self):
+        patch.stopall()
 
     def test_get_jira_epic_defined(self):
         test_rule_dict = {"jira_epic": "TEST-1234"}

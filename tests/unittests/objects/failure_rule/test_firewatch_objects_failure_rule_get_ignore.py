@@ -1,10 +1,13 @@
+import unittest
+from unittest.mock import patch, MagicMock
+
 import pytest
 
 from cli.objects.failure_rule import FailureRule
 
 
-class TestRuleGetIgnore:
-    def setup_method(self):
+class TestGetIgnore(unittest.TestCase):
+    def setUp(self):
         self.rule = FailureRule(
             rule_dict={
                 "step": "dummy",
@@ -13,6 +16,11 @@ class TestRuleGetIgnore:
                 "jira_project": "TEST",
             },
         )
+        self.mock_logger = patch('cli.objects.job.get_logger')
+        self.mock_logger.start().return_value = MagicMock()
+
+    def tearDown(self):
+        patch.stopall()
 
     def test_get_ignore_defined_boolean(self):
         test_rule_dict = {"ignore": True}
