@@ -1,10 +1,14 @@
 import os
 import unittest
-from unittest.mock import patch, MagicMock
-from cli.objects.job import Job
-from cli.objects.configuration import Configuration
+import tempfile
+from unittest.mock import patch, mock_open, MagicMock
 
-class TestJob(unittest.TestCase):
+from cli.objects.configuration import Configuration
+from cli.objects.job import Job
+from cli.report import Report
+
+
+class TestReport(unittest.TestCase):
 
     @patch('cli.objects.configuration.Jira')
     @patch.dict(os.environ, {"FIREWATCH_DEFAULT_JIRA_PROJECT": "TEST"})
@@ -18,13 +22,12 @@ class TestJob(unittest.TestCase):
         self.mock_logger.start().return_value = MagicMock()
         self.mock_storage_client = patch('cli.objects.job.storage.Client.create_anonymous_client')
         self.mock_storage_client.start().return_value = MagicMock()
-        self.job = Job('job1', 'job1_safe', '123', 'bucket1', self.config)
 
     def tearDown(self):
         patch.stopall()
 
-    def test_initialization_with_valid_parameters(self):
-        self.assertEqual(self.job.name, 'job1')
-        self.assertEqual(self.job.name_safe, 'job1_safe')
-        self.assertEqual(self.job.build_id, '123')
-        self.assertEqual(self.job.gcs_bucket, 'bucket1')
+    def test_report_initialization_with_job_rehearsal(self):
+        job = Job('rehearse_job1', 'job1_safe', '123', 'bucket1', self.config)
+        with self.assertRaises(SystemExit):
+            Report(self.config, job)
+

@@ -7,7 +7,9 @@ from cli.objects.failure_rule import FailureRule
 
 
 class TestGetGroupName(unittest.TestCase):
-    def setUp(self):
+
+    @patch("cli.objects.rule.get_logger")
+    def setUp(self, mock_get_logger):
         self.rule = FailureRule(
             rule_dict={
                 "step": "dummy",

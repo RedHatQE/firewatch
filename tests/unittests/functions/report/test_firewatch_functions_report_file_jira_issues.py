@@ -1,10 +1,15 @@
 import os
 import unittest
-from unittest.mock import patch, MagicMock
-from cli.objects.job import Job
-from cli.objects.configuration import Configuration
+import tempfile
+from unittest.mock import patch, mock_open, MagicMock
 
-class TestJob(unittest.TestCase):
+from cli.objects.configuration import Configuration
+from cli.objects.failure import Failure
+from cli.objects.job import Job
+from cli.report import Report
+
+
+class TestFileJiraIssues(unittest.TestCase):
 
     @patch('cli.objects.configuration.Jira')
     @patch.dict(os.environ, {"FIREWATCH_DEFAULT_JIRA_PROJECT": "TEST"})
@@ -23,8 +28,14 @@ class TestJob(unittest.TestCase):
     def tearDown(self):
         patch.stopall()
 
-    def test_initialization_with_valid_parameters(self):
-        self.assertEqual(self.job.name, 'job1')
-        self.assertEqual(self.job.name_safe, 'job1_safe')
-        self.assertEqual(self.job.build_id, '123')
-        self.assertEqual(self.job.gcs_bucket, 'bucket1')
+    def test_file_jira_issues_with_no_failures(self):
+        report = Report(self.config, self.job)
+        result = report.file_jira_issues([], self.config, self.job)
+        self.assertEqual(result, [])
+
+    def test_file_jira_issues_with_failures(self):
+        failures = [Failure(failed_step="step1", failure_type="pod_failure")]
+
+        report = Report(self.config, self.job)
+        result = report.file_jira_issues(failures, self.config, self.job)
+        self.assertNotEqual(result, [])

@@ -9,7 +9,7 @@ from cli.objects.failure_rule import FailureRule
 
 class TestGetStep(unittest.TestCase):
     @patch("cli.objects.rule.get_logger")
-    def setUp(self, method, mock_get_logger):
+    def setUp(self, mock_get_logger):
         self.mock_logger = MagicMock()
         mock_get_logger.return_value = self.mock_logger
         self.rule = FailureRule(
