@@ -30,8 +30,8 @@ class TestGetConfigData(unittest.TestCase):
                         "step": "step1",
                         "failure_type": "pod_failure",
                         "classification": "none",
-                    }
-                ]
+                    },
+                ],
             }
 
     def test_configuration_gets_config_data_with_invalid_file_path(self):
@@ -41,7 +41,7 @@ class TestGetConfigData(unittest.TestCase):
     @patch.dict(
         os.environ,
         {
-            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}',
         },
     )
     def test_configuration_gets_config_data_with_valid_env_var(self):
@@ -52,8 +52,8 @@ class TestGetConfigData(unittest.TestCase):
                     "step": "step1",
                     "failure_type": "pod_failure",
                     "classification": "none",
-                }
-            ]
+                },
+            ],
         }
 
     def test_configuration_gets_config_data_with_no_env_var(self):

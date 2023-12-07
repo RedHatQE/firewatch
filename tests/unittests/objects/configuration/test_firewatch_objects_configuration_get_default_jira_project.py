@@ -9,7 +9,7 @@ from cli.objects.configuration import Configuration
 @patch.dict(
     os.environ,
     {
-        "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+        "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}',
     },
 )
 class TestGetDefaultJiraProject(unittest.TestCase):

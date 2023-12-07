@@ -15,7 +15,7 @@ class TestFindFailures(unittest.TestCase):
     @patch.dict(
         os.environ,
         {
-            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}',
         },
     )
     def setUp(self, mock_jira):
@@ -24,11 +24,13 @@ class TestFindFailures(unittest.TestCase):
         self.mock_logger = patch("cli.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
         self.mock_storage_client = patch(
-            "cli.objects.job.storage.Client.create_anonymous_client"
+            "cli.objects.job.storage.Client.create_anonymous_client",
         )
         self.mock_storage_client.start().return_value = MagicMock()
         self.mock_get_steps = patch.object(
-            Job, "_get_steps", return_value=["step1", "step2"]
+            Job,
+            "_get_steps",
+            return_value=["step1", "step2"],
         )
         self.mock_get_steps.start()
         self.job = Job("job1", "job1_safe", "123", "bucket1", self.config)
@@ -42,7 +44,8 @@ class TestFindFailures(unittest.TestCase):
     def test_find_test_failures_no_pod_failures(self):
         helpers._create_failed_step_junit(junit_dir=self.junit_dir)
         failures = self.job._find_failures(
-            junit_dir=self.junit_dir, logs_dir=self.logs_dir
+            junit_dir=self.junit_dir,
+            logs_dir=self.logs_dir,
         )
         assert (
             failures[0].failure_type == "test_failure"
@@ -52,7 +55,8 @@ class TestFindFailures(unittest.TestCase):
     def test_find_pod_failures_no_test_failures(self):
         helpers._create_failed_step_pod(logs_dir=self.logs_dir)
         failures = self.job._find_failures(
-            junit_dir=self.junit_dir, logs_dir=self.logs_dir
+            junit_dir=self.junit_dir,
+            logs_dir=self.logs_dir,
         )
         assert (
             failures[0].failure_type == "pod_failure"
@@ -63,7 +67,8 @@ class TestFindFailures(unittest.TestCase):
         helpers._create_failed_step_pod(logs_dir=self.logs_dir)
         helpers._create_failed_step_junit(junit_dir=self.junit_dir)
         failures = self.job._find_failures(
-            junit_dir=self.junit_dir, logs_dir=self.logs_dir
+            junit_dir=self.junit_dir,
+            logs_dir=self.logs_dir,
         )
         assert (
             failures[0].failure_type == "test_failure"
@@ -74,6 +79,7 @@ class TestFindFailures(unittest.TestCase):
         helpers._create_successful_step_pod(logs_dir=self.logs_dir)
         helpers._create_successful_step_junit(junit_dir=self.junit_dir)
         failures = self.job._find_failures(
-            junit_dir=self.junit_dir, logs_dir=self.logs_dir
+            junit_dir=self.junit_dir,
+            logs_dir=self.logs_dir,
         )
         assert not failures
