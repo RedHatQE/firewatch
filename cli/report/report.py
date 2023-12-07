@@ -137,6 +137,7 @@ class Report:
                         len(bugs_filed)
                         >= firewatch_config.verbose_test_failure_reporting_ticket_limit
                     ):
+                        self.logger.warning(f'Ticket limit of {firewatch_config.verbose_test_failure_reporting_ticket_limit} reached. No more bugs will be filed. If you would like to increase this limit, specify "--verbose-test-failure-reporting-ticket-limit <limit>" when executing firewatch report.')
                         break
 
             # Gather bug information
@@ -565,7 +566,7 @@ class Report:
         if jira_additional_labels:
             labels.extend(jira_additional_labels)
 
-        return labels
+        return list(set(labels))
 
     def _get_duplicate_bugs(
         self,
