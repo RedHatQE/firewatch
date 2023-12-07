@@ -26,7 +26,7 @@ profile = "black"
 
 [tool.poetry]
 name = "firewatch"
-version = "0.0.0"
+version = "2.0.0"
 description = "A tool to monitor results in OpenShift CI and report pod or test failures to Jira."
 authors = ["CSPI QE <cspi-qe@redhat.com>"]
 readme = "README.md"
@@ -47,7 +47,7 @@ Download = "https://github.com/CSPI-QE/firewatch"
 "Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.12"
 click = "^8.1.7"
 google-cloud-storage = "^2.10.0"
 jinja2 = "^3.1.2"
