@@ -50,23 +50,30 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
-  --keep-job-dir                If set, firewatch will not delete the job
-                                directory (/tmp/12345) that is created to hold
-                                logs and results for a job following
-                                execution.
-  --fail-with-test-failures     Firewatch will fail with a non-zero exit code
-                                if a test failure is found.
-  --jira-config-path PATH       The path to the jira configuration file
-  --firewatch-config-path PATH  The path to the firewatch configuration file
-  --gcs-bucket TEXT             The name of the GCS bucket that holds
-                                OpenShift CI logs
-  --build-id TEXT               The build ID that needs to be reported. The
-                                value of $BUILD_ID
-  --job-name-safe TEXT          The safe name of a test in a Prow job. The
-                                value of $JOB_NAME_SAFE
-  --job-name TEXT               The full name of a Prow job. The value of
-                                $JOB_NAME
-  --help                        Show this message and exit.
+  --verbose-test-failure-reporting-ticket-limit INTEGER
+                                  Used to limit the number of bugs created
+                                  when --verbose-test-reporting is set. If not
+                                  specified, the default limit is 10.
+  --verbose-test-failure-reporting
+                                  If set, firewatch will report a bug for each
+                                  test failure found.
+  --keep-job-dir                  If set, firewatch will not delete the job
+                                  directory (/tmp/12345) that is created to
+                                  hold logs and results for a job following
+                                  execution.
+  --fail-with-test-failures       Firewatch will fail with a non-zero exit
+                                  code if a test failure is found.
+  --jira-config-path PATH         The path to the jira configuration file
+  --firewatch-config-path PATH    The path to the firewatch configuration file
+  --gcs-bucket TEXT               The name of the GCS bucket that holds
+                                  OpenShift CI logs
+  --build-id TEXT                 The build ID that needs to be reported. The
+                                  value of $BUILD_ID
+  --job-name-safe TEXT            The safe name of a test in a Prow job. The
+                                  value of $JOB_NAME_SAFE
+  --job-name TEXT                 The full name of a Prow job. The value of
+                                  $JOB_NAME
+  --help                          Show this message and exit.
 ```
 
 **Examples:**
@@ -99,11 +106,18 @@ $ firewatch report --fail-with-test-failures
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir
 
+# Report a bug for each test failure found in a JUnit file for a step
+$ firewatch report --verbose-test-failure-reporting
+$ firewatch report --verbose-test-failure-reporting --verbose-test-failure-reporting-ticket-limit 100
 ```
 
 **Example of Jira Ticket Created:**
 
 ![Screenshot of an example Jira ticket](images/jira-ticket-example.png)
+
+**Example of Jira Ticket Created with Verbose Test Failure Reporting:**
+
+![Screenshot of an example Jira ticket with verbose test failure reporting](images/jira-ticket-example-verbose.png)
 
 **How Are Duplicate Bugs Handled?**
 
