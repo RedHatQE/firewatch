@@ -137,7 +137,9 @@ class Report:
                         len(bugs_filed)
                         >= firewatch_config.verbose_test_failure_reporting_ticket_limit
                     ):
-                        self.logger.warning(f'Ticket limit of {firewatch_config.verbose_test_failure_reporting_ticket_limit} reached. No more bugs will be filed. If you would like to increase this limit, specify "--verbose-test-failure-reporting-ticket-limit <limit>" when executing firewatch report.')
+                        self.logger.warning(
+                            f'Ticket limit of {firewatch_config.verbose_test_failure_reporting_ticket_limit} reached. No more bugs will be filed. If you would like to increase this limit, specify "--verbose-test-failure-reporting-ticket-limit <limit>" when executing firewatch report.',
+                        )
                         break
 
             # Gather bug information
@@ -526,7 +528,8 @@ class Report:
             )
             description = f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n"
             if past_bugs:
-                description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}* and failed test *{failed_test_name if failed_test_name else ''}*:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
+                failed_test_portion = f" and failed test *{failed_test_name}*"
+                description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}*{failed_test_portion if failed_test_name else ''}:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
 
         # If the issue is being created for a success
         else:
