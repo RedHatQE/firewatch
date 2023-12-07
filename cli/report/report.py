@@ -604,7 +604,10 @@ class Report:
         # AND has a label that matches the failure type
         # AND the bugs are not closed
         # AND issue is of type "bug"
-        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" {f"AND labels=\'{failed_test_name}\'" if failed_test_name else ""} AND resolution = Unresolved AND Issuetype = bug'
+        failed_test_name_filter = (
+            f'AND labels="{failed_test_name}"' if failed_test_name else ""
+        )
+        jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" {failed_test_name_filter} AND resolution = Unresolved AND Issuetype = bug'
         duplicate_bugs = jira.search_issues(jql_query=jql_query)
 
         if len(duplicate_bugs) > 0:
