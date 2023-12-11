@@ -1,10 +1,10 @@
-import pytest
+import unittest
 
 from cli.objects.rule import Rule
 
 
-class TestRule:
-    def setup_method(self):
+class TestRule(unittest.TestCase):
+    def setUp(self):
         self.rule_dict = {
             "jira_project": "project1",
             "jira_epic": "epic1",

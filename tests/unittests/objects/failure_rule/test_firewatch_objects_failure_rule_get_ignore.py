@@ -1,19 +1,11 @@
 import pytest
 
-from cli.objects.failure_rule import FailureRule
+from tests.unittests.objects.failure_rule.failure_rule_base_test import (
+    FailureRuleBaseTest,
+)
 
 
-class TestRuleGetIgnore:
-    def setup_method(self):
-        self.rule = FailureRule(
-            rule_dict={
-                "step": "dummy",
-                "failure_type": "all",
-                "classification": "test classification",
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetIgnore(FailureRuleBaseTest):
     def test_get_ignore_defined_boolean(self):
         test_rule_dict = {"ignore": True}
         result = self.rule._get_ignore(test_rule_dict)

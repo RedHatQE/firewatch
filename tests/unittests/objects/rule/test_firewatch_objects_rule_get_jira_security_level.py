@@ -2,17 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
-class TestRuleGetJiraSecurityLevel:
-    def setup_method(self):
-        self.rule = Rule(
-            rule_dict={
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetJiraSecurityLevel(RuleBaseTest):
     def test_get_jira_security_level_defined(self):
         test_rule_dict = {"jira_security_level": "High"}
         result = self.rule._get_jira_security_level(test_rule_dict)

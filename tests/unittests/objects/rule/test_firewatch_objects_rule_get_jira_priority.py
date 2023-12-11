@@ -2,17 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
-class TestRuleGetJiraPriority:
-    def setup_method(self):
-        self.rule = Rule(
-            rule_dict={
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetJiraPriority(RuleBaseTest):
     def test_get_jira_priority_defined(self):
         test_rule_dict = {"jira_priority": "Major"}
         result = self.rule._get_jira_priority(test_rule_dict)

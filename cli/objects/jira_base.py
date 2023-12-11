@@ -21,7 +21,6 @@ from typing import Optional
 from jira import Issue
 from jira import JIRA
 from jira.exceptions import JIRAError
-from jira.resources import User
 from simple_logger.logger import get_logger
 
 

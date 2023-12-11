@@ -1,25 +1,11 @@
-from unittest.mock import MagicMock
-from unittest.mock import patch
-
 import pytest
 
-from cli.objects.failure_rule import FailureRule
+from tests.unittests.objects.failure_rule.failure_rule_base_test import (
+    FailureRuleBaseTest,
+)
 
 
-class TestRuleGetStep:
-    @patch("cli.objects.rule.get_logger")
-    def setup_method(self, method, mock_get_logger):
-        self.mock_logger = MagicMock()
-        mock_get_logger.return_value = self.mock_logger
-        self.rule = FailureRule(
-            rule_dict={
-                "step": "dummy",
-                "failure_type": "all",
-                "classification": "test classification",
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetStep(FailureRuleBaseTest):
     def test_get_step_valid(self):
         test_rule_dict = {"step": "test-step-name"}
         step = self.rule._get_step(test_rule_dict)

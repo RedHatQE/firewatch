@@ -2,17 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
-class TestRuleGetJiraAdditionalLabels:
-    def setup_method(self):
-        self.rule = Rule(
-            rule_dict={
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetJiraAdditionalLabels(RuleBaseTest):
     def test_get_jira_additional_labels_defined(self):
         test_rule_dict = {"jira_additional_labels": ["label1", "label2"]}
         result = self.rule._get_jira_additional_labels(test_rule_dict)

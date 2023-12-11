@@ -16,14 +16,19 @@ Thank you for your interest in the firewatch project! Please find some informati
     - This can be used as a "best-guess" for what may have gone wrong during the job's run.
   - Firewatch will search for any past issues created by a specific step that has failed in the same way (pod failure or test failure) and list the 10 most recent ones.
     - This is meant to help the engineer working on the bug to find a solution.
+    - If verbose test failure reporting is enabled, this search is refined further to only search for issues with the same test failure.
   - Firewatch searches for duplicate issues and makes a comment on the issues rather than filing a second issue.
     - This is done using the labels on issues created by firewatch. These labels should consist of the failure type, failed step, and the job name.
     - If the new failures matches the failure type, failed step, and job name; firewatch will make a comment notifying the user that this failure likely happened again.
+    - If verbose test failure reporting is enabled, this search is refined further to only search for issues with the same test failure.
   - If no failures are found, firewatch will search for any open issues on the Jira server provided and add a comment to the issue mentioning that the job has passed since that issue was filed.
     - This functionality also uses the labels on issues created by firewatch.
     - **Note:** If you get a notification on an issue, but would like to continue working on the issue without getting notifications, add the `ignore-passing-notification` label to the issue.
-  - You can optionally report successful runs by defining the `"success_rules"` section in the config.
+  - Firewatch can optionally be configured to report successful runs by defining the `"success_rules"` section in the config.
     - For each rule in this section, a Jira story will be created (with status `closed`) reporting the job success.
+  - Firewatch can optionally be configured to report test failures in a more verbose way (verbose test failure reporting).
+    - When configured to do this, firewatch will report on EVERY test failure in all JUnit files. The issues created from this will specify the failed test name in the title and description.
+    - **This functionality has the potential to create A LOT of tickets if cascading failures occur.** Because of this, firewatch is configured by default to only report up to 10 test failures per run. This value can be overridden, but do so with caution.
 
 ## Getting Started
 
@@ -80,6 +85,17 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   - BEHAVIOR:
     - `"false"`: The `firewatch-report-issues` step will not fail with a non-zero exit code when test failures are found.
     - `"true"`: The `firewatch-report-issues` step will fail with a non-zero exit code when test failures are found.
+- `FIREWATCH_VERBOSE_TEST_FAILURE_REPORTING`
+  - A variable that will determine if firewatch will report on every test failure in all JUnit files (up to the limit defined in `$FIREWATCH_VERBOSE_TEST_FAILURE_REPORTING_LIMIT`).
+  - DEFAULT: `"false"`
+  - BEHAVIOR:
+    - `"false"`: Firewatch will only report on the first test failure found in a JUnit file.
+    - `"true"`: Firewatch will report on every test failure found in a JUnit file.
+- `FIREWATCH_VERBOSE_TEST_FAILURE_REPORTING_LIMIT`
+  - The limit of test failures to report on when verbose test failure reporting is enabled.
+  - DEFAULT: `10`
+  - BEHAVIOR:
+    - If verbose test failure reporting is enabled, firewatch will only report on the first `$FIREWATCH_VERBOSE_TEST_FAILURE_REPORTING_LIMIT` test failures found in a JUnit file.
 
 **OPTIONAL DEFAULT VARIABLES:**
 

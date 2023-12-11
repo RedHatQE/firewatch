@@ -1,16 +1,9 @@
 from unittest.mock import patch
 
-from cli.objects.rule import Rule
+from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
-class TestRuleGetJiraAffectsVersion:
-    def setup_method(self):
-        self.rule = Rule(
-            rule_dict={
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetJiraAffectsVersion(RuleBaseTest):
     def test_get_jira_affects_version_defined(self):
         test_rule_dict = {"jira_affects_version": "test version"}
         result = self.rule._get_jira_affects_version(test_rule_dict)

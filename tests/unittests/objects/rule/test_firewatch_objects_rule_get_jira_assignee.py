@@ -2,17 +2,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.objects.rule import Rule
+from tests.unittests.objects.rule.rule_base_test import RuleBaseTest
 
 
-class TestRuleGetJiraAssignee:
-    def setup_method(self):
-        self.rule = Rule(
-            rule_dict={
-                "jira_project": "TEST",
-            },
-        )
-
+class TestGetJiraAssignee(RuleBaseTest):
     def test_get_jira_assignee_defined(self):
         test_rule_dict = {"jira_assignee": "test@example.com"}
         result = self.rule._get_jira_assignee(test_rule_dict)

@@ -23,6 +23,7 @@ import junitparser
 from google.cloud import storage
 from simple_logger.logger import get_logger
 
+from cli.objects.configuration import Configuration
 from cli.objects.failure import Failure
 
 
@@ -33,6 +34,7 @@ class Job:
         name_safe: str,
         build_id: Optional[str],
         gcs_bucket: str,
+        firewatch_config: Configuration,
     ) -> None:
         """
         Constructs the Job object.
@@ -42,6 +44,7 @@ class Job:
             name_safe (str): The safe name of a test in a Prow job. The value of $JOB_NAME_SAFE
             build_id (Optional[str]): The build ID that needs to be reported. The value of $BUILD_ID
             gcs_bucket (str): The bucket that Prow job logs are stored
+            firewatch_config (Configuration): The Configuration object.
         """
         self.logger = get_logger(__name__)
 
@@ -53,6 +56,7 @@ class Job:
             job_name=self.name,
             build_id=self.build_id,
         )
+        self.firewatch_config = firewatch_config
 
         # Set GCS bucket values
         self.gcs_bucket = gcs_bucket
@@ -92,8 +96,14 @@ class Job:
             logs_dir=self.logs_dir,
             junit_dir=self.junit_dir,
         )
-        self.has_test_failures = self._check_has_test_failures(failures=self.failures)
-        self.has_pod_failures = self._check_has_pod_failures(failures=self.failures)
+        # self.has_test_failures = self._check_has_test_failures(failures=self.failures)
+        self.has_test_failures = any(
+            failure.failure_type == "test_failure" for failure in self.failures or []
+        )
+        # self.has_pod_failures = self._check_has_pod_failures(failures=self.failures)
+        self.has_pod_failures = any(
+            failure.failure_type == "pod_failure" for failure in self.failures or []
+        )
         self.has_failures = True if self.failures else False
 
     def _check_is_rehearsal(
@@ -317,26 +327,17 @@ class Job:
         for pod_failure in pod_failures:
             already_exists = False
             for existing_failure in failures_list:
-                if existing_failure.get("step") == pod_failure.get("step"):
+                if existing_failure.step == pod_failure.step:
                     already_exists = True
             if not already_exists:
                 failures_list.append(pod_failure)
 
-        failures = []
-        for failure in failures_list:
-            failures.append(
-                Failure(
-                    failed_step=failure.get("step"),  # type: ignore
-                    failure_type=failure.get("failure_type"),  # type: ignore
-                ),
-            )
-
-        if len(failures) > 0:
-            return failures
+        if len(failures_list) > 0:
+            return failures_list
         else:
             return None
 
-    def _find_pod_failures(self, logs_dir: str) -> list[dict[str, str]]:
+    def _find_pod_failures(self, logs_dir: str) -> list[Failure]:
         """
         Used to find pod failures in a given job.
 
@@ -344,7 +345,7 @@ class Job:
             logs_dir (str): The directory that job logs are stored in. Gotten from _download_logs.
 
         Returns:
-            list[dict[str, str]]: A list of dictionary objects defining a pod failure to be turned into Failure objects.
+            list[Failure]: A list of Failure objects.
         """
 
         # Initiate the failures list
@@ -359,16 +360,14 @@ class Job:
                         data = json.load(file)
                         if data.get("passed", False) is False:
                             step = os.path.basename(os.path.dirname(file_path))
-                            failure = {
-                                "step": step,
-                                "failure_type": "pod_failure",
-                            }
-                            failures.append(failure)
+                            failures.append(
+                                Failure(failed_step=step, failure_type="pod_failure"),
+                            )
                             self.logger.info(f"Found pod failure in step: {step}")
 
         return failures
 
-    def _find_test_failures(self, junit_dir: str) -> list[dict[str, str]]:
+    def _find_test_failures(self, junit_dir: str) -> list[Failure]:
         """
         Used to find test failures in a given job.
 
@@ -376,86 +375,77 @@ class Job:
             junit_dir (str): The directory that job artifacts are stored in. Gotten from _download_junit.
 
         Returns:
-            list[dict[str, str]]: A list of dictionary objects defining a test failure to be turned into Failure objects.
+            list[Failure]: A list of Failure objects
         """
 
         # Initiate the failures list
+        failures_list = []
+
+        for root, _, files in os.walk(junit_dir):
+            junit_files = [file for file in files if "junit" in file and "xml" in file]
+
+            for file in junit_files:
+                file_path = os.path.join(root, file)
+                try:
+                    junit_xml = junitparser.JUnitXml.fromfile(file_path)
+                except junitparser.junitparser.JUnitXmlError:
+                    self.logger.warning(
+                        f"Attempted to parse {file_path}, but it doesn't seem to be a JUnit results file.",
+                    )
+                    continue
+
+                step = os.path.basename(os.path.dirname(file_path))
+                for suite in junit_xml:
+                    for case in suite:
+                        if hasattr(case, "result") and case.result:
+                            for result in case.result:
+                                if isinstance(
+                                    result,
+                                    (junitparser.Failure, junitparser.Error),
+                                ):
+                                    failure = {
+                                        "step": step,
+                                        "failure_type": "test_failure",
+                                        "failed_test_name": case.name
+                                        if self.firewatch_config.verbose_test_failure_reporting
+                                        else None,
+                                        "failed_test_junit_path": file_path
+                                        if self.firewatch_config.verbose_test_failure_reporting
+                                        else None,
+                                    }
+                                    if failure not in failures_list:
+                                        failures_list.append(failure)
+                                        self.logger.info(
+                                            f"Found test failure in step {step} {'for test ' + case.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
+                                        )
+                        elif isinstance(case, (junitparser.Failure, junitparser.Error)):
+                            failure = {
+                                "step": step,
+                                "failure_type": "test_failure",
+                                "failed_test_name": case.name
+                                if self.firewatch_config.verbose_test_failure_reporting
+                                else None,
+                                "failed_test_junit_path": file_path
+                                if self.firewatch_config.verbose_test_failure_reporting
+                                else None,
+                            }
+                            if failure not in failures_list:
+                                failures_list.append(failure)
+                                self.logger.info(
+                                    f"Found test failure in step {step} {'for test ' + case.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
+                                )
+
+        # Convert dictionary failures into actual failure objects.
+        # This is done here because keep failures_list items as dictionaries allows us to make the "if failure not in failures_list" check above.
         failures = []
-
-        # Find failures in JUnit results
-        for root, dirs, files in os.walk(junit_dir):
-            for file_name in files:
-                if ("junit" in file_name) and ("xml" in file_name):
-                    file_path = os.path.join(root, file_name)
-                    try:
-                        junit_xml = junitparser.JUnitXml.fromfile(file_path)
-                    except junitparser.junitparser.JUnitXmlError:
-                        self.logger.warning(
-                            f"Attempted to parse {file_name}, but it doesn't seem to be a JUnit results file.",
-                        )
-                        continue
-                    step = os.path.basename(os.path.dirname(file_path))
-
-                    for suite in junit_xml:
-                        for case in suite:
-                            if hasattr(case, "result") and case.result:
-                                for result in case.result:
-                                    if isinstance(result, junitparser.Failure):
-                                        failure = {
-                                            "step": step,
-                                            "failure_type": "test_failure",
-                                        }
-                                        if failure not in failures:
-                                            failures.append(failure)
-                                            self.logger.info(
-                                                f"Found test failure in step: {step}",
-                                            )
-                            elif isinstance(case, junitparser.Failure):
-                                failure = {
-                                    "step": step,
-                                    "failure_type": "test_failure",
-                                }
-                                if failure not in failures:
-                                    failures.append(failure)
-                                    self.logger.info(
-                                        f"Found test failure in step: {step}",
-                                    )
+        for failure in failures_list:
+            failures.append(
+                Failure(
+                    failed_step=failure["step"],
+                    failure_type=failure["failure_type"],
+                    failed_test_name=failure["failed_test_name"],
+                    failed_test_junit_path=failure["failed_test_junit_path"],
+                ),
+            )
 
         return failures
-
-    def _check_has_test_failures(self, failures: Optional[list[Failure]]) -> bool:
-        """
-        Determines if the job has any test failures given a list of Failure objects.
-
-        Args:
-            failures (Optional[list[Failure]]): A list of failures found in the job.
-
-        Returns:
-            bool: True if there are test failures, False otherwise.
-        """
-        has_test_failures = False
-
-        if failures:
-            for failure in failures:
-                if failure.failure_type == "test_failure":
-                    has_test_failures = True
-
-        return has_test_failures
-
-    def _check_has_pod_failures(self, failures: Optional[list[Failure]]) -> bool:
-        """
-        Determines if the job has any pod failures given a list of Failure objects.
-
-        Args:
-            failures (Optional[list[Failure]]): A list of failures in the job.
-
-        Returns:
-            bool: True if there are pod failures, False otherwise.
-        """
-        has_pod_failures = False
-        if failures:
-            for failure in failures:
-                if failure.failure_type == "pod_failure":
-                    has_pod_failures = True
-
-        return has_pod_failures
