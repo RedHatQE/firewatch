@@ -150,7 +150,8 @@ class Report:
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
             security_level = pair["rule"].jira_security_level  # type: ignore
-            summary = f"Failure in {job.name} - {pair['failure'].failed_test_name if firewatch_config.verbose_test_failure_reporting else ''} - {date.strftime('%m-%d-%Y')}"  # type: ignore
+            summary = f"Failure in {job.name}{' -' + pair['failure'].failed_test_name if firewatch_config.verbose_test_failure_reporting else ''} - {date.strftime('%m-%d-%Y')}"  # type: ignore
+            self.logger.info(summary)
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
                 failure_type=pair["failure"].failure_type,  # type: ignore
