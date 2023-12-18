@@ -406,7 +406,7 @@ class Job:
                                     failure = {
                                         "step": step,
                                         "failure_type": "test_failure",
-                                        "failed_test_name": case.name
+                                        "failed_test_name": case.name.replace(" ", "_")
                                         if self.firewatch_config.verbose_test_failure_reporting
                                         else None,
                                         "failed_test_junit_path": file_path
@@ -422,7 +422,7 @@ class Job:
                             failure = {
                                 "step": step,
                                 "failure_type": "test_failure",
-                                "failed_test_name": case.name
+                                "failed_test_name": suite.name.replace(" ", "_")
                                 if self.firewatch_config.verbose_test_failure_reporting
                                 else None,
                                 "failed_test_junit_path": file_path
@@ -432,7 +432,7 @@ class Job:
                             if failure not in failures_list:
                                 failures_list.append(failure)
                                 self.logger.info(
-                                    f"Found test failure in step {step} {'for test ' + case.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
+                                    f"Found test failure in step {step} {'for test ' + suite.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
                                 )
 
         # Convert dictionary failures into actual failure objects.
