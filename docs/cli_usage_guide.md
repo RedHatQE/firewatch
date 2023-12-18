@@ -10,6 +10,7 @@
   * [Usage](#usage)
     * [`report`](#report)
     * [`jira-config-gen`](#jiraconfiggen)
+    * [`gitleaks`](#gitleaks)
 
 ## Installation
 
@@ -50,6 +51,10 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
+  --gitleaks                      If set, firewatch will perform a gitleaks
+                                  detect scan on the job directory
+                                  (/tmp/12345) that is created to hold logs
+                                  and results for a job following execution.
   --verbose-test-failure-reporting-ticket-limit INTEGER
                                   Used to limit the number of bugs created
                                   when --verbose-test-reporting is set. If not
@@ -73,8 +78,7 @@ Options:
                                   value of $JOB_NAME_SAFE
   --job-name TEXT                 The full name of a Prow job. The value of
                                   $JOB_NAME
-  --help                          Show this message and exit.
-```
+  --help                          Show this message and exit.```
 
 **Examples:**
 
@@ -105,6 +109,9 @@ $ firewatch report --fail-with-test-failures
 
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir
+
+# Perform a gitleaks detect scan on the job directory in /tmp and open a Jira issue for any detections.
+$ firewatch report --gitleaks
 
 # Report a bug for each test failure found in a JUnit file for a step
 $ firewatch report --verbose-test-failure-reporting
@@ -192,4 +199,44 @@ $ firewatch jira-config-gen --token-path {Path to file containing Jira API token
 
 # Create a configuration file in a different location (/some/path/jira.config)
 $ firewatch jira-config-gen --token-path {Path to file containing Jira API token} --server-url https://some.jira.server.com --output-file /some/path
+```
+
+### `gitleaks`
+
+The `gitleaks` command is used to run a Gitleaks detect scan on the job directory created by running the [`report`](#report) command.
+The latest Redhat detection rules are fetched from the [pattern distribution server](https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server) and used by default.
+
+All the required arguments for this command have set defaults or will use an environment variable that is expected to available in Openshift CI.
+A JSON formatted report file is created at the path defined by `--output-file` if there are any detections.
+This command is intended to be run following a [`report`](#report) command that has the `--keep-job-dir` flag set.
+
+**Pre-requisites:**
+
+1. The job directory created by the [`report`](#report) command, which contains the downloaded artifacts to be scanned. By default, the job directory is removed unless the `--keep-job-dir` flag is set.
+2. A patterns distribution server API token. By default, the file containing the token is expected to be mounted as a secret in Openshift CI at `/tmp/secrets/rh-patterns-server/access-token`. See the [pattern distribution server Source page](https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server) for more information.
+
+**Arguments:**
+
+```commandline
+Usage: firewatch gitleaks [OPTIONS]
+
+Options:
+  --keep-job-dir      If set, firewatch will not delete the job directory
+                      (/tmp/12345) that is created to hold logs and results
+                      for a job following execution.
+  --output-file PATH  The name of the gitleaks detect report to be stored as
+                      an artifact
+  --token-path PATH   Path to the Redhat patterns server token  [required]
+  --server-url TEXT   Redhat patterns server URL  [required]
+  --help              Show this message and exit.
+```
+
+**Examples:**
+
+```commandline
+# Run a Firewatch report command without deleting the job directory in /tmp, which will be scanned by Gitleaks.
+$ firewatch report --keep-job-dir
+
+# Perform a Gitleaks detect scan with the default expected paths and server URL, and remove the job directory upon completion.
+$ firewatch gitleaks
 ```

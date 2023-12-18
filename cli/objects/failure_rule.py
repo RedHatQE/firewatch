@@ -57,7 +57,13 @@ class FailureRule(Rule):
         Returns:
             str: A string value representing the failure_type of a rule.
         """
-        valid_failure_types = ["pod_failure", "test_failure", "all", "!none"]
+        valid_failure_types = [
+            "pod_failure",
+            "test_failure",
+            "gitleaks_failure",
+            "all",
+            "!none",
+        ]
 
         failure_type = rule_dict.get("failure_type")
 

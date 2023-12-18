@@ -15,6 +15,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import fnmatch
+import json
 import os
 import shutil
 from datetime import datetime
@@ -22,17 +23,29 @@ from typing import Any
 from typing import Optional
 
 import jira
+from jira import Issue
 from simple_logger.logger import get_logger
 
+from cli.gitleaks import get_default_gitleaks_config
+from cli.gitleaks.gitleaks import GitleaksConfig
 from cli.objects.configuration import Configuration
 from cli.objects.failure import Failure
 from cli.objects.failure_rule import FailureRule
+from cli.objects.gitleaks_detection import GitleaksDetection
+from cli.objects.gitleaks_detection import GitleaksDetectionCollection
+from cli.objects.gitleaks_detection import GitleaksDetectionsJobFailure
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
+from cli.objects.rule import Rule
 
 
 class Report:
-    def __init__(self, firewatch_config: Configuration, job: Job) -> None:
+    def __init__(
+        self,
+        firewatch_config: Configuration,
+        job: Job,
+        gitleaks: bool = False,
+    ) -> None:
         """
         Builds the Report object. This class is used to file Jira issues for OpenShift failures.
 
@@ -41,10 +54,29 @@ class Report:
             job (Job): A valid Job object representing the prow job being checked for failures/reported on.
         """
         self.logger = get_logger(__name__)
+        self._bugs_filed: list[str] = []
+        self._duplicate_bugs_commented: list[str] = []
+        self._rule_failure_pairs: list[dict[Any, Any]] = []
+        self._job: Job = job
+        self._gitleaks_detections: GitleaksDetectionCollection | None = None
 
         # If job is a rehearsal, exit 0
         if job.is_rehearsal:
             exit(0)
+
+        if gitleaks:
+            self.gitleaks_config = self._init_gitleaks_config()
+            self.gitleaks_config.start_detect_scan(keep_job_dir=True)
+            self._gitleaks_detections = self._find_gitleaks_detections()
+            if self._gitleaks_detections:
+                job.failures = job.failures if job.failures is not None else []
+                job.failures.append(self._gitleaks_detections.to_job_failure())
+                job.has_failures = True
+                if firewatch_config.failure_rules is None:
+                    firewatch_config.failure_rules = []
+                firewatch_config.failure_rules.append(
+                    self._gitleaks_detections.to_failure_rule(),
+                )
 
         # If job has failures, file bugs
         if job.has_failures:
@@ -107,7 +139,7 @@ class Report:
         Returns:
             list[str]: A list of strings representing the bugs filed in Jira.
         """
-        rule_failure_pairs = []
+        rule_failure_pairs: list[dict[Any, Any]] = []
         bugs_filed: list[str] = []
 
         # Get rule_failure_pairs
@@ -123,6 +155,7 @@ class Report:
         rule_failure_pairs = self.filter_priority_rule_failure_pairs(
             rule_failure_pairs=rule_failure_pairs,
         )
+        self._rule_failure_pairs = rule_failure_pairs
 
         # File bugs
         for pair in rule_failure_pairs:
@@ -167,6 +200,9 @@ class Report:
                 logs_dir=job.logs_dir,
                 junit_dir=job.junit_dir,
                 junit_file=pair["failure"].failed_test_junit_path if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                is_gitleaks_failure=True
+                if isinstance(pair["failure"], GitleaksDetectionsJobFailure)
+                else False,
             )
             labels = self._get_issue_labels(
                 job_name=job.name,
@@ -197,9 +233,11 @@ class Report:
                         jira=firewatch_config.jira,
                         failed_test_name=pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
                     )
+                    self._duplicate_bugs_commented.append(bug)
             # If duplicates are not found, file a bug
             else:
-                jira_issue = firewatch_config.jira.create_issue(
+                jira_issue = self.create_jira_issue(
+                    firewatch_config,
                     project=project,
                     summary=summary,
                     description=description,
@@ -215,7 +253,40 @@ class Report:
                 )
                 bugs_filed.append(jira_issue.key)
 
+        self._bugs_filed += bugs_filed
         return bugs_filed
+
+    @staticmethod
+    def create_jira_issue(
+        firewatch_config: Configuration,
+        *,
+        affects_version: str,
+        assignee: str,
+        component: list[str] | None,
+        description: str,
+        epic: str,
+        file_attachments: list[str],
+        issue_type: str,
+        labels: list[str | None],
+        priority: str,
+        project: str,
+        security_level: str,
+        summary: str,
+    ) -> Issue:
+        return firewatch_config.jira.create_issue(
+            project=project,
+            summary=summary,
+            description=description,
+            issue_type=issue_type,
+            component=component,
+            epic=epic,
+            file_attachments=file_attachments,
+            labels=labels,
+            affects_version=affects_version,
+            assignee=assignee,
+            priority=priority,
+            security_level=security_level,
+        )
 
     def report_success(self, job: Job, firewatch_config: Configuration) -> None:
         """
@@ -409,6 +480,7 @@ class Report:
                     """
 
         jira.comment(issue_id=issue_id, comment=comment)
+        self._duplicate_bugs_commented.append(issue_id)
 
     def relate_issues(self, issues: list[str], jira: Jira) -> None:
         """
@@ -446,6 +518,7 @@ class Report:
         logs_dir: str,
         junit_dir: str,
         junit_file: Optional[str] = None,
+        is_gitleaks_failure: bool = False,
     ) -> list[str]:
         """
         Generates a list of filepaths for logs and junit files associated with the step defined in the step_name
@@ -460,6 +533,14 @@ class Report:
             list[str]: A list of filepaths for logs and junit files associated with the step
         """
         attachments = []
+
+        if is_gitleaks_failure and self._gitleaks_detections:
+            attachments.append(self.gitleaks_config.gitleaks_report_path.as_posix())
+            for p in self._gitleaks_detections.iter_detection_paths(
+                parent_dir=self.gitleaks_config.job_dir,
+            ):
+                attachments.append(p.as_posix())
+            return attachments
 
         if os.path.exists(f"{logs_dir}/{step_name}"):
             for root, dirs, files in os.walk(f"{logs_dir}/{step_name}"):
@@ -709,3 +790,23 @@ class Report:
             table += row
 
         return table
+
+    def _find_gitleaks_detections(
+        self,
+    ) -> GitleaksDetectionCollection | None:
+        gitleaks_report_path = self.gitleaks_config.gitleaks_report_path
+        if gitleaks_report_path.is_file():
+            try:
+                data = json.loads(gitleaks_report_path.read_text())
+                if len(data):
+                    return GitleaksDetectionCollection.from_iter(
+                        GitleaksDetection.from_json(d) for d in data
+                    )
+            except json.JSONDecodeError as e:
+                self.logger.error("error parsing gitleaks report as JSON")
+                raise e
+        return None
+
+    @staticmethod
+    def _init_gitleaks_config() -> GitleaksConfig:
+        return get_default_gitleaks_config()

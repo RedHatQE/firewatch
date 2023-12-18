@@ -109,6 +109,13 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.INT,
     callback=validate_verbose_test_failure_reporting_ticket_limit,
 )
+@click.option(
+    "--gitleaks",
+    help="If set, firewatch will perform a gitleaks detect scan on the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.",
+    is_flag=True,
+    default=False,
+    type=click.BOOL,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -123,6 +130,7 @@ def report(
     keep_job_dir: bool,
     verbose_test_failure_reporting: bool,
     verbose_test_failure_reporting_ticket_limit: Optional[int],
+    gitleaks: bool,
 ) -> None:
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
@@ -143,4 +151,4 @@ def report(
     )
 
     # Build the Report object and report issues to Jira
-    Report(firewatch_config=config, job=job)
+    Report(firewatch_config=config, job=job, gitleaks=gitleaks)

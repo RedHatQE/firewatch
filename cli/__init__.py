@@ -17,6 +17,7 @@
 """Module building firewatch cli"""
 import click
 
+from cli.gitleaks import gitleaks
 from cli.jira_config_gen import jira_config_gen
 from cli.report import report
 
@@ -29,3 +30,4 @@ def cli(ctx: click.Option) -> None:
 
 cli.add_command(report)
 cli.add_command(jira_config_gen)
+cli.add_command(gitleaks)

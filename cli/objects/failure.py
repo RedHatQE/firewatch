@@ -57,7 +57,7 @@ class Failure:
             str: A string value representing failure type
         """
 
-        valid_failure_types = ["pod_failure", "test_failure"]
+        valid_failure_types = ["pod_failure", "test_failure", "gitleaks_failure"]
         if isinstance(failure_type, str) and (failure_type in valid_failure_types):
             return failure_type
         else:

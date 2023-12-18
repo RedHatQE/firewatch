@@ -17,5 +17,6 @@ RUN python3 -m pip install pip poetry --upgrade \
     && printf '#!/bin/bash \n poetry run firewatch $@' > /usr/bin/firewatch \
     && chmod +x /usr/bin/firewatch
 
+COPY --from=zricethezav/gitleaks:v7.6.1 /usr/bin/gitleaks /usr/bin/gitleaks
 
 ENTRYPOINT ["firewatch"]
