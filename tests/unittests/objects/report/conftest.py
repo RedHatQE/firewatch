@@ -107,7 +107,7 @@ def patch_jira(monkeypatch):
         return MockIssue()
 
     def add_duplicate_comment(*args, **kwargs):
-        _logger.info("Patching Report.jira.add_duplicate_comment")
+        _logger.info("Patching Report.add_duplicate_comment")
         _logger.info(
             f"Attempted to call Report.add_duplicate_comment with the following keywords: \n{pprint.pformat(kwargs)}",
         )
