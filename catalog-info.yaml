@@ -1,26 +1,11 @@
-# Catalog entry for Backstage [backstage.io]
 apiVersion: backstage.io/v1alpha1
-kind: Component
+kind: Location
 metadata:
-  name: firewatch
-  title: firewatch
-  description: Create Jira issues for OpenShift CI failures
-  tags:
-    - prog:python
-    - cat:test-reporting
-    - feat:extdeps
+  name: firewatch-root-config
+  title: Firewatch Root Configuration
   namespace: quality-community
-  links:
-    - url: https://github.com/CSPI-QE/firewatch
-      title: Repository
-    - url: https://github.com/CSPI-QE/firewatch/issues
-      title: Issue Tracker
-    - url: https://redhat-internal.slack.com/archives/C062WMK4MCM
-      title: Slack Channel
-  annotations:
-    github.com/project-slug: CSPI-QE/firewatch
-    backstage.io/techdocs-ref: dir:.
+  description: A root collection of all Firewatch configurations for Backstage.
 spec:
-  type: library
-  owner: group:redhat/cspi-qe
-  lifecycle: production
+  owner: group:redhat/quality-community
+  targets:
+    - ./catalog/system/firewatch.yaml

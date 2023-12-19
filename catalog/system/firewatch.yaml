@@ -1,0 +1,24 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: firewatch
+  title: Firewatch
+  description: Create Jira issues for OpenShift CI failures
+  tags:
+    - language:python
+    - category:test-reporting
+  namespace: quality-community
+  links:
+    - url: https://github.com/CSPI-QE/firewatch
+      title: Repository
+    - url: https://github.com/CSPI-QE/firewatch/issues
+      title: Issue Tracker
+    - url: https://redhat-internal.slack.com/archives/C062WMK4MCM
+      title: Slack Channel
+  annotations:
+    github.com/project-slug: CSPI-QE/firewatch
+    backstage.io/techdocs-ref: dir:../../
+spec:
+  owner: group:redhat/cspi-qe
+  domain: quality-community/quality-community
