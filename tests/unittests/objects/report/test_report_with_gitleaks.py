@@ -19,7 +19,6 @@ from pathlib import Path
 import pytest
 from simple_logger.logger import get_logger
 
-from cli.objects.gitleaks_detection import GITLEAKS_FAILURE_TYPE
 from cli.objects.gitleaks_detection import GitleaksDetectionsFailureRule
 from cli.objects.gitleaks_detection import GitleaksDetectionsJobFailure
 from cli.report.report import Report
