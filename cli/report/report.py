@@ -195,14 +195,17 @@ class Report:
                 jira=firewatch_config.jira,  # type: ignore
             )
             issue_type = "Bug"
+
+            is_gitleaks_failure = False
+            if isinstance(pair["failure"], GitleaksDetectionsJobFailure):
+                is_gitleaks_failure = True
+
             file_attachments = self._get_file_attachments(
                 step_name=pair["failure"].step,  # type: ignore
                 logs_dir=job.logs_dir,
                 junit_dir=job.junit_dir,
                 junit_file=pair["failure"].failed_test_junit_path if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
-                is_gitleaks_failure=True
-                if isinstance(pair["failure"], GitleaksDetectionsJobFailure)
-                else False,
+                is_gitleaks_failure=is_gitleaks_failure,
             )
             labels = self._get_issue_labels(
                 job_name=job.name,
