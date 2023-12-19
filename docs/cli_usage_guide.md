@@ -204,7 +204,7 @@ $ firewatch jira-config-gen --token-path {Path to file containing Jira API token
 ### `gitleaks`
 
 The `gitleaks` command is used to run a Gitleaks detect scan on the job directory created by running the [`report`](#report) command.
-The latest Redhat detection rules are fetched from the [pattern distribution server](https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server) and used by default.
+The latest Red Hat detection rules are fetched from the [pattern distribution server](https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server) and used by default.
 
 All the required arguments for this command have set defaults or will use an environment variable that is expected to available in Openshift CI.
 A JSON formatted report file is created at the path defined by `--output-file` if there are any detections.
