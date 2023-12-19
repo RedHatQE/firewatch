@@ -28,3 +28,4 @@ def test_gitleaks_detection_collection_to_failure_rule(
     assert failure_rule.failure_type
     assert failure_rule.ignore is False
     assert failure_rule.priority
+    assert failure_rule.jira_security_level == "Red Hat Employee"

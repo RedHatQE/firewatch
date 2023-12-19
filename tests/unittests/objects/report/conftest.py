@@ -118,6 +118,51 @@ def patch_jira(monkeypatch):
 
 
 @pytest.fixture
+def force_report_has_no_duplicates(monkeypatch):
+    def _get_duplicate_bugs(*args, **kwargs):
+        _logger.info("Patching Report._get_duplicate_bugs")
+        return None
+
+    monkeypatch.setattr(Report, "_get_duplicate_bugs", _get_duplicate_bugs)
+
+
+@pytest.fixture
+def cap_jira(monkeypatch):
+    @dataclass
+    class MockIssue:
+        key: str = "LPTOCPCI-MOCK"
+
+    @dataclass
+    class CapInputs:
+        args: tuple = None
+        kwargs: dict = None
+
+    @dataclass
+    class CapJira:
+        create_jira_issue: list[CapInputs] = None
+        add_duplicate_comment: list[CapInputs] = None
+
+        def __post_init__(self):
+            self.create_jira_issue = []
+            self.add_duplicate_comment = []
+
+    cap = CapJira()
+
+    def create_jira_issue(*args, **kwargs):
+        _logger.info("Patching Report.create_jira_issue")
+        cap.create_jira_issue.append(CapInputs(args, kwargs))
+        return MockIssue()
+
+    def add_duplicate_comment(*args, **kwargs):
+        _logger.info("Patching Report.add_duplicate_comment")
+        cap.add_duplicate_comment.append(CapInputs(args, kwargs))
+
+    monkeypatch.setattr(Report, "create_jira_issue", create_jira_issue)
+    monkeypatch.setattr(Report, "add_duplicate_comment", add_duplicate_comment)
+    yield cap
+
+
+@pytest.fixture
 def patch_gitleaks_config_job_dir(monkeypatch, job_dir):
     _logger.info("Patching GitleaksConfig job dir path")
     monkeypatch.setattr(GitleaksConfig, "job_dir", job_dir)

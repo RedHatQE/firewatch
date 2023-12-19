@@ -142,3 +142,13 @@ def test_report_with_gitleaks_detections_found_has_gitleaks_report_and_attachmen
     assert report.gitleaks_config.gitleaks_report_path in attachment_paths
     exp = len(unique_file_names_in_gitleaks_report) + 1
     assert exp == len(gitleaks_failure_file_attachments)
+
+
+def test_report_with_gitleaks_detections_found_creates_jira_issue_with_security_level_red_hat_employee(
+    cap_jira,
+    force_report_has_no_duplicates,
+    report_with_gitleaks_with_leaks,
+):
+    kw = cap_jira.create_jira_issue.pop().kwargs
+    assert "security_level" in kw.keys()
+    assert kw["security_level"] == "Red Hat Employee"

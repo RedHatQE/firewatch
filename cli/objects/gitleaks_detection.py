@@ -14,6 +14,7 @@ from cli.objects.failure_rule import FailureRule
 GITLEAKS_FAILURE_TYPE = "gitleaks_failure"
 DEFAULT_GITLEAKS_FAILED_STEP = "firewatch-report"
 DEFAULT_GITLEAKS_FAILED_TEST_NAME = "gitleaks-detect-scan"
+DEFAULT_GITLEAKS_JIRA_SECURITY_LEVEL = "Red Hat Employee"
 
 RENAME_JSON_KEY_MAP = {
     "lineNumber": "line_number",
@@ -53,6 +54,7 @@ class GitleaksDetectionsFailureRule(FailureRule):
     priority: int = 1
     group_priority: int = 1
     group_name: str = "gitleaks"
+    jira_security_level: str = DEFAULT_GITLEAKS_JIRA_SECURITY_LEVEL
 
     VALID_FAILURE_TYPES = [GITLEAKS_FAILURE_TYPE]
 
