@@ -196,7 +196,6 @@ class GitleaksConfig:
         config_path = self.patterns_file_path.as_posix()
         return [
             "--no-git",
-            "--verbose",
             "--redact",
             f"--report={report}",
             f"--path={path}",
