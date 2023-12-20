@@ -20,6 +20,8 @@ import pytest
 import simple_logger.logger
 
 from cli.gitleaks import GitleaksConfig
+from cli.gitleaks.gitleaks import PATTERNS_SERVER_TOKEN_VAR
+from cli.gitleaks.gitleaks import PATTERNS_SERVER_URL_VAR
 from cli.objects.job import Job
 
 _logger = simple_logger.logger.get_logger(__name__)
@@ -28,7 +30,6 @@ BUILD_ID_ENV_VAR = "BUILD_ID"
 FIREWATCH_DEFAULT_JIRA_PROJECT_ENV_VAR = "FIREWATCH_DEFAULT_JIRA_PROJECT"
 FIREWATCH_DEFAULT_JIRA_EPIC_ENV_VAR = "FIREWATCH_DEFAULT_JIRA_EPIC"
 ARTIFACT_DIR_ENV_VAR = "ARTIFACT_DIR"
-PATTERNS_SERVER_TOKEN_ENV_VAR = "PATTERNS_SERVER_TOKEN"
 JIRA_TOKEN_ENV_VAR = "JIRA_TOKEN"
 FIREWATCH_CONFIG_ENV_VAR = "FIREWATCH_CONFIG"
 
@@ -252,7 +253,7 @@ def jira_config_path(tmp_path):
 def assert_patterns_server_token_file_exists(patterns_server_token_path):
     if not patterns_server_token_path.is_file():
         patterns_server_token_path.parent.mkdir(exist_ok=True, parents=True)
-        patterns_server_token_path.write_text(os.getenv(PATTERNS_SERVER_TOKEN_ENV_VAR))
+        patterns_server_token_path.write_text(os.getenv(PATTERNS_SERVER_TOKEN_VAR))
     assert patterns_server_token_path.is_file()
 
 
@@ -342,9 +343,14 @@ def assert_default_jira_epic_in_env(default_jira_epic, monkeypatch):
 
 @pytest.fixture
 def assert_patterns_server_token_in_env():
-    assert os.getenv(PATTERNS_SERVER_TOKEN_ENV_VAR)
+    assert os.getenv(PATTERNS_SERVER_TOKEN_VAR)
 
 
 @pytest.fixture
 def assert_jira_token_in_env():
     assert os.getenv(JIRA_TOKEN_ENV_VAR)
+
+
+@pytest.fixture
+def assert_patterns_server_url_in_env():
+    assert os.getenv(PATTERNS_SERVER_URL_VAR)

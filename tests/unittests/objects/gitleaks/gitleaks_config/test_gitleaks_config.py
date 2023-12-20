@@ -16,8 +16,8 @@
 #
 import pytest
 
-from cli.gitleaks import DEFAULT_SERVER_URL
 from cli.gitleaks.gitleaks import GitleaksConfig
+from cli.gitleaks.gitleaks import PATTERNS_SERVER_URL_VAR
 
 
 def test_init_minimal_gitleaks_config_without_warnings_or_errors(
@@ -28,7 +28,6 @@ def test_init_minimal_gitleaks_config_without_warnings_or_errors(
     tmp_path,
 ):
     GitleaksConfig(
-        _server_url="",
         _token_path=patterns_server_token_path,
         _output_file="",
         _job_dir=tmp_path,
@@ -94,6 +93,16 @@ def test_missing_patterns_server_token_raises_environment_error(
         init_gitleaks_config(_token_path=tmp_path.joinpath("_nothing"))
 
 
+def test_missing_patterns_server_url_raises_environment_error(
+    monkeypatch,
+    init_gitleaks_config,
+    tmp_path,
+):
+    monkeypatch.setenv(PATTERNS_SERVER_URL_VAR, "")
+    with pytest.raises(EnvironmentError):
+        init_gitleaks_config()
+
+
 def test_job_dir_is_removed_after_detect_scan(init_gitleaks_config, tmp_path):
     minimal_job_dir = tmp_path / "987654321"
     minimal_job_dir.mkdir(exist_ok=True, parents=True)
@@ -110,7 +119,6 @@ def test_job_dir_is_removed_after_detect_scan(init_gitleaks_config, tmp_path):
 def test_fetch_patterns_from_patterns_server(gitleaks_config, tmp_path):
     patterns_path = tmp_path / "_tmp_patterns.toml"
     gitleaks_config._patterns_file_path = patterns_path
-    gitleaks_config._patterns_file_url = DEFAULT_SERVER_URL
     assert not patterns_path.is_file()
     gitleaks_config._try_fetch_patterns_from_server()
     assert patterns_path.is_file()

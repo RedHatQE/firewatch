@@ -28,10 +28,12 @@ from simple_logger.logger import get_logger
 BUILD_ID_VAR: str = "BUILD_ID"
 ARTIFACT_DIR_VAR: str = "ARTIFACT_DIR"
 
+PATTERNS_SERVER_URL_VAR: str = "PATTERNS_SERVER_URL"
+PATTERNS_SERVER_TOKEN_VAR: str = "PATTERNS_SERVER_TOKEN"
+
 
 @dataclass
 class GitleaksConfig:
-    _server_url: str
     _token_path: str
     _output_file: str
     _gitleaks_version = "7.6.1"
@@ -43,6 +45,7 @@ class GitleaksConfig:
     _patterns_file_path: None | Path = None
     _env_artifact_dir: str = ""
     _env_build_id: str = ""
+    _env_patterns_server_url: str = ""
     _job_dir_root: str | Path = "/tmp"
     _logger: Any = None
     _keep_patterns_file: bool = False
@@ -67,10 +70,11 @@ class GitleaksConfig:
 
     def _get_env_vars(self) -> None:
         """
-        Get the values for the ARTIFACT_DIR and BUILD_ID environment variables.
+        Get the values for the ARTIFACT_DIR, PATTERNS_SERVER_URL, and BUILD_ID environment variables.
         """
         self._env_artifact_dir = os.getenv(ARTIFACT_DIR_VAR, "")
         self._env_build_id = os.getenv(BUILD_ID_VAR, "")
+        self._env_patterns_server_url = os.getenv(PATTERNS_SERVER_URL_VAR, "")
 
     def _check_env(self) -> None:
         """
@@ -94,6 +98,8 @@ class GitleaksConfig:
 
         _has_env_err: bool = False
 
+        if not self._env_patterns_server_url:
+            _has_env_err = _log_err(f"{PATTERNS_SERVER_URL_VAR} as not set.")
         if not self._env_artifact_dir:
             _has_env_err = _log_err(f"{ARTIFACT_DIR_VAR} was not set.")
         if not self._env_build_id:
@@ -235,9 +241,7 @@ class GitleaksConfig:
             str: The URL used to fetch the latest detection patterns.
         """
         if not self._patterns_file_url:
-            self._patterns_file_url = (
-                f"{self._server_url}/patterns/gitleaks/{self._gitleaks_version}"
-            )
+            self._patterns_file_url = f"{self._env_patterns_server_url}/patterns/gitleaks/{self._gitleaks_version}"
         return self._patterns_file_url
 
     @property

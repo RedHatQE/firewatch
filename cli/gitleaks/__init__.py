@@ -15,13 +15,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module building gitleaks cli command"""
-from typing import Any
-
 import click
 
 from cli.gitleaks.gitleaks import GitleaksConfig
 
-DEFAULT_SERVER_URL = "https://patterns.security.redhat.com"
 DEFAULT_TOKEN_PATH = "/tmp/secrets/rh-patterns-server/access-token"
 DEFAULT_OUTPUT_FILE = "gitleaks_report.json"
 
@@ -29,8 +26,7 @@ DEFAULT_OUTPUT_FILE = "gitleaks_report.json"
 @click.option(
     "--server-url",
     help="Red Hat patterns server URL",
-    default=DEFAULT_SERVER_URL,
-    required=True,
+    required=False,
     type=click.STRING,
 )
 @click.option(
@@ -61,19 +57,7 @@ def gitleaks(
     keep_job_dir: bool,
 ) -> None:
     GitleaksConfig(
-        _server_url=server_url,
         _token_path=token_path,
         _output_file=output_file,
         _keep_job_dir=keep_job_dir,
     ).start_detect_scan()
-
-
-def get_default_gitleaks_config(**kwargs: dict[str, Any]) -> GitleaksConfig:
-    kw: dict[str, Any] = {
-        "_server_url": DEFAULT_SERVER_URL,
-        "_token_path": DEFAULT_TOKEN_PATH,
-        "_output_file": DEFAULT_OUTPUT_FILE,
-        "_keep_job_dir": False,
-    }
-    kw.update(**kwargs)
-    return GitleaksConfig(**kw)

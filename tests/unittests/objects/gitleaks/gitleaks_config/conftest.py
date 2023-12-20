@@ -19,7 +19,6 @@ from pathlib import Path
 import pytest
 import simple_logger.logger
 
-from cli.gitleaks import DEFAULT_SERVER_URL
 from cli.gitleaks import GitleaksConfig
 from cli.report import Report
 
@@ -42,11 +41,9 @@ def init_gitleaks_config(
         _job_dir=job_dir,
         _keep_job_dir=True,
         _token_path=patterns_server_token_path.as_posix(),
-        _server_url=DEFAULT_SERVER_URL,
         _output_file="gitleaks-report.json",
     ):
         return GitleaksConfig(
-            _server_url=_server_url,
             _token_path=_token_path,
             _output_file=_output_file,
             _job_dir=_job_dir,

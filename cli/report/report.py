@@ -26,7 +26,8 @@ import jira
 from jira import Issue
 from simple_logger.logger import get_logger
 
-from cli.gitleaks import get_default_gitleaks_config
+from cli.gitleaks import DEFAULT_OUTPUT_FILE
+from cli.gitleaks import DEFAULT_TOKEN_PATH
 from cli.gitleaks.gitleaks import GitleaksConfig
 from cli.objects.configuration import Configuration
 from cli.objects.failure import Failure
@@ -813,4 +814,8 @@ class Report:
 
     @staticmethod
     def _init_gitleaks_config() -> GitleaksConfig:
-        return get_default_gitleaks_config()
+        return GitleaksConfig(
+            _token_path=DEFAULT_TOKEN_PATH,
+            _output_file=DEFAULT_OUTPUT_FILE,
+            _keep_job_dir=False,
+        )
