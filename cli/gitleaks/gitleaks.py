@@ -25,11 +25,9 @@ from typing import Literal
 import requests
 from simple_logger.logger import get_logger
 
-BUILD_ID_VAR: str = "BUILD_ID"
-ARTIFACT_DIR_VAR: str = "ARTIFACT_DIR"
-
-PATTERNS_SERVER_URL_VAR: str = "PATTERNS_SERVER_URL"
-PATTERNS_SERVER_TOKEN_VAR: str = "PATTERNS_SERVER_TOKEN"
+from cli.gitleaks.constants import ARTIFACT_DIR_VAR
+from cli.gitleaks.constants import BUILD_ID_VAR
+from cli.gitleaks.constants import PATTERNS_SERVER_URL_VAR
 
 
 @dataclass

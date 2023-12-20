@@ -16,8 +16,8 @@
 #
 import pytest
 
+from cli.gitleaks.constants import PATTERNS_SERVER_URL_VAR
 from cli.gitleaks.gitleaks import GitleaksConfig
-from cli.gitleaks.gitleaks import PATTERNS_SERVER_URL_VAR
 
 
 def test_init_minimal_gitleaks_config_without_warnings_or_errors(

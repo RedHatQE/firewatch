@@ -22,8 +22,8 @@ import pytest
 import simple_logger.logger
 
 from cli.gitleaks import GitleaksConfig
-from cli.gitleaks.gitleaks import PATTERNS_SERVER_TOKEN_VAR
-from cli.gitleaks.gitleaks import PATTERNS_SERVER_URL_VAR
+from cli.gitleaks.constants import PATTERNS_SERVER_TOKEN_VAR
+from cli.gitleaks.constants import PATTERNS_SERVER_URL_VAR
 from cli.objects.configuration import Configuration
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job

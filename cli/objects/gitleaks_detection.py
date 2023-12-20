@@ -23,21 +23,12 @@ from pathlib import Path
 from typing import Any
 from typing import Type
 
+from cli.gitleaks.constants import DEFAULT_GITLEAKS_FAILED_STEP
+from cli.gitleaks.constants import DEFAULT_GITLEAKS_FAILED_TEST_NAME
+from cli.gitleaks.constants import DEFAULT_GITLEAKS_JIRA_SECURITY_LEVEL
+from cli.gitleaks.constants import GITLEAKS_FAILURE_TYPE
 from cli.objects.failure import Failure
 from cli.objects.failure_rule import FailureRule
-
-GITLEAKS_FAILURE_TYPE = "gitleaks_failure"
-DEFAULT_GITLEAKS_FAILED_STEP = "firewatch-report"
-DEFAULT_GITLEAKS_FAILED_TEST_NAME = "gitleaks-detect-scan"
-DEFAULT_GITLEAKS_JIRA_SECURITY_LEVEL = "Red Hat Employee"
-
-RENAME_JSON_KEY_MAP = {
-    "lineNumber": "line_number",
-    "repoURL": "repo_url",
-    "leakURL": "leak_url",
-    "commitMessage": "commit_message",
-    "offenderEntropy": "offender_entropy",
-}
 
 
 class _Enums(Enum):
@@ -79,6 +70,13 @@ class GitleaksDetectionsFailureRule(FailureRule):
 
 @dataclass
 class GitleaksDetection:
+    RENAME_JSON_KEY_MAP = {
+        "lineNumber": "line_number",
+        "repoURL": "repo_url",
+        "leakURL": "leak_url",
+        "commitMessage": "commit_message",
+        "offenderEntropy": "offender_entropy",
+    }
     line: str | _Enums = ""
     line_number: int | None = None
     offender: str | _Enums = ""
