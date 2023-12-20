@@ -80,6 +80,9 @@ class Configuration:
             rules_list=self.config_data.get("failure_rules"),
         )
 
+        # Boolean value to decide if firewatch should perform a gitleaks detect scan on downloaded job artifacts.
+        self.gitleaks = gitleaks
+
     def _get_failure_rules(
         self,
         rules_list: Optional[list[dict[Any, Any]]],

@@ -141,6 +141,7 @@ def report(
         verbose_test_failure_reporting=verbose_test_failure_reporting,
         verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
         config_file_path=firewatch_config_path,
+        gitleaks=gitleaks,
     )
     job = Job(
         name=job_name,
@@ -151,4 +152,4 @@ def report(
     )
 
     # Build the Report object and report issues to Jira
-    Report(firewatch_config=config, job=job, gitleaks=gitleaks)
+    Report(firewatch_config=config, job=job)

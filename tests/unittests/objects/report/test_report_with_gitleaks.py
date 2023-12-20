@@ -51,10 +51,10 @@ def setup_test_environment(
 
 
 def test_init_report_object_with_gitleaks_enabled(
-    firewatch_config,
+    firewatch_config_with_gitleaks,
     job,
 ) -> None:
-    res = Report(firewatch_config=firewatch_config, job=job, gitleaks=True)
+    res = Report(firewatch_config=firewatch_config_with_gitleaks, job=job)
     assert isinstance(res, Report)
 
 

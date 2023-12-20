@@ -79,13 +79,24 @@ def report_with_gitleaks_no_leaks(
 
 
 @pytest.fixture
-def report_with_gitleaks(firewatch_config, job):
-    yield Report(firewatch_config=firewatch_config, job=job, gitleaks=True)
+def report_with_gitleaks(firewatch_config_with_gitleaks, job):
+    yield Report(firewatch_config=firewatch_config_with_gitleaks, job=job)
 
 
 @pytest.fixture
 def jira(jira_config_path):
     yield Jira(jira_config_path=jira_config_path.as_posix())
+
+
+@pytest.fixture
+def firewatch_config_with_gitleaks(jira):
+    yield Configuration(
+        jira=jira,
+        fail_with_test_failures=False,
+        keep_job_dir=True,
+        verbose_test_failure_reporting=False,
+        gitleaks=True,
+    )
 
 
 @pytest.fixture

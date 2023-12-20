@@ -62,6 +62,7 @@ def test_upload_gitleaks_detection_from_report(
         fail_with_test_failures=False,
         keep_job_dir=True,
         verbose_test_failure_reporting=False,
+        gitleaks=True,
     )
 
     job = Job(
@@ -72,7 +73,7 @@ def test_upload_gitleaks_detection_from_report(
         firewatch_config=firewatch_config,
     )
 
-    report = Report(firewatch_config=firewatch_config, job=job, gitleaks=True)
+    report = Report(firewatch_config=firewatch_config, job=job)
 
     assert len(report._bugs_filed) or len(report._duplicate_bugs_commented)
 

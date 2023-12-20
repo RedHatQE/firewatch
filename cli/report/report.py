@@ -45,7 +45,6 @@ class Report:
         self,
         firewatch_config: Configuration,
         job: Job,
-        gitleaks: bool = False,
     ) -> None:
         """
         Builds the Report object. This class is used to file Jira issues for OpenShift failures.
@@ -65,7 +64,7 @@ class Report:
         if job.is_rehearsal:
             exit(0)
 
-        if gitleaks:
+        if firewatch_config.gitleaks:
             self.gitleaks_config = self._init_gitleaks_config()
             self.gitleaks_config.start_detect_scan(keep_job_dir=True)
             self._gitleaks_detections = self._find_gitleaks_detections()

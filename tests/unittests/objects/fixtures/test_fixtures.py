@@ -47,6 +47,12 @@ def test_get_firewatch_config_instance_from_fixture(firewatch_config):
     assert isinstance(firewatch_config, Configuration)
 
 
+def test_get_firewatch_config_instance_with_gitleaks_from_fixture(
+    firewatch_config_with_gitleaks,
+):
+    assert isinstance(firewatch_config_with_gitleaks, Configuration)
+
+
 def test_get_job_instance_from_fixture(job):
     assert isinstance(job, Job)
 
