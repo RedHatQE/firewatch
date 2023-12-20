@@ -36,6 +36,7 @@ class Configuration:
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
+        gitleaks: bool = False,
     ):
         """
         Constructs the Configuration object. This class is mainly used to validate the firewatch configuration given.
