@@ -44,6 +44,7 @@ Many of the arguments for this command have set defaults or will use an environm
 
 1. A Jira configuration file must exist. Use the `jira-config-gen` command to generate the configuration file.
 2. A firewatch config must be defined. Use the [Configuration section above](#configuration) to generate your configuration.
+3. The pre-requisites from the [`gitleaks`](#gitleaks) command apply when using the `--gitleaks` flag.
 
 **Arguments:**
 
@@ -214,6 +215,7 @@ This command is intended to be run following a [`report`](#report) command that 
 
 1. The job directory created by the [`report`](#report) command, which contains the downloaded artifacts to be scanned. By default, the job directory is removed unless the `--keep-job-dir` flag is set.
 2. A patterns distribution server API token. By default, the file containing the token is expected to be mounted as a secret in Openshift CI at `/tmp/secrets/rh-patterns-server/access-token`. See the [pattern distribution server Source page](https://source.redhat.com/departments/it/it-information-security/wiki/pattern_distribution_server) for more information.
+3. The `PATTERNS_SERVER_URL` environment variable set with the base pattern server URL.
 
 **Arguments:**
 
@@ -227,7 +229,6 @@ Options:
   --output-file PATH  The name of the gitleaks detect report to be stored as
                       an artifact
   --token-path PATH   Path to the Red Hat patterns server token  [required]
-  --server-url TEXT   Red Hat patterns server URL  [required]
   --help              Show this message and exit.
 ```
 
