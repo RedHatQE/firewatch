@@ -5,6 +5,13 @@ from cli.objects.rule import Rule
 
 
 class FailureRule(Rule):
+    VALID_FAILURE_TYPES: set[str] = {
+        "pod_failure",
+        "test_failure",
+        "all",
+        "!none",
+    }
+
     def __init__(self, rule_dict: dict[Any, Any]):
         """
         Initializes the FailureRule object which inherits the Rule object.
@@ -57,13 +64,6 @@ class FailureRule(Rule):
         Returns:
             str: A string value representing the failure_type of a rule.
         """
-        valid_failure_types = [
-            "pod_failure",
-            "test_failure",
-            "gitleaks_failure",
-            "all",
-            "!none",
-        ]
 
         failure_type = rule_dict.get("failure_type")
 
@@ -74,7 +74,7 @@ class FailureRule(Rule):
             exit(1)
 
         if isinstance(failure_type, str):
-            if failure_type.lower() in valid_failure_types:
+            if failure_type.lower() in self.VALID_FAILURE_TYPES:
                 return failure_type.lower()
             else:
                 self.logger.error(

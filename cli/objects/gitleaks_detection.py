@@ -37,6 +37,8 @@ class _Enums(Enum):
 
 @dataclass
 class GitleaksDetectionsJobFailure(Failure):
+    VALID_FAILURE_TYPES = {GITLEAKS_FAILURE_TYPE}
+
     step: str = DEFAULT_GITLEAKS_FAILED_STEP
     failure_type: str = GITLEAKS_FAILURE_TYPE
     failed_test_name: str = DEFAULT_GITLEAKS_FAILED_TEST_NAME
@@ -53,6 +55,8 @@ class GitleaksDetectionsJobFailure(Failure):
 
 @dataclass
 class GitleaksDetectionsFailureRule(FailureRule):
+    VALID_FAILURE_TYPES = {GITLEAKS_FAILURE_TYPE}
+
     step: str = DEFAULT_GITLEAKS_FAILED_STEP
     classification: str = "Gitleaks Failure"
     failure_type: str = GITLEAKS_FAILURE_TYPE
@@ -61,8 +65,6 @@ class GitleaksDetectionsFailureRule(FailureRule):
     group_priority: int = 1
     group_name: str = "gitleaks"
     jira_security_level: str = DEFAULT_GITLEAKS_JIRA_SECURITY_LEVEL
-
-    VALID_FAILURE_TYPES = [GITLEAKS_FAILURE_TYPE]
 
     def __post_init__(self) -> None:
         super().__init__(rule_dict=asdict(self))
@@ -106,7 +108,7 @@ class GitleaksDetection:
 
     @classmethod
     def from_json(cls, json_obj: dict[str, Any]) -> "GitleaksDetection":
-        for old_key, new_key in RENAME_JSON_KEY_MAP.items():
+        for old_key, new_key in cls.RENAME_JSON_KEY_MAP.items():
             json_obj[new_key] = json_obj.pop(old_key)
         return cls(**json_obj)
 

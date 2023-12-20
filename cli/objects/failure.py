@@ -20,6 +20,8 @@ from simple_logger.logger import get_logger
 
 
 class Failure:
+    VALID_FAILURE_TYPES: set[str] = {"pod_failure", "test_failure"}
+
     def __init__(
         self,
         failed_step: str,
@@ -57,8 +59,7 @@ class Failure:
             str: A string value representing failure type
         """
 
-        valid_failure_types = ["pod_failure", "test_failure", "gitleaks_failure"]
-        if isinstance(failure_type, str) and (failure_type in valid_failure_types):
+        if isinstance(failure_type, str) and (failure_type in self.VALID_FAILURE_TYPES):
             return failure_type
         else:
             self.logger.error(
