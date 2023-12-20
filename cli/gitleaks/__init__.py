@@ -28,14 +28,14 @@ DEFAULT_OUTPUT_FILE = "gitleaks_report.json"
 
 @click.option(
     "--server-url",
-    help="Redhat patterns server URL",
+    help="Red Hat patterns server URL",
     default=DEFAULT_SERVER_URL,
     required=True,
     type=click.STRING,
 )
 @click.option(
     "--token-path",
-    help="Path to the Redhat patterns server token",
+    help="Path to the Red Hat patterns server token",
     default=DEFAULT_TOKEN_PATH,
     required=True,
     type=click.Path(exists=True),

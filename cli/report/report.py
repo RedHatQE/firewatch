@@ -196,9 +196,10 @@ class Report:
             )
             issue_type = "Bug"
 
-            is_gitleaks_failure = False
-            if isinstance(pair["failure"], GitleaksDetectionsJobFailure):
-                is_gitleaks_failure = True
+            is_gitleaks_failure = isinstance(
+                pair["failure"],
+                GitleaksDetectionsJobFailure,
+            )
 
             file_attachments = self._get_file_attachments(
                 step_name=pair["failure"].step,  # type: ignore

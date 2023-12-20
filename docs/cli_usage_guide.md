@@ -226,8 +226,8 @@ Options:
                       for a job following execution.
   --output-file PATH  The name of the gitleaks detect report to be stored as
                       an artifact
-  --token-path PATH   Path to the Redhat patterns server token  [required]
-  --server-url TEXT   Redhat patterns server URL  [required]
+  --token-path PATH   Path to the Red Hat patterns server token  [required]
+  --server-url TEXT   Red Hat patterns server URL  [required]
   --help              Show this message and exit.
 ```
 

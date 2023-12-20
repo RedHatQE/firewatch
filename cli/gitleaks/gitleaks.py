@@ -49,12 +49,12 @@ class GitleaksConfig:
 
     def __post_init__(self) -> None:
         """
-        Builds the GitleaksConfig object. This class is used to generate a Gitleaks detect scan using the latest Redhat
+        Builds the GitleaksConfig object. This class is used to generate a Gitleaks detect scan using the latest Red Hat
         detection rules.
 
         The expected environment variables, directories, and secrets are gathered and checked for availability.
 
-        The latest Gitleaks detection patterns are fetched from the Redhat patterns distribution server and used to run
+        The latest Gitleaks detection patterns are fetched from the Red Hat patterns distribution server and used to run
         a `gitleaks detect` scan on the job directory created by the `firewatch report` cli command.
 
         If any detections are found, a report is created and archived in the ARTIFACT_DIR.
@@ -218,7 +218,7 @@ class GitleaksConfig:
         Get the expected patterns file path as a Path object.
 
         Returns:
-            Path: The expected path to the file containing the Redhat detection patterns.
+            Path: The expected path to the file containing the Red Hat detection patterns.
                 Defaults to "/tmp/patterns.toml" if not set.
         """
         if not self._patterns_file_path:
@@ -306,7 +306,7 @@ class GitleaksConfig:
 
     def start_detect_scan(self, keep_job_dir: bool | None = None) -> None:
         """
-        Generate a Gitleaks detect scan using the latest Redhat detection rules.
+        Generate a Gitleaks detect scan using the latest Red Hat detection rules.
         """
         if isinstance(keep_job_dir, bool):
             self._keep_job_dir = keep_job_dir
