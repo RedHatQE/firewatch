@@ -27,6 +27,7 @@ from simple_logger.logger import get_logger
 
 from cli.gitleaks.constants import ARTIFACT_DIR_VAR
 from cli.gitleaks.constants import BUILD_ID_VAR
+from cli.gitleaks.constants import DEFAULT_GITLEAKS_PATTERNS_FILE_PATH
 from cli.gitleaks.constants import PATTERNS_SERVER_URL_VAR
 
 
@@ -40,7 +41,7 @@ class GitleaksConfig:
     _patterns_file_url: None | str = None
     _keep_job_dir: None | bool = False
     _gitleaks_report_path: None | Path = None
-    _patterns_file_path: None | Path = None
+    _patterns_file_path: str | Path = DEFAULT_GITLEAKS_PATTERNS_FILE_PATH
     _env_artifact_dir: str = ""
     _env_build_id: str = ""
     _env_patterns_server_url: str = ""
@@ -164,8 +165,8 @@ class GitleaksConfig:
         If an OSError exception occurs during the removal of the job_dir,
         the error is logged and the exception is raised.
         """
-        if self._patterns_file_path and not self._keep_patterns_file:
-            self._patterns_file_path.unlink(missing_ok=True)
+        if not self._keep_patterns_file:
+            self.patterns_file_path.unlink(missing_ok=True)
         if not self._keep_job_dir and self._job_dir and self._job_dir.is_dir():
             self.logger.info(
                 f"Deleting job directory: {self._job_dir}",
@@ -223,10 +224,12 @@ class GitleaksConfig:
 
         Returns:
             Path: The expected path to the file containing the Red Hat detection patterns.
-                Defaults to "/tmp/patterns.toml" if not set.
+                Defaults to the value of DEFAULT_GITLEAKS_PATTERNS_FILE_PATH in constants.py if not set.
         """
         if not self._patterns_file_path:
-            self._patterns_file_path = Path("/tmp/patterns.toml")
+            self._patterns_file_path = Path(DEFAULT_GITLEAKS_PATTERNS_FILE_PATH)
+        elif isinstance(self._patterns_file_path, str):
+            self._patterns_file_path = Path(self._patterns_file_path)
         return self._patterns_file_path
 
     @property
