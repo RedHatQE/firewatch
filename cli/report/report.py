@@ -801,6 +801,14 @@ class Report:
     def _find_gitleaks_detections(
         self,
     ) -> GitleaksDetectionCollection | None:
+        """
+        Attempts to locate a gitleaks report file and parse the file's contents from JSON into GitleaksDetection objects.
+        Raises JSONDecodeError if the report file can not be interpreted as valid JSON.
+        Returns None if the report file does not exist or if it is empty.
+
+        Returns:
+            GitleaksDetectionCollection: A collection used to contain and access GitleaksDetection objects.
+        """
         gitleaks_report_path = self.gitleaks_config.gitleaks_report_path
         if gitleaks_report_path.is_file():
             try:
