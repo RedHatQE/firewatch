@@ -277,6 +277,9 @@ class Report:
         security_level: str,
         summary: str,
     ) -> Issue:
+        """
+        Used to simply test patching and debugging. Acts as a wrapper for cli.objects.jira_base.Jira.create_issue.
+        """
         return firewatch_config.jira.create_issue(
             project=project,
             summary=summary,
