@@ -361,7 +361,7 @@ class Report:
 
                                 This job has been run successfully since this bug was filed. Please verify that this bug is still relevant and close it if needed.
 
-                                *Passing Run Link:* https://prow.ci.openshift.org/view/gs/test-platform-results /logs/{job.name}/{job.build_id}
+                                *Passing Run Link:* https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}
                                 *Passing Run Build ID:* {job.build_id}
 
 
@@ -397,7 +397,7 @@ class Report:
         comment = f"""
                         A duplicate failure was identified in a recent run of the {job.name} job:
 
-                        *Link:* https://prow.ci.openshift.org/view/gs/test-platform-results /logs/{job.name}/{job.build_id}
+                        *Link:* https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}
                         *Build ID:* {job.build_id}
                         *Classification:* {classification}
                         *Failed Step:* {failed_step}
@@ -509,7 +509,7 @@ class Report:
         Returns:
             str: String object representing the description.
         """
-        link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/test-platform-results /logs/{job_name}/{build_id}]"
+        link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job_name}/{build_id}]"
         build_id_line = f"*Build ID:* {build_id}"
         firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]"
 

@@ -37,7 +37,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
 ### Container
 
    1. Find a failed prow job you would like to test against.
-      - **Example**: [periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws #1696039978221441024](https://prow.ci.openshift.org/view/gs/test-platform-results /logs/periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws/1696039978221441024)
+      - **Example**: [periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws #1696039978221441024](https://prow.ci.openshift.org/view/gs/test-platform-results/logs/periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws/1696039978221441024)
    2. Fill out `firewatch/development/env.list`
       - Use the ["Defining Environment Variables"](#defining-environment-variables) section to help
    3. From the root of this repository, run `make container-build-test` to execute `firewatch report` using the values provided above.
@@ -48,7 +48,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
 1. Create your development environment if you haven't already (execute from the root of the firewatch repository):
     - `$ make dev-environment`
 2. Find a failed prow job you would like to test against.
-      - **Example**: [periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws #1696039978221441024](https://prow.ci.openshift.org/view/gs/test-platform-results /logs/periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws/1696039978221441024)
+      - **Example**: [periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws #1696039978221441024](https://prow.ci.openshift.org/view/gs/test-platform-results/logs/periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws/1696039978221441024)
 2. Export the required environment varaibles:
    - Use the ["Defining Environment Variables"](#defining-environment-variables) section to help
 
