@@ -66,7 +66,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
 @click.option(
     "--gcs-bucket",
     help="The name of the GCS bucket that holds OpenShift CI logs",
-    default="origin-ci-test",
+    default="test-platform-results",
     type=click.STRING,
 )
 @click.option(
