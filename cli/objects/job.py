@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import itertools
 import json
 import os
 from typing import Any
@@ -320,17 +321,17 @@ class Job:
         pod_failures = self._find_pod_failures(logs_dir=logs_dir)
         test_failures = self._find_test_failures(junit_dir=junit_dir)
         failures_list = []
+        unique_steps_with_failures = set()
 
         # Combine lists into one list
-        for test_failure in test_failures:
-            failures_list.append(test_failure)
-        for pod_failure in pod_failures:
-            already_exists = False
-            for existing_failure in failures_list:
-                if existing_failure.step == pod_failure.step:
-                    already_exists = True
-            if not already_exists:
-                failures_list.append(pod_failure)
+        for failure in itertools.chain(test_failures, pod_failures):
+            if failure.step not in unique_steps_with_failures:
+                unique_steps_with_failures.update([failure.step])
+                if self.firewatch_config.failure_rules:
+                    for rule in self.firewatch_config.failure_rules:
+                        if rule.matches_failure(failure) and rule.ignore:
+                            failure.ignore = True
+                failures_list.append(failure)
 
         if len(failures_list) > 0:
             return failures_list

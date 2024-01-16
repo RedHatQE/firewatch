@@ -26,6 +26,7 @@ class Failure:
         failure_type: str,
         failed_test_name: Optional[str] = None,
         failed_test_junit_path: Optional[str] = None,
+        ignore: bool = False,
     ):
         """
         Initializes the Failure object.
@@ -45,6 +46,8 @@ class Failure:
         if self.failure_type == "test_failure":
             self.failed_test_name = failed_test_name
             self.failed_test_junit_path = failed_test_junit_path
+
+        self.ignore = ignore
 
     def _get_failure_type(self, failure_type: str) -> str:
         """
