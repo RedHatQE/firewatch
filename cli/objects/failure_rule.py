@@ -1,6 +1,8 @@
+import fnmatch
 from typing import Any
 from typing import Optional
 
+from cli.objects.failure import Failure
 from cli.objects.rule import Rule
 
 
@@ -185,3 +187,15 @@ class FailureRule(Rule):
             f'Value for "ignore" is not a boolean or string value in firewatch rule: "{rule_dict}"',
         )
         exit(1)
+
+    def matches_failure(self, failure: "Failure") -> bool:
+        if (
+            hasattr(self, "step")
+            and fnmatch.fnmatch(failure.step, self.step)
+            and (
+                (failure.failure_type == self.failure_type)
+                or self.failure_type == "all"
+            )
+        ):
+            return True
+        return False

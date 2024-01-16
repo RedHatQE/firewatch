@@ -14,7 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import fnmatch
 import os
 import shutil
 from datetime import datetime
@@ -325,14 +324,7 @@ class Report:
         default_rule = FailureRule(default_rule_dict)
 
         for rule in rules:
-            if (
-                hasattr(rule, "step")
-                and fnmatch.fnmatch(failure.step, rule.step)
-                and (
-                    (failure.failure_type == rule.failure_type)
-                    or rule.failure_type == "all"
-                )
-            ):
+            if rule.matches_failure(failure):
                 if rule.ignore:
                     ignored_rules.append(rule)
                 else:
