@@ -503,7 +503,7 @@ class Report:
         """
         link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job_name}/{build_id}]"
         build_id_line = f"*Build ID:* {build_id}"
-        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]"
+        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
 
         # If the issue is being created for a failure
         if not success_issue:
