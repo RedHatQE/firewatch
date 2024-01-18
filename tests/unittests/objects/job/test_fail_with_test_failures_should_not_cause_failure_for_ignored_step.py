@@ -20,7 +20,7 @@ import pytest
 
 from cli.objects.configuration import Configuration
 from cli.objects.job import Job
-from conftest import FIREWATCH_CONFIG_ENV_VAR
+from tests.unittests.conftest import FIREWATCH_CONFIG_ENV_VAR
 
 
 @pytest.fixture
