@@ -14,7 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import itertools
 import json
 import os
 from typing import Any
@@ -324,13 +323,12 @@ class Job:
         unique_steps_with_failures = set()
 
         # Combine lists into one list
-        for failure in itertools.chain(test_failures, pod_failures):
+        for failure in test_failures + pod_failures:
             if failure.step not in unique_steps_with_failures:
-                unique_steps_with_failures.update([failure.step])
-                if self.firewatch_config.failure_rules:
-                    for rule in self.firewatch_config.failure_rules:
-                        if rule.matches_failure(failure) and rule.ignore:
-                            failure.ignore = True
+                unique_steps_with_failures.add(failure.step)
+                if failure_rules := self.firewatch_config.failure_rules:
+                    for rule in failure_rules:
+                        failure.ignore = rule.matches_failure(failure) and rule.ignore
                 failures_list.append(failure)
 
         if len(failures_list) > 0:

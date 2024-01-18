@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Red Hat, Inc.
+# Copyright (C) 2024 Red Hat, Inc.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,18 +20,13 @@ import pytest
 
 from cli.objects.configuration import Configuration
 from cli.objects.job import Job
+from conftest import FIREWATCH_CONFIG_ENV_VAR
 
 
-@pytest.fixture(autouse=True)
-def setup_tests(
-    monkeypatch,
-    assert_jira_config_file_exists,
-    assert_default_jira_project_in_env,
-    patch_job_log_dir,
-    patch_job_junit_dir,
-):
+@pytest.fixture
+def firewatch_config(monkeypatch, jira, default_jira_project):
     monkeypatch.setenv(
-        "FIREWATCH_CONFIG",
+        FIREWATCH_CONFIG_ENV_VAR,
         json.dumps(
             {
                 "failure_rules": [
@@ -46,10 +41,6 @@ def setup_tests(
             },
         ),
     )
-
-
-@pytest.fixture
-def config(jira):
     yield Configuration(
         jira=jira,
         fail_with_test_failures=True,
@@ -59,8 +50,8 @@ def config(jira):
 
 
 @pytest.fixture
-def job(config, job_junit_dir):
-    gather_must_gather_dir = job_junit_dir / "gather-must-gather"
+def job(firewatch_config, patch_job_log_dir, patch_job_junit_dir, job_artifacts_dir):
+    gather_must_gather_dir = job_artifacts_dir / "gather-must-gather"
     gather_must_gather_dir.mkdir(exist_ok=True, parents=True)
     (gather_must_gather_dir / "finished.json").write_text(
         '{"timestamp":170340000,"passed":false,"result":"FAILURE","revision":"release-v1.11"}',
@@ -70,16 +61,16 @@ def job(config, job_junit_dir):
         name_safe="mtr-interop-aws",
         build_id="1739165508839673856",
         gcs_bucket="test-platform-results",
-        firewatch_config=config,
+        firewatch_config=firewatch_config,
     )
 
 
-def test_init_job_from_fixtures(job):
-    assert isinstance(job, Job)
-
-
-def test_fail_with_test_failures_should_not_cause_failure_for_ignored_step(config, job):
-    rule = config.failure_rules[0]
+def test_fail_with_test_failures_should_not_cause_failure_for_ignored_step(
+    monkeypatch,
+    firewatch_config,
+    job,
+):
+    rule = firewatch_config.failure_rules[0]
     assert rule.step == "gather-*"
     assert rule.ignore
     assert re.match(rule.step, "gather-must-gather")

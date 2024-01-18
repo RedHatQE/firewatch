@@ -36,6 +36,7 @@ class Failure:
             failure_type (str): The failure type
             failed_test_name (Optional[str], optional): The failed test name. Defaults to None.
             failed_test_junit_path (Optional[str], optional): The path to the failed test's junit file. Defaults to None.
+            ignore (bool): Flag to indicate that the failure should be ignored.
         """
         self.logger = get_logger(__name__)
 

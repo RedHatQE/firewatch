@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Red Hat, Inc.
+# Copyright (C) 2024 Red Hat, Inc.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,29 +19,21 @@ from cli.objects.failure import Failure
 from cli.objects.failure_rule import FailureRule
 
 
-@pytest.fixture(autouse=True)
-def setup_tests(assert_default_jira_project_in_env):
-    ...
+@pytest.fixture
+def failure_rule():
+    yield FailureRule(
+        rule_dict={
+            "step": "gather-*",
+            "failure_type": "test_failure",
+            "classification": "NONE",
+            "jira_project": "NONE",
+            "ignore": "false",
+        },
+    )
 
 
 @pytest.fixture
-def rule_dict():
-    yield {
-        "step": "gather-*",
-        "failure_type": "test_failure",
-        "classification": "NONE",
-        "jira_project": "NONE",
-        "ignore": "false",
-    }
-
-
-@pytest.fixture
-def failure_rule(rule_dict):
-    yield FailureRule(rule_dict=rule_dict)
-
-
-@pytest.fixture
-def matching_failure():
+def failure():
     yield Failure(
         failure_type="test_failure",
         failed_test_name="post",
@@ -49,9 +41,33 @@ def matching_failure():
     )
 
 
-def test_init_failure_rule_from_fixtures(failure_rule):
-    assert isinstance(failure_rule, FailureRule)
+def test_failure_rule_matches_failure_if_rule_pattern_equals_failure_step(
+    failure,
+    failure_rule,
+):
+    failure_rule.step = failure.step = "gather-must-gather"
+    assert failure_rule.matches_failure(
+        failure,
+    ), f"'{failure_rule.step}' should match '{failure.step}'"
 
 
-def test_failure_rule_matches_failure(failure_rule, matching_failure):
-    assert failure_rule.matches_failure(matching_failure)
+def test_failure_rule_matches_failure_if_glob_style_rule_pattern_matches_failure_step(
+    failure,
+    failure_rule,
+):
+    failure.step = "gather-must-gather"
+    failure_rule.step = "gather-*"
+    assert failure_rule.matches_failure(
+        failure,
+    ), f"'{failure_rule.step}' should match '{failure.step}'"
+
+
+def test_failure_rule_does_not_match_non_glob_unequal_failure_step(
+    failure,
+    failure_rule,
+):
+    failure.step = "gather-must-gather"
+    failure_rule.step = "firewatch_report_issues"
+    assert not failure_rule.matches_failure(
+        failure,
+    ), f"'{failure_rule.step}' should NOT match '{failure.step}'"

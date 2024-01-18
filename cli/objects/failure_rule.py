@@ -188,14 +188,9 @@ class FailureRule(Rule):
         )
         exit(1)
 
-    def matches_failure(self, failure: "Failure") -> bool:
-        if (
+    def matches_failure(self, failure: Failure) -> bool:
+        return (
             hasattr(self, "step")
             and fnmatch.fnmatch(failure.step, self.step)
-            and (
-                (failure.failure_type == self.failure_type)
-                or self.failure_type == "all"
-            )
-        ):
-            return True
-        return False
+            and failure.failure_type in (self.failure_type, "all")
+        )
