@@ -32,6 +32,8 @@ BUILD_ID_ENV_VAR = "BUILD_ID"
 FIREWATCH_DEFAULT_JIRA_PROJECT_ENV_VAR = "FIREWATCH_DEFAULT_JIRA_PROJECT"
 FIREWATCH_DEFAULT_JIRA_EPIC_ENV_VAR = "FIREWATCH_DEFAULT_JIRA_EPIC"
 ARTIFACT_DIR_ENV_VAR = "ARTIFACT_DIR"
+JIRA_SERVER_URL_ENV_VAR = "JIRA_SERVER_URL"
+DEFAULT_JIRA_SERVER_URL = "https://issues.stage.redhat.com"
 JIRA_TOKEN_ENV_VAR = "JIRA_TOKEN"
 FIREWATCH_CONFIG_ENV_VAR = "FIREWATCH_CONFIG"
 
@@ -249,7 +251,7 @@ def jira_config_path(tmp_path):
             json.dumps(
                 {
                     "token": os.getenv(JIRA_TOKEN_ENV_VAR),
-                    "url": "https://issues.stage.redhat.com",
+                    "url": os.getenv(JIRA_SERVER_URL_ENV_VAR, DEFAULT_JIRA_SERVER_URL),
                     "proxies": {
                         "http": "http://squid.corp.redhat.com:3128",
                         "https": "http://squid.corp.redhat.com:3128",
