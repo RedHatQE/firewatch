@@ -69,6 +69,8 @@ Options:
                                   OpenShift CI logs
   --build-id TEXT                 The build ID that needs to be reported. The
                                   value of $BUILD_ID
+  --pr-id TEXT                    The pull request number that rehearsal job is
+                                  for. The value of $PULL_NUMBER
   --job-name-safe TEXT            The safe name of a test in a Prow job. The
                                   value of $JOB_NAME_SAFE
   --job-name TEXT                 The full name of a Prow job. The value of
@@ -84,6 +86,7 @@ $ export BUILD_ID="some_build_id"
 $ export JOB_NAME_SAFE="some_safe_job_name"
 $ export JOB_NAME="some_job_name"
 $ export FIREWATCH_DEFAULT_JIRA_PROJECT="PROJECT"
+$ export PULL_NUMBER="some_pull_request_number"
 
 # OPTIONAL DEFAULTS
 # $ export FIREWATCH_DEFAULT_JIRA_EPIC="PROJECT-123"

@@ -35,6 +35,7 @@ class Job:
         build_id: Optional[str],
         gcs_bucket: str,
         firewatch_config: Configuration,
+        pr_id: Optional[str]="",
     ) -> None:
         """
         Constructs the Job object.
@@ -45,6 +46,7 @@ class Job:
             build_id (Optional[str]): The build ID that needs to be reported. The value of $BUILD_ID
             gcs_bucket (str): The bucket that Prow job logs are stored
             firewatch_config (Configuration): The Configuration object.
+            pr_ID (Optional[str]): The pull request number rehearsal job is running for. The value of $PULL_NUMBER
         """
         self.logger = get_logger(__name__)
 
@@ -56,6 +58,17 @@ class Job:
             job_name=self.name,
             build_id=self.build_id,
         )
+        if self.is_rehearsal:
+            try:
+                self.pr_id = pr_id or os.getenv("PULL_NUMBER") or self.name.split("-")[1]
+            except IndexError:
+                self.logger.warning(
+                        f"Pull number for job {self.name} not obtained, reporting may not be complete.",
+                )
+                self.pr_id = "1"
+            self.logger.info(f"PR ID: {self.pr_id}")
+        else:
+            self.pr_id = ""
         self.firewatch_config = firewatch_config
 
         # Set GCS bucket values
@@ -81,6 +94,7 @@ class Job:
             job_name=self.name,
             build_id=self.build_id,
             job_name_safe=self.name_safe,
+            pr_id=self.pr_id,
         )
         self.junit_dir = self._download_junit(
             downloads_directory=self.download_path,
@@ -89,6 +103,7 @@ class Job:
             job_name=self.name,
             build_id=self.build_id,
             job_name_safe=self.name_safe,
+            pr_id=self.pr_id,
         )
 
         # Get a list of failures
@@ -134,6 +149,7 @@ class Job:
         job_name: Optional[str],
         build_id: Optional[str],
         job_name_safe: Optional[str],
+        pr_id: Optional[str],
     ) -> str:
         """
         Used to download any JUnit files found in the artifacts directory of a job.
@@ -145,6 +161,7 @@ class Job:
             job_name (Optional[str]): The name of the job that artifacts should be downloaded for.
             build_id (Optional[str]): The build ID of the job that artifacts should be downloaded for.
             job_name_safe (Optional[str]): The safe job name of the job that artifacts should be downloaded for.
+            pr_id (Optional[str]): The pull request number of the rehearsal job that artifacts should be downloaded for.
 
         Returns:
             str: A string object representing the path that artifacts have been downloaded to.
@@ -156,10 +173,16 @@ class Job:
         if not os.path.exists(path):
             os.mkdir(path)
 
-        blobs = storage_client.list_blobs(
-            gcs_bucket,
-            prefix=f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}",
-        )
+        if self.is_rehearsal:
+            blobs = storage_client.list_blobs(
+                gcs_bucket,
+                prefix=f"pr-logs/pull/openshift_release/{pr_id}/{job_name}/{build_id}/artifacts/{job_name_safe}",
+            )
+        else:
+            blobs = storage_client.list_blobs(
+                gcs_bucket,
+                prefix=f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}",
+            )
 
         for blob in blobs:
             blob_name = blob.name.split("/")[-1]
@@ -198,6 +221,7 @@ class Job:
         job_name: Optional[str],
         build_id: Optional[str],
         job_name_safe: Optional[str],
+        pr_id: Optional[str],
     ) -> str:
         """
         Used to download the logs of the job to be checked.
@@ -209,6 +233,7 @@ class Job:
             job_name (Optional[str]): The name of the job that logs should be downloaded for.
             build_id (Optional[str]): The build ID of the job that logs should be downloaded for.
             job_name_safe (Optional[str]): The safe job name of the job that logs should be downloaded for.
+            pr_id (Optional[str]): The pull request number for the rehearsal job that artifacts should be downloaded for.
 
         Returns:
             str: A string object representing the path to the downloaded logs.
@@ -222,10 +247,16 @@ class Job:
         if not os.path.exists(path):
             os.mkdir(path)
 
-        blobs = storage_client.list_blobs(
-            gcs_bucket,
-            prefix=f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}",
-        )
+        if self.is_rehearsal:
+            blobs = storage_client.list_blobs(
+                gcs_bucket,
+                prefix=f"pr-logs/pull/openshift_release/{pr_id}/{job_name}/{build_id}/artifacts/{job_name_safe}"
+            )
+        else:
+            blobs = storage_client.list_blobs(
+                gcs_bucket,
+                prefix=f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}",
+            )
 
         for blob in blobs:
             blob_name = blob.name.split("/")[-1]

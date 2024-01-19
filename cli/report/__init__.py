@@ -64,6 +64,12 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.STRING,
 )
 @click.option(
+    "--pr-id",
+    help="The pull request number that the rehearsal job is for. The value of $PULL_NUMBER",
+    required=False,
+    type=click.STRING,
+)
+@click.option(
     "--gcs-bucket",
     help="The name of the GCS bucket that holds OpenShift CI logs",
     default="test-platform-results",
@@ -116,6 +122,7 @@ def report(
     job_name: str,
     job_name_safe: str,
     build_id: str,
+    pr_id: str,
     gcs_bucket: str,
     firewatch_config_path: Optional[str],
     jira_config_path: str,
@@ -140,6 +147,7 @@ def report(
         build_id=build_id,
         gcs_bucket=gcs_bucket,
         firewatch_config=config,
+        pr_id=pr_id,
     )
 
     # Build the Report object and report issues to Jira
