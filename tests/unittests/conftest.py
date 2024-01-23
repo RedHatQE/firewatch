@@ -15,16 +15,17 @@
 #
 import json
 import os
-import pprint
 from dataclasses import dataclass
+from pathlib import Path
 
 import pytest
+import requests
 import simple_logger.logger
+from jinja2 import Environment, select_autoescape, FileSystemLoader
 
 from cli.objects.configuration import Configuration
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
-from cli.report import Report
 
 LOGGER = simple_logger.logger.get_logger(__name__)
 
@@ -58,6 +59,121 @@ JOB_DIR_JUNIT_ARTIFACT_FILE_NAMES_TO_TEST = [
 
 DEFAULT_MOCK_ISSUE_KEY = "LPTOCPCI-MOCK"
 
+FAKE_ISSUE_KEY = "fake_issue_123"
+
+FAKE_ISSUE_ID = "10002"
+
+TEST_RESOURCES_DIR_RELATIVE_PATH = "resources"
+
+TEST_TEMPLATES_DIR_NAME = "templates"
+
+JIRA_API_TEST_TEMPLATES_DIR_NAME = "jira_api"
+
+JIRA_FAKE_ISSUE_JSON_TEMPLATE_FILE_NAME = "fake_issue.json"
+
+JIRA_FAKE_SERVER_INFO_JSON_TEMPLATE_FILE_NAME = "fake_server_info.json"
+
+JIRA_FAKE_SEARCH_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_search_response.json"
+
+JIRA_FAKE_COMMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_comment_response.json"
+
+JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_fields_response.json"
+
+FIREWATCH_CONFIG_TEST_TEMPLATES_DIR_NAME = "firewatch_configs"
+
+FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME = "firewatch_config_sample.json"
+
+
+@pytest.fixture
+def test_resources_dir():
+    test_resources_dir = Path(__file__).parent / TEST_RESOURCES_DIR_RELATIVE_PATH
+    assert test_resources_dir.is_dir()
+    yield test_resources_dir
+
+
+@pytest.fixture
+def test_templates_dir(test_resources_dir):
+    path = test_resources_dir / TEST_TEMPLATES_DIR_NAME
+    assert path.is_dir()
+    yield path
+
+
+@pytest.fixture
+def jira_api_test_templates_dir(test_templates_dir):
+    path = test_templates_dir / JIRA_API_TEST_TEMPLATES_DIR_NAME
+    assert path.is_dir()
+    yield path
+
+
+@pytest.fixture
+def firewatch_configs_test_templates_dir(test_templates_dir):
+    path = test_templates_dir / FIREWATCH_CONFIG_TEST_TEMPLATES_DIR_NAME
+    assert path.is_dir()
+    yield path
+
+
+@pytest.fixture
+def jira_api_templates(jira_api_test_templates_dir):
+    yield Environment(
+        loader=FileSystemLoader(jira_api_test_templates_dir),
+        autoescape=select_autoescape(),
+    )
+
+
+@pytest.fixture
+def firewatch_configs_templates(firewatch_configs_test_templates_dir):
+    yield Environment(
+        loader=FileSystemLoader(firewatch_configs_test_templates_dir),
+        autoescape=select_autoescape(),
+    )
+
+
+@pytest.fixture
+def fake_server_info_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_SERVER_INFO_JSON_TEMPLATE_FILE_NAME
+    )
+    rendered_template = template.render()
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_issue_json(jira_api_templates):
+    template = jira_api_templates.get_template(JIRA_FAKE_ISSUE_JSON_TEMPLATE_FILE_NAME)
+    rendered_template = template.render(
+        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY, FAKE_ISSUE_ID=FAKE_ISSUE_ID
+    )
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_search_response_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_SEARCH_RESPONSE_JSON_TEMPLATE_FILE_NAME
+    )
+    rendered_template = template.render(
+        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY, FAKE_ISSUE_ID=FAKE_ISSUE_ID
+    )
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_comment_response_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_COMMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME
+    )
+    rendered_template = template.render(FAKE_ISSUE_ID=FAKE_ISSUE_ID)
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_fields_response_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME
+    )
+    rendered_template = template.render()
+    yield json.loads(rendered_template)
+
 
 @pytest.fixture
 def jira(jira_config_path):
@@ -83,66 +199,6 @@ def job(firewatch_config, build_id):
         gcs_bucket="test-platform-results",
         firewatch_config=firewatch_config,
     )
-
-
-@pytest.fixture()
-def patch_jira(monkeypatch):
-    @dataclass
-    class MockIssue:
-        key: str = DEFAULT_MOCK_ISSUE_KEY
-
-    def create_jira_issue(*args, **kwargs):
-        LOGGER.info("Patching Report.create_jira_issue")
-        LOGGER.info(
-            f"Attempted call Report.create_issue with the following keywords: \n{pprint.pformat(kwargs)}",
-        )
-        return MockIssue()
-
-    def add_duplicate_comment(*args, **kwargs):
-        LOGGER.info("Patching Report.add_duplicate_comment")
-        LOGGER.info(
-            f"Attempted to call Report.add_duplicate_comment with the following keywords: \n{pprint.pformat(kwargs)}",
-        )
-        return
-
-    monkeypatch.setattr(Report, "create_jira_issue", create_jira_issue)
-    monkeypatch.setattr(Report, "add_duplicate_comment", add_duplicate_comment)
-
-
-@pytest.fixture
-def cap_jira(monkeypatch):
-    @dataclass
-    class MockIssue:
-        key: str = "LPTOCPCI-MOCK"
-
-    @dataclass
-    class CapInputs:
-        args: tuple = None
-        kwargs: dict = None
-
-    @dataclass
-    class CapJira:
-        create_jira_issue: list[CapInputs] = None
-        add_duplicate_comment: list[CapInputs] = None
-
-        def __post_init__(self):
-            self.create_jira_issue = []
-            self.add_duplicate_comment = []
-
-    cap = CapJira()
-
-    def create_jira_issue(*args, **kwargs):
-        LOGGER.info("Patching Report.create_jira_issue")
-        cap.create_jira_issue.append(CapInputs(args, kwargs))
-        return MockIssue()
-
-    def add_duplicate_comment(*args, **kwargs):
-        LOGGER.info("Patching Report.add_duplicate_comment")
-        cap.add_duplicate_comment.append(CapInputs(args, kwargs))
-
-    monkeypatch.setattr(Report, "create_jira_issue", create_jira_issue)
-    monkeypatch.setattr(Report, "add_duplicate_comment", add_duplicate_comment)
-    yield cap
 
 
 @pytest.fixture
@@ -176,74 +232,17 @@ def fake_junit_secret_path(job_artifacts_dir):
 
 
 @pytest.fixture
-def firewatch_config_json(monkeypatch):
-    config_json = json.dumps(
-        {
-            "failure_rules": [
-                {
-                    "step": "exact-step-name",
-                    "failure_type": "pod_failure",
-                    "classification": "Infrastructure",
-                    "jira_project": "!default",
-                    "jira_component": ["some-component"],
-                    "jira_assignee": "some-user@redhat.com",
-                    "jira_security_level": "Restricted",
-                },
-                {
-                    "step": "*partial-name*",
-                    "failure_type": "all",
-                    "classification": "Misc.",
-                    "jira_project": "OTHER",
-                    "jira_component": ["component-1", "component-2", "!default"],
-                    "jira_priority": "major",
-                    "group": {"name": "some-group", "priority": 1},
-                },
-                {
-                    "step": "*ends-with-this",
-                    "failure_type": "test_failure",
-                    "classification": "Test failures",
-                    "jira_epic": "!default",
-                    "jira_additional_labels": [
-                        "test-label-1",
-                        "test-label-2",
-                        "!default",
-                    ],
-                    "group": {"name": "some-group", "priority": 2},
-                },
-                {
-                    "step": "*ignore*",
-                    "failure_type": "test_failure",
-                    "classification": "NONE",
-                    "jira_project": "NONE",
-                    "ignore": "true",
-                },
-                {
-                    "step": "affects-version",
-                    "failure_type": "all",
-                    "classification": "Affects Version",
-                    "jira_project": "TEST",
-                    "jira_epic": "!default",
-                    "jira_affects_version": "4.14",
-                    "jira_assignee": "!default",
-                },
-                {
-                    "step": "affects-version",
-                    "failure_type": "all",
-                    "classification": "Affects Version",
-                    "jira_project": "TEST",
-                    "jira_epic": "!default",
-                    "jira_affects_version": "4.14",
-                    "jira_assignee": "!default",
-                },
-            ],
-        },
+def firewatch_config_json(monkeypatch, firewatch_configs_templates):
+    template = firewatch_configs_templates.get_template(
+        FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME
     )
-    monkeypatch.setenv(FIREWATCH_CONFIG_ENV_VAR, config_json)
-    yield config_json
+    rendered_template = template.render()
+    monkeypatch.setenv(FIREWATCH_CONFIG_ENV_VAR, rendered_template)
+    yield json.loads(rendered_template)
 
 
 @pytest.fixture
-def jira_config_path(tmp_path):
+def jira_config_path(tmp_path, jira_token):
     config_path = tmp_path.joinpath("jira_config.json")
     if not config_path.is_file():
         config_path.parent.mkdir(exist_ok=True, parents=True)
@@ -331,3 +330,105 @@ def jira_token():
     token = os.getenv(JIRA_TOKEN_ENV_VAR)
     assert token
     yield token
+
+
+@pytest.fixture
+def fake_issue_id():
+    yield FAKE_ISSUE_ID
+
+
+@pytest.fixture
+def fake_issue_key():
+    yield FAKE_ISSUE_KEY
+
+
+@pytest.fixture
+def fake_issue_with_labels_json(monkeypatch, fake_issue_json):
+    fields = fake_issue_json["fields"]
+    fields.update({"labels": ["should-be-labeled", "do-not-remove", "still-testing"]})
+    monkeypatch.setitem(fake_issue_json, "fields", fields)
+    yield fake_issue_json
+
+
+@dataclass
+class MockJiraApiResponse:
+    _json: dict | list = None
+    status_code: int = 200
+
+    def ok(self):
+        return True
+
+    def json(self):
+        return self._json
+
+
+@pytest.fixture
+def patch_jira_api_requests(
+    monkeypatch,
+    fake_server_info_json,
+    fake_issue_json,
+    fake_issue_id,
+    fake_issue_key,
+    fake_search_response_json,
+    fake_comment_response_json,
+    fake_fields_response_json,
+):
+    caps = {"get": {}, "post": {}, "put": {}}
+
+    def get(self, url, *args, **kwargs):
+        LOGGER.info(f"Patching GET request to URL: {url}")
+        caps["get"][url] = (args, kwargs)
+
+        if url.endswith("/serverInfo"):
+            LOGGER.info(f"Faking Jira serverInfo")
+            return MockJiraApiResponse(_json=fake_server_info_json, status_code=200)
+
+        if url.endswith("/field"):
+            LOGGER.info(f"Faking Jira fields")
+            return MockJiraApiResponse(_json=fake_fields_response_json, status_code=200)
+        if url.endswith("/search"):
+            LOGGER.info(f"Faking Jira search results")
+            return MockJiraApiResponse(_json=fake_search_response_json, status_code=200)
+        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
+            f"/issue/{fake_issue_key}"
+        ):
+            LOGGER.info(f"Faking Jira issue: {url}")
+            return MockJiraApiResponse(_json=fake_issue_json, status_code=200)
+        else:
+            monkeypatch.undo()
+            return requests.sessions.Session.get(self, url, *args, **kwargs)
+
+    def post(self, url, *args, **kwargs):
+        LOGGER.info(f"Patching POST request to URL: {url}")
+        caps["post"][url] = (args, kwargs)
+
+        if url.endswith(f"/{fake_issue_key}/comment") or url.endswith(
+            f"/{fake_issue_id}/comment"
+        ):
+            return MockJiraApiResponse(
+                _json=fake_comment_response_json, status_code=201
+            )
+        else:
+            monkeypatch.undo()
+            return requests.sessions.Session.get(self, url, *args, **kwargs)
+
+    def put(self, url, data, *args, **kwargs):
+        LOGGER.info(f"Patching PUT request to URL: {url}")
+        caps["put"][url] = (data, args, kwargs)
+
+        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
+            f"/issue/{fake_issue_key}"
+        ):
+            data = json.loads(data)
+            _json = fake_issue_json.copy()
+            _json["fields"].update(data["fields"])
+            return MockJiraApiResponse(_json=_json, status_code=204)
+        else:
+            monkeypatch.undo()
+            return requests.sessions.Session.get(self, url, *args, **kwargs)
+
+    monkeypatch.setattr(requests.sessions.Session, "get", get)
+    monkeypatch.setattr(requests.sessions.Session, "post", post)
+    monkeypatch.setattr(requests.sessions.Session, "put", put)
+
+    yield caps

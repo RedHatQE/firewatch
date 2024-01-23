@@ -1,0 +1,71 @@
+{
+  "failure_rules": [
+    {
+      "step": "exact-step-name",
+      "failure_type": "pod_failure",
+      "classification": "Infrastructure",
+      "jira_project": "!default",
+      "jira_component": [
+        "some-component"
+      ],
+      "jira_assignee": "some-user@redhat.com",
+      "jira_security_level": "Restricted"
+    },
+    {
+      "step": "*partial-name*",
+      "failure_type": "all",
+      "classification": "Misc.",
+      "jira_project": "OTHER",
+      "jira_component": [
+        "component-1",
+        "component-2",
+        "!default"
+      ],
+      "jira_priority": "major",
+      "group": {
+        "name": "some-group",
+        "priority": 1
+      }
+    },
+    {
+      "step": "*ends-with-this",
+      "failure_type": "test_failure",
+      "classification": "Test failures",
+      "jira_epic": "!default",
+      "jira_additional_labels": [
+        "test-label-1",
+        "test-label-2",
+        "!default"
+      ],
+      "group": {
+        "name": "some-group",
+        "priority": 2
+      }
+    },
+    {
+      "step": "*ignore*",
+      "failure_type": "test_failure",
+      "classification": "NONE",
+      "jira_project": "NONE",
+      "ignore": "true"
+    },
+    {
+      "step": "affects-version",
+      "failure_type": "all",
+      "classification": "Affects Version",
+      "jira_project": "TEST",
+      "jira_epic": "!default",
+      "jira_affects_version": "4.14",
+      "jira_assignee": "!default"
+    },
+    {
+      "step": "affects-version",
+      "failure_type": "all",
+      "classification": "Affects Version",
+      "jira_project": "TEST",
+      "jira_epic": "!default",
+      "jira_affects_version": "4.14",
+      "jira_assignee": "!default"
+    }
+  ]
+}
