@@ -308,3 +308,11 @@ class Jira:
             f"Security level {security_level} not found in {project_key}, no security level will be applied.",
         )
         return None
+
+    def get_issue_by_id_or_key(self, issue_id_or_key: str) -> Issue:
+        return self.connection.issue(id=issue_id_or_key)
+
+    def add_labels_to_issue(self, issue_id_or_key: str, labels: list[str]) -> Issue:
+        issue = self.get_issue_by_id_or_key(issue_id_or_key)
+        issue.update(fields={"labels": labels + issue.fields.labels})
+        return issue

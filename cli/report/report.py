@@ -29,6 +29,8 @@ from cli.objects.failure_rule import FailureRule
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
 
+JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
+
 
 class Report:
     def __init__(self, firewatch_config: Configuration, job: Job) -> None:
@@ -373,6 +375,10 @@ class Report:
                                 This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch].
                             """
         jira.comment(issue_id=issue_id, comment=comment)
+        jira.add_labels_to_issue(
+            issue_id_or_key=issue_id,
+            labels=[JOB_PASSED_SINCE_TICKET_CREATED_LABEL],
+        )
 
     def add_duplicate_comment(
         self,

@@ -21,7 +21,9 @@ from pathlib import Path
 import pytest
 import requests
 import simple_logger.logger
-from jinja2 import Environment, select_autoescape, FileSystemLoader
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
+from jinja2 import select_autoescape
 
 from cli.objects.configuration import Configuration
 from cli.objects.jira_base import Jira
@@ -131,7 +133,7 @@ def firewatch_configs_templates(firewatch_configs_test_templates_dir):
 @pytest.fixture
 def fake_server_info_json(jira_api_templates):
     template = jira_api_templates.get_template(
-        JIRA_FAKE_SERVER_INFO_JSON_TEMPLATE_FILE_NAME
+        JIRA_FAKE_SERVER_INFO_JSON_TEMPLATE_FILE_NAME,
     )
     rendered_template = template.render()
     yield json.loads(rendered_template)
@@ -141,7 +143,8 @@ def fake_server_info_json(jira_api_templates):
 def fake_issue_json(jira_api_templates):
     template = jira_api_templates.get_template(JIRA_FAKE_ISSUE_JSON_TEMPLATE_FILE_NAME)
     rendered_template = template.render(
-        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY, FAKE_ISSUE_ID=FAKE_ISSUE_ID
+        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY,
+        FAKE_ISSUE_ID=FAKE_ISSUE_ID,
     )
     yield json.loads(rendered_template)
 
@@ -149,10 +152,11 @@ def fake_issue_json(jira_api_templates):
 @pytest.fixture
 def fake_search_response_json(jira_api_templates):
     template = jira_api_templates.get_template(
-        JIRA_FAKE_SEARCH_RESPONSE_JSON_TEMPLATE_FILE_NAME
+        JIRA_FAKE_SEARCH_RESPONSE_JSON_TEMPLATE_FILE_NAME,
     )
     rendered_template = template.render(
-        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY, FAKE_ISSUE_ID=FAKE_ISSUE_ID
+        FAKE_ISSUE_KEY=FAKE_ISSUE_KEY,
+        FAKE_ISSUE_ID=FAKE_ISSUE_ID,
     )
     yield json.loads(rendered_template)
 
@@ -160,7 +164,7 @@ def fake_search_response_json(jira_api_templates):
 @pytest.fixture
 def fake_comment_response_json(jira_api_templates):
     template = jira_api_templates.get_template(
-        JIRA_FAKE_COMMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME
+        JIRA_FAKE_COMMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME,
     )
     rendered_template = template.render(FAKE_ISSUE_ID=FAKE_ISSUE_ID)
     yield json.loads(rendered_template)
@@ -169,7 +173,7 @@ def fake_comment_response_json(jira_api_templates):
 @pytest.fixture
 def fake_fields_response_json(jira_api_templates):
     template = jira_api_templates.get_template(
-        JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME
+        JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME,
     )
     rendered_template = template.render()
     yield json.loads(rendered_template)
@@ -234,7 +238,7 @@ def fake_junit_secret_path(job_artifacts_dir):
 @pytest.fixture
 def firewatch_config_json(monkeypatch, firewatch_configs_templates):
     template = firewatch_configs_templates.get_template(
-        FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME
+        FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME,
     )
     rendered_template = template.render()
     monkeypatch.setenv(FIREWATCH_CONFIG_ENV_VAR, rendered_template)
@@ -242,14 +246,13 @@ def firewatch_config_json(monkeypatch, firewatch_configs_templates):
 
 
 @pytest.fixture
-def jira_config_path(tmp_path, jira_token):
+def jira_config_path(tmp_path):
     config_path = tmp_path.joinpath("jira_config.json")
     if not config_path.is_file():
         config_path.parent.mkdir(exist_ok=True, parents=True)
         config_path.write_text(
             json.dumps(
                 {
-                    "token": os.getenv(JIRA_TOKEN_ENV_VAR),
                     "url": os.getenv(JIRA_SERVER_URL_ENV_VAR, DEFAULT_JIRA_SERVER_URL),
                     "proxies": {
                         "http": "http://squid.corp.redhat.com:3128",
@@ -326,13 +329,6 @@ def default_jira_epic(monkeypatch, request):
 
 
 @pytest.fixture
-def jira_token():
-    token = os.getenv(JIRA_TOKEN_ENV_VAR)
-    assert token
-    yield token
-
-
-@pytest.fixture
 def fake_issue_id():
     yield FAKE_ISSUE_ID
 
@@ -390,7 +386,7 @@ def patch_jira_api_requests(
             LOGGER.info(f"Faking Jira search results")
             return MockJiraApiResponse(_json=fake_search_response_json, status_code=200)
         if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}"
+            f"/issue/{fake_issue_key}",
         ):
             LOGGER.info(f"Faking Jira issue: {url}")
             return MockJiraApiResponse(_json=fake_issue_json, status_code=200)
@@ -403,10 +399,11 @@ def patch_jira_api_requests(
         caps["post"][url] = (args, kwargs)
 
         if url.endswith(f"/{fake_issue_key}/comment") or url.endswith(
-            f"/{fake_issue_id}/comment"
+            f"/{fake_issue_id}/comment",
         ):
             return MockJiraApiResponse(
-                _json=fake_comment_response_json, status_code=201
+                _json=fake_comment_response_json,
+                status_code=201,
             )
         else:
             monkeypatch.undo()
@@ -417,7 +414,7 @@ def patch_jira_api_requests(
         caps["put"][url] = (data, args, kwargs)
 
         if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}"
+            f"/issue/{fake_issue_key}",
         ):
             data = json.loads(data)
             _json = fake_issue_json.copy()

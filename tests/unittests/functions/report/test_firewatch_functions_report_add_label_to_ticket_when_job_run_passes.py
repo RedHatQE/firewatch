@@ -3,10 +3,9 @@ import simple_logger.logger
 from jira import Issue
 
 from cli.report import Report
+from cli.report.report import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 _logger = simple_logger.logger.get_logger(__name__)
-
-JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
 
 
 @pytest.fixture
@@ -34,16 +33,24 @@ def fake_job_has_open_bugs(monkeypatch, fake_issue_key):
 
 
 def test_fixtures_fake_jira_issue_exists(
-    patch_jira_api_requests, jira, fake_issue_id, fake_issue_key
+    patch_jira_api_requests,
+    jira,
+    fake_issue_id,
+    fake_issue_key,
 ):
-    issue = jira.get_issue_by_id(fake_issue_id)
+    issue = jira.get_issue_by_id_or_key(fake_issue_id)
     assert isinstance(issue, Issue)
     assert issue.id == fake_issue_id
     assert issue.key == fake_issue_key
 
 
 def test_fixtures_fake_job_has_open_bugs(
-    patch_jira_api_requests, fake_job_has_open_bugs, report, job, jira, fake_issue_key
+    patch_jira_api_requests,
+    fake_job_has_open_bugs,
+    report,
+    job,
+    jira,
+    fake_issue_key,
 ):
     resp = report._get_open_bugs(job_name=job.name, jira=jira)
     assert resp
@@ -51,7 +58,11 @@ def test_fixtures_fake_job_has_open_bugs(
 
 
 def test_report_adds_passing_label_to_newly_passing_job_with_open_bugs(
-    patch_jira_api_requests, firewatch_config, job, fake_issue_key, fake_issue_id
+    patch_jira_api_requests,
+    firewatch_config,
+    job,
+    fake_issue_key,
+    fake_issue_id,
 ):
     Report(firewatch_config=firewatch_config, job=job)
     put_request_data_to_issue_endpoint = [
