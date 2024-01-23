@@ -47,7 +47,8 @@ class Report:
             self.logger.info(f"Deleting job directory: {job.download_path}")
             try:
                 shutil.rmtree(job.download_path)
-            except Exception:
+            except Exception as error:
+                self.logger.error(f"Error deleting job directory: {error}")
                 pass
             if firewatch_config.fail_with_test_failures and job.has_test_failures:
                 self.logger.info(
