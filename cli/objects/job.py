@@ -35,7 +35,7 @@ class Job:
         build_id: Optional[str],
         gcs_bucket: str,
         firewatch_config: Configuration,
-        pr_id: Optional[str]="",
+        pr_id: Optional[str] = "",
     ) -> None:
         """
         Constructs the Job object.
@@ -60,10 +60,10 @@ class Job:
         )
         if self.is_rehearsal:
             try:
-                self.pr_id = pr_id or os.getenv("PULL_NUMBER") or self.name.split("-")[1]
+                self.pr_id = pr_id or os.getenv("PULL_NUMBER") or self.name.split("-")[1]  # type: ignore
             except IndexError:
                 self.logger.warning(
-                        f"Pull number for job {self.name} not obtained, reporting may not be complete.",
+                    f"Pull number for job {self.name} not obtained, reporting may not be complete.",
                 )
                 self.pr_id = "1"
             self.logger.info(f"PR ID: {self.pr_id}")
@@ -250,7 +250,7 @@ class Job:
         if self.is_rehearsal:
             blobs = storage_client.list_blobs(
                 gcs_bucket,
-                prefix=f"pr-logs/pull/openshift_release/{pr_id}/{job_name}/{build_id}/artifacts/{job_name_safe}"
+                prefix=f"pr-logs/pull/openshift_release/{pr_id}/{job_name}/{build_id}/artifacts/{job_name_safe}",
             )
         else:
             blobs = storage_client.list_blobs(

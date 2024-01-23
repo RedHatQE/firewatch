@@ -49,7 +49,6 @@ class Report:
                 shutil.rmtree(job.download_path)
             except Exception as error:
                 self.logger.error(f"Error deleting job directory: {error}")
-                pass
             if firewatch_config.fail_with_test_failures and job.has_test_failures:
                 self.logger.info(
                     "Test failures found and --fail-with-test-failures flag is set. Exiting with exit code 1",
