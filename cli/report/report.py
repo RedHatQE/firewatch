@@ -14,7 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import fnmatch
 import os
 import shutil
 from datetime import datetime
@@ -336,14 +335,7 @@ class Report:
         default_rule = FailureRule(default_rule_dict)
 
         for rule in rules:
-            if (
-                hasattr(rule, "step")
-                and fnmatch.fnmatch(failure.step, rule.step)
-                and (
-                    (failure.failure_type == rule.failure_type)
-                    or rule.failure_type == "all"
-                )
-            ):
+            if rule.matches_failure(failure):
                 if rule.ignore:
                     ignored_rules.append(rule)
                 else:
@@ -522,7 +514,7 @@ class Report:
         """
         link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job_name}/{build_id}]"
         build_id_line = f"*Build ID:* {build_id}"
-        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch)]"
+        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
 
         # If the issue is being created for a failure
         if not success_issue:

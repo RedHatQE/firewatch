@@ -351,17 +351,16 @@ class Job:
         pod_failures = self._find_pod_failures(logs_dir=logs_dir)
         test_failures = self._find_test_failures(junit_dir=junit_dir)
         failures_list = []
+        unique_steps_with_failures = set()
 
         # Combine lists into one list
-        for test_failure in test_failures:
-            failures_list.append(test_failure)
-        for pod_failure in pod_failures:
-            already_exists = False
-            for existing_failure in failures_list:
-                if existing_failure.step == pod_failure.step:
-                    already_exists = True
-            if not already_exists:
-                failures_list.append(pod_failure)
+        for failure in test_failures + pod_failures:
+            if failure.step not in unique_steps_with_failures:
+                unique_steps_with_failures.add(failure.step)
+                if failure_rules := self.firewatch_config.failure_rules:
+                    for rule in failure_rules:
+                        failure.ignore = rule.matches_failure(failure) and rule.ignore
+                failures_list.append(failure)
 
         if len(failures_list) > 0:
             return failures_list
