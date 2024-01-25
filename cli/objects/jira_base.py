@@ -314,5 +314,5 @@ class Jira:
 
     def add_labels_to_issue(self, issue_id_or_key: str, labels: list[str]) -> Issue:
         issue = self.get_issue_by_id_or_key(issue_id_or_key)
-        issue.update(fields={"labels": labels + issue.fields.labels})
+        issue.update(update={"labels": [{"add": label} for label in labels]})
         return issue

@@ -152,8 +152,7 @@ def cache_issue_keys(issue_keys_from_stdout, request):
 
 
 def remove_label_from_issue(issue, target_label):
-    issue.fields.labels.remove(target_label)
-    issue.update(fields={"labels": issue.fields.labels})
+    issue.update(update={"labels": [{"remove": target_label}]})
 
 
 def issue_has_label(issue, target_label):

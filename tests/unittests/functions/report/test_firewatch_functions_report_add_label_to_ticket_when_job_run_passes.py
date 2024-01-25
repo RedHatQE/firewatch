@@ -71,5 +71,9 @@ def test_report_adds_passing_label_to_newly_passing_job_with_open_bugs(
         if k.endswith(f"/issue/{fake_issue_id}")
         or k.endswith(f"/issue/{fake_issue_key}")
     ]
-    exp = '"fields": {"labels": ["' + JOB_PASSED_SINCE_TICKET_CREATED_LABEL + '"]}'
+    exp = (
+        '"update": {"labels": [{"add": "'
+        + JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+        + '"}]'
+    )
     assert any([exp in _ for _ in put_request_data_to_issue_endpoint])
