@@ -89,6 +89,14 @@ class Report:
                             jira=firewatch_config.jira,
                             issue_id=bug,
                         )
+                        self.logger.info(
+                            f"Adding passed job label to issue {bug}",
+                        )
+                        self.add_passing_job_label(
+                            jira=firewatch_config.jira,
+                            issue_id=bug,
+                        )
+
         # Delete the job directory
         if not firewatch_config.keep_job_dir:
             self.logger.info(f"Deleting job directory: {job.download_path}")
@@ -374,6 +382,18 @@ class Report:
                                 This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch].
                             """
         jira.comment(issue_id=issue_id, comment=comment)
+
+    def add_passing_job_label(self, jira: Jira, issue_id: str) -> None:
+        """
+        Used to add a label on a Jira issue that is open but has had a passing job since the issue was filed.
+
+        Args:
+            jira (Jira): Jira object.
+            issue_id (str): Issue ID of the open issue to comment on.
+
+        Returns:
+            None
+        """
         jira.add_labels_to_issue(
             issue_id_or_key=issue_id,
             labels=[JOB_PASSED_SINCE_TICKET_CREATED_LABEL],
