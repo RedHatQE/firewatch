@@ -23,7 +23,7 @@ from jira import Issue
 
 from cli import report
 from cli.objects.job import Job
-from cli.report.report import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from cli.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 logger = simple_logger.logger.get_logger(__name__)
 

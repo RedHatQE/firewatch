@@ -28,8 +28,7 @@ from cli.objects.failure import Failure
 from cli.objects.failure_rule import FailureRule
 from cli.objects.jira_base import Jira
 from cli.objects.job import Job
-
-JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
+from cli.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 
 class Report:
