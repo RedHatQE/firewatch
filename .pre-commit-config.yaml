@@ -34,7 +34,7 @@ repos:
     exclude: ^(tests/)
     additional_dependencies: [types-all]
 - repo: https://github.com/psf/black
-  rev: 23.12.1
+  rev: 24.1.1
   hooks:
   - id: black
 - repo: https://github.com/DavidAnson/markdownlint-cli2
