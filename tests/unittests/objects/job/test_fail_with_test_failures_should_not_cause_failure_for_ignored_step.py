@@ -27,8 +27,7 @@ from tests.unittests.conftest import FIREWATCH_CONFIG_ENV_VAR
 @pytest.fixture()
 def mock_jira():
     @dataclass
-    class MockJira:
-        ...
+    class MockJira: ...
 
     yield MockJira
 

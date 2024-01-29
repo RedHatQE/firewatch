@@ -436,12 +436,16 @@ class Job:
                                     failure = {
                                         "step": step,
                                         "failure_type": "test_failure",
-                                        "failed_test_name": case.name.replace(" ", "_")
-                                        if self.firewatch_config.verbose_test_failure_reporting
-                                        else None,
-                                        "failed_test_junit_path": file_path
-                                        if self.firewatch_config.verbose_test_failure_reporting
-                                        else None,
+                                        "failed_test_name": (
+                                            case.name.replace(" ", "_")
+                                            if self.firewatch_config.verbose_test_failure_reporting
+                                            else None
+                                        ),
+                                        "failed_test_junit_path": (
+                                            file_path
+                                            if self.firewatch_config.verbose_test_failure_reporting
+                                            else None
+                                        ),
                                     }
                                     if failure not in failures_list:
                                         failures_list.append(failure)
@@ -452,12 +456,16 @@ class Job:
                             failure = {
                                 "step": step,
                                 "failure_type": "test_failure",
-                                "failed_test_name": suite.name.replace(" ", "_")
-                                if self.firewatch_config.verbose_test_failure_reporting
-                                else None,
-                                "failed_test_junit_path": file_path
-                                if self.firewatch_config.verbose_test_failure_reporting
-                                else None,
+                                "failed_test_name": (
+                                    suite.name.replace(" ", "_")
+                                    if self.firewatch_config.verbose_test_failure_reporting
+                                    else None
+                                ),
+                                "failed_test_junit_path": (
+                                    file_path
+                                    if self.firewatch_config.verbose_test_failure_reporting
+                                    else None
+                                ),
                             }
                             if failure not in failures_list:
                                 failures_list.append(failure)
