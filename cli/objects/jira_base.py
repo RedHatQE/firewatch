@@ -308,3 +308,31 @@ class Jira:
             f"Security level {security_level} not found in {project_key}, no security level will be applied.",
         )
         return None
+
+    def get_issue_by_id_or_key(self, issue: str) -> Issue:
+        """
+        Get a Jira Issue object from the given issue id or key field value.
+
+        Args:
+            issue (str): The ID or key field value of the Jira Issue object to return.
+
+        Returns:
+            Issue: A Jira Issue object.
+        """
+        return self.connection.issue(id=issue)
+
+    def add_labels_to_issue(self, issue_id_or_key: str, labels: list[str]) -> Issue:
+        """
+        Append the given labels to a Jira issue, as identified by the issue's key or ID field value.
+        If the label already exists on the issue, it is not duplicated.
+        Returns the value of the modified issue.
+
+        Args:
+            issue_id_or_key (str): The ID or key field value of the Jira Issue object to return.
+            labels: list[str]: The list of labels to add to the Jira issue.
+        Returns:
+            Issue: A Jira Issue object.
+        """
+        issue = self.get_issue_by_id_or_key(issue_id_or_key)
+        issue.update(update={"labels": [{"add": label} for label in labels]})
+        return issue
