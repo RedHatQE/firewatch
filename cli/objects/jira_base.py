@@ -341,7 +341,7 @@ class Jira:
         except JIRAError as error:
             if error.status_code == 400:
                 self.logger.error(
-                    f"Failed to add labels to issue {issue_id_or_key}. Error: {error.text}",
+                    f"Failed to add labels {labels} to issue {issue_id_or_key}. Error: {error.text}",
                 )
                 self.logger.info(
                     "This error could be caused by missing permissions on the Jira user."
