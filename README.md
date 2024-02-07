@@ -32,6 +32,22 @@ Thank you for your interest in the firewatch project! Please find some informati
 
 ## Getting Started
 
+### Jira User Permissions
+
+Firewatch can be used with any user in a Jira instance, but that user will need to have proper permissions in the project
+they are reporting to. The user should be able to:
+
+- Create issues
+- Add comments to issues
+- Add attachments to issues
+- Edit issues
+- Transition issues (this only happens when a "success" issue is created, then immediately closed)
+
+If you are using firewatch in the Red Hat Jira instance, the default user is `firewatch-tool`.
+
+If you are encountering permissions issues, please add the user to the project you are reporting to under the role you
+would like to choose. Typically, if you add the user in the `Developer` role, the tool will work as expected.
+
 ### Usage in OpenShift CI
 
 Reporting issues using this tool in OpenShift CI is very simple, you can do one of the following:

@@ -334,5 +334,19 @@ class Jira:
             Issue: A Jira Issue object.
         """
         issue = self.get_issue_by_id_or_key(issue_id_or_key)
-        issue.update(update={"labels": [{"add": label} for label in labels]})
+        try:
+            issue.update(update={"labels": [{"add": label} for label in labels]})
+
+        # Check if the error is a 400 code and potentially due to user permissions.
+        except JIRAError as error:
+            if error.status_code == 400:
+                self.logger.error(
+                    f"Failed to add labels {labels} to issue {issue_id_or_key}. Error: {error.text}",
+                )
+                self.logger.info(
+                    "This error could be caused by missing permissions on the Jira user."
+                    'Please see the "Jira User Permissions" section in the README for more information.',
+                )
+            else:
+                raise
         return issue
