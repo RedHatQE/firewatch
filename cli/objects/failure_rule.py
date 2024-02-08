@@ -192,5 +192,8 @@ class FailureRule(Rule):
         return (
             hasattr(self, "step")
             and fnmatch.fnmatch(failure.step, self.step)
-            and failure.failure_type in (self.failure_type, "all")
+            and (
+                (failure.failure_type == self.failure_type)
+                or self.failure_type == "all"
+            )
         )
