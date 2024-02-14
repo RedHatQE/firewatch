@@ -16,9 +16,9 @@
 #
 import json
 import os
-from xml.etree.ElementTree import ParseError
 from typing import Any
 from typing import Optional
+from xml.etree.ElementTree import ParseError
 
 import junitparser
 from google.cloud import storage
