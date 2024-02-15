@@ -65,7 +65,7 @@ class Jira:
         component: Optional[list[str]] = None,
         epic: Optional[str] = None,
         file_attachments: Optional[list[str]] = None,
-        labels: list[Optional[str]] = [],
+        labels: Optional[list[Optional[str]]] = None,
         affects_version: Optional[str] = None,
         assignee: Optional[str] = None,
         priority: Optional[str] = None,
@@ -100,6 +100,8 @@ class Jira:
             "issuetype": {"name": issue_type},
         }
 
+        labels = [] if not labels else labels
+
         if labels:
             # MyPy spits out an odd error here unless ignored.
             issue_dict.update({"labels": labels})  # type: ignore
@@ -126,7 +128,7 @@ class Jira:
                 issue_dict.update({"security": {"id": security_id}})
 
         self.logger.info(
-            f"A Jira issue will be reported.",
+            "A Jira issue will be reported.",
         )
         issue = self.connection.create_issue(issue_dict)
         self.logger.info(

@@ -126,7 +126,7 @@ class Rule:
                     jira_component.extend(default_components)
                 else:
                     self.logger.error(
-                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_COMPONENT is not set.",
+                        "Environment variable $FIREWATCH_DEFAULT_JIRA_COMPONENT is not set.",
                     )
 
             for component in jira_component:
@@ -203,7 +203,7 @@ class Rule:
                     jira_additional_labels.extend(default_labels)
                 else:
                     self.logger.error(
-                        f"Environment variable $FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS is not set.",
+                        "Environment variable $FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS is not set.",
                     )
 
             for label in jira_additional_labels:
@@ -283,11 +283,7 @@ class Rule:
             if jira_priority == "!default":
                 jira_priority = os.getenv("FIREWATCH_DEFAULT_JIRA_PRIORITY")
 
-            jira_priority = (
-                jira_priority.lower().capitalize()
-                if isinstance(jira_priority, str)
-                else None
-            )
+            jira_priority = jira_priority.lower().capitalize() if isinstance(jira_priority, str) else None
 
             if jira_priority in valid_priority_values:
                 return jira_priority

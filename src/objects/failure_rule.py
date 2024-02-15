@@ -2,8 +2,8 @@ import fnmatch
 from typing import Any
 from typing import Optional
 
-from cli.objects.failure import Failure
-from cli.objects.rule import Rule
+from src.objects.failure import Failure
+from src.objects.rule import Rule
 
 
 class FailureRule(Rule):
@@ -192,8 +192,5 @@ class FailureRule(Rule):
         return (
             hasattr(self, "step")
             and fnmatch.fnmatch(failure.step, self.step)
-            and (
-                (failure.failure_type == self.failure_type)
-                or self.failure_type == "all"
-            )
+            and ((failure.failure_type == self.failure_type) or self.failure_type == "all")
         )

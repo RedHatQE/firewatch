@@ -23,8 +23,8 @@ import junitparser
 from google.cloud import storage
 from simple_logger.logger import get_logger
 
-from cli.objects.configuration import Configuration
-from cli.objects.failure import Failure
+from src.objects.configuration import Configuration
+from src.objects.failure import Failure
 
 
 class Job:
@@ -112,13 +112,9 @@ class Job:
             junit_dir=self.junit_dir,
         )
         # self.has_test_failures = self._check_has_test_failures(failures=self.failures)
-        self.has_test_failures = any(
-            failure.failure_type == "test_failure" for failure in self.failures or []
-        )
+        self.has_test_failures = any(failure.failure_type == "test_failure" for failure in self.failures or [])
         # self.has_pod_failures = self._check_has_pod_failures(failures=self.failures)
-        self.has_pod_failures = any(
-            failure.failure_type == "pod_failure" for failure in self.failures or []
-        )
+        self.has_pod_failures = any(failure.failure_type == "pod_failure" for failure in self.failures or [])
         self.has_failures = True if self.failures else False
 
     def _check_is_rehearsal(
@@ -200,9 +196,7 @@ class Job:
                 file_path = f"{path}/{blob_step}/{filename}{extension}"
                 while os.path.exists(file_path):
                     self.logger.info(f"File {file_path} already exists...")
-                    file_path = (
-                        f"{path}/{blob_step}/{filename}_{str(file_counter)}{extension}"
-                    )
+                    file_path = f"{path}/{blob_step}/{filename}_{str(file_counter)}{extension}"
                     file_counter += 1
 
                 # Download blob
@@ -442,9 +436,7 @@ class Job:
                                             else None
                                         ),
                                         "failed_test_junit_path": (
-                                            file_path
-                                            if self.firewatch_config.verbose_test_failure_reporting
-                                            else None
+                                            file_path if self.firewatch_config.verbose_test_failure_reporting else None
                                         ),
                                     }
                                     if failure not in failures_list:
@@ -462,9 +454,7 @@ class Job:
                                     else None
                                 ),
                                 "failed_test_junit_path": (
-                                    file_path
-                                    if self.firewatch_config.verbose_test_failure_reporting
-                                    else None
+                                    file_path if self.firewatch_config.verbose_test_failure_reporting else None
                                 ),
                             }
                             if failure not in failures_list:
