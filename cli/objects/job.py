@@ -18,6 +18,7 @@ import json
 import os
 from typing import Any
 from typing import Optional
+from xml.etree.ElementTree import ParseError
 
 import junitparser
 from google.cloud import storage
@@ -418,7 +419,7 @@ class Job:
                 file_path = os.path.join(root, file)
                 try:
                     junit_xml = junitparser.JUnitXml.fromfile(file_path)
-                except junitparser.junitparser.JUnitXmlError:
+                except (ParseError, junitparser.junitparser.JUnitXmlError):
                     self.logger.warning(
                         f"Attempted to parse {file_path}, but it doesn't seem to be a JUnit results file.",
                     )
