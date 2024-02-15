@@ -1,5 +1,5 @@
-from cli.objects.failure import Failure
-from cli.report import Report
+from src.objects.failure import Failure
+from src.report.report import Report
 from tests.unittests.functions.report.report_base_test import ReportBaseTest
 
 

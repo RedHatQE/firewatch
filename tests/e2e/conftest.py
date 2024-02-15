@@ -24,7 +24,7 @@ from jinja2 import Environment
 from jinja2 import select_autoescape
 from jinja2.loaders import FileSystemLoader
 
-from cli.objects.jira_base import Jira
+from src.objects.jira_base import Jira
 
 logger = simple_logger.logger.get_logger(__name__)
 

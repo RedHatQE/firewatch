@@ -2,7 +2,7 @@ import os
 import tempfile
 from unittest.mock import patch
 
-from cli.objects.configuration import Configuration
+from src.objects.configuration import Configuration
 from tests.unittests.objects.configuration.configuration_base_test import (
     ConfigurationBaseTest,
 )
@@ -11,7 +11,9 @@ from tests.unittests.objects.configuration.configuration_base_test import (
 @patch.dict(os.environ, {"FIREWATCH_DEFAULT_JIRA_PROJECT": "TEST"})
 class TestGetConfigData(ConfigurationBaseTest):
     def test_configuration_gets_config_data_with_valid_file_path(self):
-        valid_config_data = '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+        valid_config_data = (
+            '{"failure_rules": [{"step": "step1", "failure_type": "pod_failure", "classification": "none"}]}'
+        )
         with tempfile.TemporaryDirectory() as tmp_path:
             config_file = os.path.join(tmp_path, "config.json")
             with open(config_file, "w") as f:

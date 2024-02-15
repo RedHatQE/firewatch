@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from cli.objects.failure import Failure
+from src.objects.failure import Failure
 
 
 class TestFailure(unittest.TestCase):

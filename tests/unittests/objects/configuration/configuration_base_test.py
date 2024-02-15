@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 
 class ConfigurationBaseTest(unittest.TestCase):
-    @patch("cli.objects.configuration.Jira")
+    @patch("src.objects.configuration.Jira")
     def setUp(self, mock_jira):
         self.mock_jira = mock_jira
         mock_jira.return_value = MagicMock()

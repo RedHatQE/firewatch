@@ -25,9 +25,9 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from jinja2 import select_autoescape
 
-from cli.objects.configuration import Configuration
-from cli.objects.jira_base import Jira
-from cli.objects.job import Job
+from src.objects.configuration import Configuration
+from src.objects.jira_base import Jira
+from src.objects.job import Job
 
 LOGGER = simple_logger.logger.get_logger(__name__)
 
@@ -376,14 +376,14 @@ def patch_jira_api_requests(
         caps["get"][url] = (args, kwargs)
 
         if url.endswith("/serverInfo"):
-            LOGGER.info(f"Faking Jira serverInfo")
+            LOGGER.info("Faking Jira serverInfo")
             return MockJiraApiResponse(_json=fake_server_info_json, status_code=200)
 
         if url.endswith("/field"):
-            LOGGER.info(f"Faking Jira fields")
+            LOGGER.info("Faking Jira fields")
             return MockJiraApiResponse(_json=fake_fields_response_json, status_code=200)
         if url.endswith("/search"):
-            LOGGER.info(f"Faking Jira search results")
+            LOGGER.info("Faking Jira search results")
             return MockJiraApiResponse(_json=fake_search_response_json, status_code=200)
         if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
             f"/issue/{fake_issue_key}",

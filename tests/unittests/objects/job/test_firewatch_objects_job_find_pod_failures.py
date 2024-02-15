@@ -1,6 +1,6 @@
 import tempfile
 
-from cli.objects.job import Job
+from src.objects.job import Job
 from tests.unittests import helpers
 from tests.unittests.objects.job.job_base_test import JobBaseTest
 
