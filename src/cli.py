@@ -3,8 +3,9 @@ import sys
 import click
 from click import Context
 from simple_logger.logger import get_logger
-from src.commands.report import report
+
 from src.commands.jira_config_gen import jira_config_gen
+from src.commands.report import report
 
 
 @click.group()

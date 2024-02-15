@@ -2,8 +2,8 @@ import pytest
 import simple_logger.logger
 from jira import Issue
 
-from src.report.report import Report
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.report.report import Report
 
 _logger = simple_logger.logger.get_logger(__name__)
 

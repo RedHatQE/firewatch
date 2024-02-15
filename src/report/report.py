@@ -171,9 +171,11 @@ class Report:
                 classification=pair["rule"].classification,  # type: ignore
                 job_name=job.name,  # type: ignore
                 build_id=job.build_id,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name  # type: ignore
-                if firewatch_config.verbose_test_failure_reporting
-                else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
                 jira=firewatch_config.jira,  # type: ignore
             )
             issue_type = "Bug"
@@ -181,18 +183,22 @@ class Report:
                 step_name=pair["failure"].step,  # type: ignore
                 logs_dir=job.logs_dir,
                 junit_dir=job.junit_dir,
-                junit_file=pair["failure"].failed_test_junit_path  # type: ignore
-                if firewatch_config.verbose_test_failure_reporting
-                else None,  # type: ignore
+                junit_file=(
+                    pair["failure"].failed_test_junit_path  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
             )
             labels = self._get_issue_labels(
                 job_name=job.name,
                 step_name=pair["failure"].step,  # type: ignore
                 type=pair["failure"].failure_type,  # type: ignore
                 jira_additional_labels=pair["rule"].jira_additional_labels,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name  # type: ignore
-                if firewatch_config.verbose_test_failure_reporting
-                else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
             )
 
             # Find duplicate bugs
@@ -201,9 +207,11 @@ class Report:
                 job_name=job.name,
                 failed_step=pair["failure"].step,  # type: ignore
                 failure_type=pair["failure"].failure_type,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name  # type: ignore
-                if firewatch_config.verbose_test_failure_reporting
-                else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
                 jira=firewatch_config.jira,
             )
 
@@ -216,9 +224,11 @@ class Report:
                         classification=pair["rule"].classification,  # type: ignore
                         job=job,
                         jira=firewatch_config.jira,
-                        failed_test_name=pair["failure"].failed_test_name  # type: ignore
-                        if firewatch_config.verbose_test_failure_reporting
-                        else None,  # type: ignore
+                        failed_test_name=(
+                            pair["failure"].failed_test_name  # type: ignore
+                            if firewatch_config.verbose_test_failure_reporting
+                            else None
+                        ),  # type: ignore
                     )
             # If duplicates are not found, file a bug
             else:
