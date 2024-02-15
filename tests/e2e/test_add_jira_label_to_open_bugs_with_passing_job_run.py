@@ -21,7 +21,7 @@ import simple_logger.logger
 from click.testing import CliRunner
 from jira import Issue
 
-from src import report
+from src import cli
 from src.objects.job import Job
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
@@ -169,6 +169,7 @@ def cli_command_completed_successfully(result) -> bool:
 
 
 def run_report_cli_command(report_cli_command_args):
-    result = CliRunner().invoke(report, report_cli_command_args)
+    runner = CliRunner()
+    result = runner.invoke(cli=cli.main, args=("report", *report_cli_command_args))
     print(result.stdout)
     return result

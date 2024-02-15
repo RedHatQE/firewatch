@@ -81,7 +81,7 @@ def jira_config_path(tmp_path, jira_token, jira_server_url):
     path = tmp_path.joinpath("jira.config")
     path.parent.mkdir(exist_ok=True, parents=True)
     loader = Environment(
-        loader=FileSystemLoader("cli/templates"),
+        loader=FileSystemLoader("src/templates"),
         autoescape=select_autoescape(),
     )
     template = loader.get_template("jira.config.j2")
