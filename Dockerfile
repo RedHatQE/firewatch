@@ -1,7 +1,7 @@
 FROM docker.io/library/python:3.12-slim
 
 COPY pyproject.toml poetry.lock README.md /firewatch/
-COPY cli /firewatch/cli/
+COPY src /firewatch/src/
 COPY --chmod=0755 development /development
 
 WORKDIR /firewatch

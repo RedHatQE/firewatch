@@ -22,9 +22,9 @@ from typing import Union
 
 from simple_logger.logger import get_logger
 
-from cli.objects.failure_rule import FailureRule
-from cli.objects.jira_base import Jira
-from cli.objects.rule import Rule
+from src.objects.failure_rule import FailureRule
+from src.objects.jira_base import Jira
+from src.objects.rule import Rule
 
 
 class Configuration:
@@ -64,9 +64,7 @@ class Configuration:
 
         # Boolean value to decide if firewatch should report all test failures found in the job.
         self.verbose_test_failure_reporting = verbose_test_failure_reporting
-        self.verbose_test_failure_reporting_ticket_limit = (
-            verbose_test_failure_reporting_ticket_limit
-        )
+        self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
 
         # Get the config data
         self.config_data = self._get_config_data(config_file_path=config_file_path)
