@@ -1,5 +1,5 @@
-from cli.objects.job import Job
-from cli.report import Report
+from src.objects.job import Job
+from src.report.report import Report
 from tests.unittests.functions.report.report_base_test import ReportBaseTest
 
 

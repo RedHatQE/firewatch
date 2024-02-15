@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from cli.objects.rule import Rule
+from src.objects.rule import Rule
 
 
 class RuleBaseTest(unittest.TestCase):
@@ -12,7 +12,7 @@ class RuleBaseTest(unittest.TestCase):
                 "jira_project": "TEST",
             },
         )
-        self.mock_logger = patch("cli.objects.job.get_logger")
+        self.mock_logger = patch("src.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
 
     def tearDown(self):

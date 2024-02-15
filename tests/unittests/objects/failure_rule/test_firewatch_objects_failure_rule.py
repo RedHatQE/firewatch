@@ -1,6 +1,6 @@
 import unittest
 
-from cli.objects.failure_rule import FailureRule
+from src.objects.failure_rule import FailureRule
 
 
 class TestFailureRule(unittest.TestCase):
