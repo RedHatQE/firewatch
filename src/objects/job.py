@@ -24,8 +24,8 @@ import junitparser
 from google.cloud import storage
 from simple_logger.logger import get_logger
 
-from cli.objects.configuration import Configuration
-from cli.objects.failure import Failure
+from src.objects.configuration import Configuration
+from src.objects.failure import Failure
 
 
 class Job:
