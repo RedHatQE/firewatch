@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 Red Hat, Inc.
+# Copyright (C) 2024 Red Hat, Inc.
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,14 +15,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 """Module building report cli command"""
+
 from typing import Optional
 
 import click
+from click import Context
 
-from cli.objects.configuration import Configuration
-from cli.objects.jira_base import Jira
-from cli.objects.job import Job
-from cli.report.report import Report
+from src.objects.configuration import Configuration
+from src.objects.jira_base import Jira
+from src.objects.job import Job
+from src.report.report import Report
 
 
 def validate_verbose_test_failure_reporting_ticket_limit(
@@ -115,10 +117,15 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.INT,
     callback=validate_verbose_test_failure_reporting_ticket_limit,
 )
+@click.option(
+    "--pdb",
+    help="Drop to `ipdb` shell on exception",
+    is_flag=True,
+)
 @click.command("report")
 @click.pass_context
 def report(
-    ctx: click.Context,
+    ctx: Context,
     job_name: str,
     job_name_safe: str,
     build_id: str,
@@ -130,7 +137,10 @@ def report(
     keep_job_dir: bool,
     verbose_test_failure_reporting: bool,
     verbose_test_failure_reporting_ticket_limit: Optional[int],
+    pdb: bool,
 ) -> None:
+    ctx.obj["PDB"] = pdb
+
     # Build Objects
     jira_connection = Jira(jira_config_path=jira_config_path)
     config = Configuration(

@@ -24,7 +24,7 @@ from jinja2 import Environment
 from jinja2 import select_autoescape
 from jinja2.loaders import FileSystemLoader
 
-from cli.objects.jira_base import Jira
+from src.objects.jira_base import Jira
 
 logger = simple_logger.logger.get_logger(__name__)
 
@@ -81,7 +81,7 @@ def jira_config_path(tmp_path, jira_token, jira_server_url):
     path = tmp_path.joinpath("jira.config")
     path.parent.mkdir(exist_ok=True, parents=True)
     loader = Environment(
-        loader=FileSystemLoader("cli/templates"),
+        loader=FileSystemLoader("src/templates"),
         autoescape=select_autoescape(),
     )
     template = loader.get_template("jira.config.j2")

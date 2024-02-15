@@ -1,6 +1,6 @@
 import unittest
 
-from cli.objects.rule import Rule
+from src.objects.rule import Rule
 
 
 class TestRule(unittest.TestCase):

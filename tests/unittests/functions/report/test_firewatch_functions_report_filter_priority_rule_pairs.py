@@ -1,5 +1,5 @@
-from cli.objects.failure import Failure
-from cli.objects.failure_rule import FailureRule
+from src.objects.failure import Failure
+from src.objects.failure_rule import FailureRule
 from tests.unittests.functions.report.report_base_test import ReportBaseTest
 
 

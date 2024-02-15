@@ -1,7 +1,7 @@
 import os
 from unittest.mock import patch
 
-from cli.objects.configuration import Configuration
+from src.objects.configuration import Configuration
 from tests.unittests.objects.configuration.configuration_base_test import (
     ConfigurationBaseTest,
 )

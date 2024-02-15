@@ -2,8 +2,8 @@ import pytest
 import simple_logger.logger
 from jira import Issue
 
-from cli.report import Report
-from cli.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.report.report import Report
 
 _logger = simple_logger.logger.get_logger(__name__)
 
@@ -68,12 +68,7 @@ def test_report_adds_passing_label_to_newly_passing_job_with_open_bugs(
     put_request_data_to_issue_endpoint = [
         v[0]
         for k, v in patch_jira_api_requests["put"].items()
-        if k.endswith(f"/issue/{fake_issue_id}")
-        or k.endswith(f"/issue/{fake_issue_key}")
+        if k.endswith(f"/issue/{fake_issue_id}") or k.endswith(f"/issue/{fake_issue_key}")
     ]
-    exp = (
-        '"update": {"labels": [{"add": "'
-        + JOB_PASSED_SINCE_TICKET_CREATED_LABEL
-        + '"}]'
-    )
+    exp = '"update": {"labels": [{"add": "' + JOB_PASSED_SINCE_TICKET_CREATED_LABEL + '"}]'
     assert any([exp in _ for _ in put_request_data_to_issue_endpoint])

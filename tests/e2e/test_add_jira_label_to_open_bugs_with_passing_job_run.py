@@ -21,9 +21,9 @@ import simple_logger.logger
 from click.testing import CliRunner
 from jira import Issue
 
-from cli import report
-from cli.objects.job import Job
-from cli.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src import cli
+from src.objects.job import Job
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 logger = simple_logger.logger.get_logger(__name__)
 
@@ -108,9 +108,7 @@ def test_add_jira_label_to_open_bugs_with_passing_job_run(
     logger.info(f"open issues found: {issue_keys_from_stdout}")
 
     logger.info("fetching Jira issues")
-    issues: list[Issue] = [
-        jira.get_issue_by_id_or_key(k) for k in issue_keys_from_stdout
-    ]
+    issues: list[Issue] = [jira.get_issue_by_id_or_key(k) for k in issue_keys_from_stdout]
     assert not any_issue_has_target_label(issues)
     logger.info(f'verified that "{target_label}" is not set on identified issues')
 
@@ -171,6 +169,7 @@ def cli_command_completed_successfully(result) -> bool:
 
 
 def run_report_cli_command(report_cli_command_args):
-    result = CliRunner().invoke(report, report_cli_command_args)
+    runner = CliRunner()
+    result = runner.invoke(cli=cli.main, args=("report", *report_cli_command_args))
     print(result.stdout)
     return result

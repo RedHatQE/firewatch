@@ -23,12 +23,12 @@ from typing import Optional
 import jira
 from simple_logger.logger import get_logger
 
-from cli.objects.configuration import Configuration
-from cli.objects.failure import Failure
-from cli.objects.failure_rule import FailureRule
-from cli.objects.jira_base import Jira
-from cli.objects.job import Job
-from cli.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.objects.configuration import Configuration
+from src.objects.failure import Failure
+from src.objects.failure_rule import FailureRule
+from src.objects.jira_base import Jira
+from src.objects.job import Job
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 
 class Report:
@@ -147,14 +147,8 @@ class Report:
         for pair in rule_failure_pairs:
             # If verbose_test_failure_reporting is True, check the limit before filing bugs
             if firewatch_config.verbose_test_failure_reporting:
-                if (
-                    firewatch_config.verbose_test_failure_reporting_ticket_limit
-                    is not None
-                ):
-                    if (
-                        len(bugs_filed)
-                        >= firewatch_config.verbose_test_failure_reporting_ticket_limit
-                    ):
+                if firewatch_config.verbose_test_failure_reporting_ticket_limit is not None:
+                    if len(bugs_filed) >= firewatch_config.verbose_test_failure_reporting_ticket_limit:
                         self.logger.warning(
                             f'Ticket limit of {firewatch_config.verbose_test_failure_reporting_ticket_limit} reached. No more bugs will be filed. If you would like to increase this limit, specify "--verbose-test-failure-reporting-ticket-limit <limit>" when executing firewatch report.',
                         )
@@ -177,7 +171,11 @@ class Report:
                 classification=pair["rule"].classification,  # type: ignore
                 job_name=job.name,  # type: ignore
                 build_id=job.build_id,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
                 jira=firewatch_config.jira,  # type: ignore
             )
             issue_type = "Bug"
@@ -185,14 +183,22 @@ class Report:
                 step_name=pair["failure"].step,  # type: ignore
                 logs_dir=job.logs_dir,
                 junit_dir=job.junit_dir,
-                junit_file=pair["failure"].failed_test_junit_path if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                junit_file=(
+                    pair["failure"].failed_test_junit_path  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
             )
             labels = self._get_issue_labels(
                 job_name=job.name,
                 step_name=pair["failure"].step,  # type: ignore
                 type=pair["failure"].failure_type,  # type: ignore
                 jira_additional_labels=pair["rule"].jira_additional_labels,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
             )
 
             # Find duplicate bugs
@@ -201,7 +207,11 @@ class Report:
                 job_name=job.name,
                 failed_step=pair["failure"].step,  # type: ignore
                 failure_type=pair["failure"].failure_type,  # type: ignore
-                failed_test_name=pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                failed_test_name=(
+                    pair["failure"].failed_test_name  # type: ignore
+                    if firewatch_config.verbose_test_failure_reporting
+                    else None
+                ),  # type: ignore
                 jira=firewatch_config.jira,
             )
 
@@ -214,7 +224,11 @@ class Report:
                         classification=pair["rule"].classification,  # type: ignore
                         job=job,
                         jira=firewatch_config.jira,
-                        failed_test_name=pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else None,  # type: ignore
+                        failed_test_name=(
+                            pair["failure"].failed_test_name  # type: ignore
+                            if firewatch_config.verbose_test_failure_reporting
+                            else None
+                        ),  # type: ignore
                     )
             # If duplicates are not found, file a bug
             else:
@@ -247,9 +261,7 @@ class Report:
         """
         self.logger.info(f"Reporting job {job.name} success.")
         date = datetime.now()
-        for rule in (
-            firewatch_config.success_rules if firewatch_config.success_rules else []
-        ):
+        for rule in firewatch_config.success_rules if firewatch_config.success_rules else []:
             labels = self._get_issue_labels(
                 job_name=job.name,
                 type="success",
@@ -302,15 +314,9 @@ class Report:
                 none_filtered_failure_pairs.append(pair)
 
         for _, group_pair in groups.items():
-            highest_priority = min(
-                _group.get("rule").group_priority for _group in group_pair
-            )
+            highest_priority = min(_group.get("rule").group_priority for _group in group_pair)
             filtered_rule_failure_pairs.extend(
-                [
-                    _group_pair
-                    for _group_pair in group_pair
-                    if _group_pair["rule"].group_priority == highest_priority
-                ],
+                [_group_pair for _group_pair in group_pair if _group_pair["rule"].group_priority == highest_priority],
             )
 
         return filtered_rule_failure_pairs + none_filtered_failure_pairs
@@ -545,20 +551,18 @@ class Report:
         if not success_issue:
             classification_line = f"*Classification:* {classification}"
             failed_step_line = f"*Failed Step:* {step_name}"
-            failed_test_line = (
-                f"*Failed Test:* {failed_test_name}" if failed_test_name else ""
-            )
+            failed_test_line = f"*Failed Test:* {failed_test_name}" if failed_test_name else ""
             past_bugs = self._get_past_bugs(
                 failed_step=step_name,  # type: ignore
                 failure_type=failure_type,  # type: ignore
                 failed_test_name=failed_test_name,  # type: ignore
                 jira=jira,  # type: ignore
             )
-            description = f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n"
+            description = (
+                f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n"
+            )
             if past_bugs:
-                failed_test_portion = (
-                    f" and failed test *{failed_test_name}*" if failed_test_name else ""
-                )
+                failed_test_portion = f" and failed test *{failed_test_name}*" if failed_test_name else ""
                 description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}*{failed_test_portion}:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
 
         # If the issue is being created for a success
@@ -634,9 +638,7 @@ class Report:
         # AND has a label that matches the failure type
         # AND the bugs are not closed
         # AND issue is of type "bug"
-        failed_test_filter = (
-            f'AND labels="{failed_test_name}"' if failed_test_name else ""
-        )
+        failed_test_filter = f'AND labels="{failed_test_name}"' if failed_test_name else ""
         jql_query = f'project = {project} AND labels="{job_name}" AND labels="{failed_step}" AND labels="{failure_type}" {failed_test_filter} AND resolution = Unresolved AND Issuetype = bug'
         duplicate_bugs = jira.search_issues(jql_query=jql_query)
 
@@ -703,9 +705,7 @@ class Report:
         Returns:
             Optional[list[jira.Issue]]: An optional list of Jira issues from firewatch that are from a specific failed step and failure type.
         """
-        failed_test_filter = (
-            f'AND labels="{failed_test_name}"' if failed_test_name else ""
-        )
+        failed_test_filter = f'AND labels="{failed_test_name}"' if failed_test_name else ""
         list_of_issues = jira.search(
             jql_query=f'labels="{failed_step}" AND labels="{failure_type}" {failed_test_filter} AND resolution != Unresolved ORDER BY created DESC',
         )

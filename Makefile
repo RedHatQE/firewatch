@@ -1,4 +1,5 @@
 CONTAINER_CMD=$(shell which podman 2>/dev/null || which docker)
+TAG ?= latest
 
 pre-commit:
 	pre-commit run --all-files
@@ -13,13 +14,13 @@ dev-environment:
 	poetry install
 
 container-build:
-	$(CONTAINER_CMD) build -t firewatch .
+	$(CONTAINER_CMD) build -t firewatch:$(TAG) .
 
 container-test:
-	$(CONTAINER_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch /development/test.sh
+	$(CONTAINER_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch:$(TAG) /development/test.sh
 
 container-run:
-	$(CONTAINER_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch
+	$(CONTAINER_CMD) run -it --env-file development/env.list --entrypoint /bin/bash firewatch:$(TAG)
 
 container-build-run: container-build container-run
 

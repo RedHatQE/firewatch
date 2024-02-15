@@ -3,13 +3,13 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from cli.objects.configuration import Configuration
-from cli.objects.job import Job
-from cli.report import Report
+from src.objects.configuration import Configuration
+from src.objects.job import Job
+from src.report.report import Report
 
 
 class ReportBaseTest(unittest.TestCase):
-    @patch("cli.objects.configuration.Jira")
+    @patch("src.objects.configuration.Jira")
     @patch.dict(os.environ, {"FIREWATCH_DEFAULT_JIRA_PROJECT": "TEST"})
     @patch.dict(
         os.environ,
@@ -26,10 +26,10 @@ class ReportBaseTest(unittest.TestCase):
             return_value=["step1", "step2"],
         )
         self.mock_get_steps.start()
-        self.mock_logger = patch("cli.objects.job.get_logger")
+        self.mock_logger = patch("src.objects.job.get_logger")
         self.mock_logger.start().return_value = MagicMock()
         self.mock_storage_client = patch(
-            "cli.objects.job.storage.Client.create_anonymous_client",
+            "src.objects.job.storage.Client.create_anonymous_client",
         )
         self.mock_storage_client.start().return_value = MagicMock()
         self.job = Job("job1", "job1_safe", "123", "bucket1", self.config)
