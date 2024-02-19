@@ -435,7 +435,7 @@ class Report:
                         *Build ID:* {job.build_id}
                         *Classification:* {classification}
                         *Failed Step:* {failed_step}
-                        {'*Failed Test:* ' + failed_test_name if failed_test_name else ''}
+                        {"*Failed Test:* " + failed_test_name if failed_test_name else ""}
 
                         Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
 
