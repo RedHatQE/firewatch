@@ -37,7 +37,7 @@ repos:
     - id: detect-secrets
       exclude: tests/unittests/resources/templates/jira_api/fake_server_info.json
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.2.1
+  rev: v0.2.2
   hooks:
     - id: ruff
     - id: ruff-format
