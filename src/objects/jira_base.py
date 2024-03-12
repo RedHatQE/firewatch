@@ -141,7 +141,7 @@ class Jira:
                 self.logger.info(f"Attachment {file_path} has been uploaded to {issue}")
 
         if epic is not None:
-            epic_search = self.connection.search_issues(f'issue="{epic}"')
+            epic_search = self.connection.search_issues(f'issue="{epic}"', maxResults=False)
             if len(epic_search) == 1:
                 epic_id = epic_search[0].id
                 self.connection.add_issues_to_epic(
@@ -174,7 +174,7 @@ class Jira:
         Returns:
             list[Any]: List of issues that are returned from the query.
         """
-        return self.connection.search_issues(jql_query, validate_query=True)
+        return self.connection.search_issues(jql_query, maxResults=False)
 
     def search_issues(self, jql_query: str) -> list[str]:
         """
