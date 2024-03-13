@@ -38,6 +38,7 @@ ARTIFACT_DIR_ENV_VAR = "ARTIFACT_DIR"
 JIRA_SERVER_URL_ENV_VAR = "JIRA_SERVER_URL"
 DEFAULT_JIRA_SERVER_URL = "https://issues.stage.redhat.com"
 JIRA_TOKEN_ENV_VAR = "JIRA_TOKEN"
+DEFAULT_TEST_JIRA_TOKEN = "some-test-token"
 FIREWATCH_CONFIG_ENV_VAR = "FIREWATCH_CONFIG"
 
 BUILD_IDS_TO_TEST = [
@@ -246,11 +247,12 @@ def firewatch_config_json(monkeypatch, firewatch_configs_templates):
 
 
 @pytest.fixture
-def jira_config_path(tmp_path):
-    config_path = tmp_path.joinpath("jira_config.json")
-    if not config_path.is_file():
-        config_path.parent.mkdir(exist_ok=True, parents=True)
-        config_path.write_text(
+def jira_config_path(tmp_path_factory):
+    tmp_dir = tmp_path_factory.mktemp(basename="qe-metrics-test")
+    config_path = tmp_dir / "jira_config.json"
+
+    with open(config_path, "w") as config_file:
+        config_file.write(
             json.dumps(
                 {
                     "url": os.getenv(JIRA_SERVER_URL_ENV_VAR, DEFAULT_JIRA_SERVER_URL),
@@ -261,7 +263,20 @@ def jira_config_path(tmp_path):
                 },
             ),
         )
+
     yield config_path
+
+@pytest.fixture
+def jira_token():
+    yield os.getenv(JIRA_TOKEN_ENV_VAR, DEFAULT_TEST_JIRA_TOKEN)
+
+@pytest.fixture
+def jira_token_path(tmp_path_factory, jira_token):
+    tmp_dir = tmp_path_factory.mktemp(basename="qe-metrics-test")
+    token_file = tmp_dir / "test_jira_token"
+    token_file.write_text(jira_token)
+
+    yield str(token_file)
 
 
 @pytest.fixture(params=JOB_STEP_DIRS_TO_TEST)
