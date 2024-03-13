@@ -251,9 +251,11 @@ def jira_config_path(tmp_path_factory):
 
     yield config_path
 
+
 @pytest.fixture
 def jira_token():
     yield os.getenv(JIRA_TOKEN_ENV_VAR, DEFAULT_TEST_JIRA_TOKEN)
+
 
 @pytest.fixture
 def jira_token_path(tmp_path_factory, jira_token):
