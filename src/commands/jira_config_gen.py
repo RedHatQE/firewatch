@@ -1,25 +1,7 @@
-#
-# Copyright (C) 2023 Red Hat, Inc.
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-"""Module building jira-config-gen cli command"""
-
 import click
 from click import Context
 
-from src.jira_config_gen.jira_config_gen import JiraConfig
+from src.utils.general import render_jira_config, get_jira_token
 
 
 @click.option(
@@ -41,12 +23,6 @@ from src.jira_config_gen.jira_config_gen import JiraConfig
     type=click.Path(),
 )
 @click.option(
-    "--template-path",
-    help="Directory holding templates",
-    default="/firewatch/src/templates/jira.config.j2",
-    type=click.Path(exists=True),
-)
-@click.option(
     "--pdb",
     help="Drop to `ipdb` shell on exception",
     is_flag=True,
@@ -58,14 +34,13 @@ def jira_config_gen(
     server_url: str,
     token_path: str,
     output_file: str,
-    template_path: str,
     pdb: bool,
 ) -> None:
     ctx.obj["PDB"] = pdb
 
-    JiraConfig(
+    token = get_jira_token(file_path=token_path)
+    render_jira_config(
         server_url=server_url,
-        token_path=token_path,
+        token=token,
         output_file=output_file,
-        template_path=template_path,
     )
