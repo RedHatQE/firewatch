@@ -1,7 +1,7 @@
 import click
 from click import Context
 
-from src.utils.general import render_jira_config, get_jira_token
+from src.utils.general import render_jira_config, get_file_contents
 
 
 @click.option(
@@ -38,7 +38,7 @@ def jira_config_gen(
 ) -> None:
     ctx.obj["PDB"] = pdb
 
-    token = get_jira_token(file_path=token_path)
+    token = get_file_contents(file_path=token_path)
     render_jira_config(
         server_url=server_url,
         token=token,

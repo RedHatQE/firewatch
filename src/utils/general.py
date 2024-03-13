@@ -31,21 +31,21 @@ def render_jira_config(
         return file.name
 
 
-def get_jira_token(file_path: str) -> str:
+def get_file_contents(file_path: str) -> str:
     """
-    Reads the contents of file_path and returns it. The file_path should be the file that holds the Jira API token
+    Reads the contents of file_path and returns it.
 
     Args:
-        file_path (str): The path to the file that holds the Jira API token
+        file_path (str): The path to the file to read
 
     Returns:
         str: A string object that represents the Jira API token
     """
     try:
-        token = Path(file_path).read_text().strip()
-        return token
-    except FileNotFoundError as ex:
+        file_content = Path(file_path).read_text().strip()
+        return file_content
+    except Exception as ex:
         LOGGER.error(
-            f"Failed to read Jira token from {file_path}. error: {ex}",
+            f"Failed to read contents of {file_path}. Error: {ex}",
         )
         raise click.Abort()
