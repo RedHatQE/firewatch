@@ -1,3 +1,4 @@
+JIRA_CONFIG_TEMPLATE = """
 {
     "token": "{{ token }}",
     {% if "stage" in server_url %}
@@ -8,3 +9,4 @@
     {% endif %}
     "url": "{{ server_url }}"
 }
+"""
