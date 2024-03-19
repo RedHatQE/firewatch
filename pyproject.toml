@@ -12,7 +12,7 @@ version = "2.0.0"
 description = "A tool to monitor results in OpenShift CI and report pod or test failures to Jira."
 authors = ["CSPI QE <cspi-qe@redhat.com>"]
 readme = "README.md"
-license = "GPLv3"
+license = "Apche-2.0"
 homepage = "https://github.com/CSPI-QE/firewatch"
 repository = "https://github.com/CSPI-QE/firewatch"
 packages = [{include = "src"}]
