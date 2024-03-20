@@ -226,6 +226,31 @@ def patch_job_junit_dir(monkeypatch, job_artifacts_dir):
 
 
 @pytest.fixture
+def patch_job_download_dirs(monkeypatch, job_artifacts_dir, patch_job_junit_dir, patch_job_log_dir):
+    LOGGER.info("Patching Job download dir path")
+
+    def _get_download_path(*args, **kwargs):
+        return job_artifacts_dir.parent.as_posix()
+
+    monkeypatch.setattr(Job, "_get_download_path", _get_download_path)
+
+
+@pytest.fixture
+def job_step_names():
+    return []
+
+
+@pytest.fixture
+def patch_job_get_steps(monkeypatch, job_step_names):
+    LOGGER.info("Patching Job step names")
+
+    def _get_steps(*args, **kwargs):
+        return job_step_names
+
+    monkeypatch.setattr(Job, "_get_steps", _get_steps)
+
+
+@pytest.fixture
 def fake_log_secret_path(job_log_dir):
     yield job_log_dir.joinpath("fake-step/fake_build_log.txt")
 
@@ -304,7 +329,9 @@ def artifact_dir(monkeypatch, tmp_path):
 
 @pytest.fixture
 def job_dir(tmp_path, build_id):
-    yield tmp_path / build_id
+    path = tmp_path / build_id
+    path.mkdir(parents=True, exist_ok=True)
+    yield path
 
 
 @pytest.fixture(params=BUILD_IDS_TO_TEST, ids=BUILD_IDS_TO_TEST)

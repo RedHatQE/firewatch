@@ -1,5 +1,4 @@
 import json
-import re
 from dataclasses import dataclass
 
 import pytest
@@ -21,19 +20,17 @@ def mock_jira():
 def firewatch_config(monkeypatch, mock_jira, default_jira_project):
     monkeypatch.setenv(
         FIREWATCH_CONFIG_ENV_VAR,
-        json.dumps(
-            {
-                "failure_rules": [
-                    {
-                        "step": "gather-*",
-                        "failure_type": "test_failure",
-                        "classification": "NONE",
-                        "jira_project": "NONE",
-                        "ignore": "true",
-                    },
-                ],
-            },
-        ),
+        json.dumps({
+            "failure_rules": [
+                {
+                    "step": "gather-*",
+                    "failure_type": "test_failure",
+                    "classification": "NONE",
+                    "jira_project": "NONE",
+                    "ignore": "true",
+                },
+            ],
+        }),
     )
     yield Configuration(
         jira=mock_jira,
@@ -44,28 +41,75 @@ def firewatch_config(monkeypatch, mock_jira, default_jira_project):
 
 
 @pytest.fixture
-def job(firewatch_config, patch_job_log_dir, patch_job_junit_dir, job_artifacts_dir):
-    gather_must_gather_dir = job_artifacts_dir / "gather-must-gather"
-    gather_must_gather_dir.mkdir(exist_ok=True, parents=True)
-    (gather_must_gather_dir / "finished.json").write_text(
-        '{"timestamp":170340000,"passed":false,"result":"FAILURE","revision":"release-v1.11"}',
-    )
+def job_step_names():
+    yield ["gather-must-gather"]
+
+
+@pytest.fixture(autouse=True)
+def patch_job_dirs(firewatch_config, job_step_names, job_log_dir, job_artifacts_dir, patch_job_download_dirs):
+    for step_name in job_step_names:
+        (job_log_dir / step_name).mkdir(exist_ok=True, parents=True)
+        (job_artifacts_dir / step_name).mkdir(exist_ok=True, parents=True)
+
+
+@pytest.fixture
+def test_failure_artifacts_present(job_step_names, job_artifacts_dir):
+    for step_name in job_step_names:
+        step_dir = job_artifacts_dir / step_name
+        step_dir.mkdir(exist_ok=True, parents=True)
+        (step_dir / "junit_install.xml").write_text("""
+            <testsuite name="cluster install" tests="8" failures="1">
+            <testcase name="install should succeed: other"/>
+            <testcase name="install should succeed: configuration"/>
+            <testcase name="install should succeed: infrastructure"/>
+            <testcase name="install should succeed: cluster bootstrap"/>
+            <testcase name="install should succeed: cluster creation"/>
+            <testcase name="install should succeed: cluster operator stability"/>
+            <testcase name="install should succeed: overall"/>
+            <testcase name="install should succeed: infrastructure">
+              <failure message="">openshift cluster install failed with infrastructure setup</failure>
+            </testcase>
+          </testsuite>
+        """)
+
+
+@pytest.fixture
+def job(firewatch_config):
     yield Job(
-        name="periodic-ci-windup-windup-ui-tests-v1.2-mtr-ocp4.15-lp-interop-mtr-interop-aws",
-        name_safe="mtr-interop-aws",
-        build_id="1739165508839673856",
+        name="periodic-ci-rh-messaging-qe-claire-lpt-amq-broker-ocp4.16-lp-interop-amq-broker-interop-aws",
+        name_safe="amq-broker-interop-aws",
+        build_id="1769607768542547968",
         gcs_bucket="test-platform-results",
         firewatch_config=firewatch_config,
     )
 
 
+@pytest.fixture
+def firewatch_config_no_ignored_rules(firewatch_config):
+    for rule in firewatch_config.failure_rules:
+        rule.ignore = False
+    yield firewatch_config
+
+
 def test_fail_with_test_failures_should_not_cause_failure_for_ignored_step(
-    monkeypatch,
-    firewatch_config,
-    job,
+    firewatch_config, test_failure_artifacts_present, job
 ):
-    rule = firewatch_config.failure_rules[0]
-    assert rule.step == "gather-*"
-    assert rule.ignore
-    assert re.match(rule.step, "gather-must-gather")
+    assert firewatch_config.fail_with_test_failures
+    for rule in firewatch_config.failure_rules:
+        if rule.failure_type == "test_failure":
+            assert rule.ignore
+    assert not job.has_test_failures
     assert not job.has_failures
+    assert not job.failures
+
+
+def test_fail_with_test_failures_should_cause_failure_unignored_step(
+    firewatch_config_no_ignored_rules, test_failure_artifacts_present, job
+):
+    assert firewatch_config_no_ignored_rules.fail_with_test_failures
+    for rule in firewatch_config_no_ignored_rules.failure_rules:
+        if rule.failure_type == "test_failure":
+            assert not rule.ignore
+    assert job.has_test_failures
+    assert job.has_failures
+    assert job.failures

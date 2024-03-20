@@ -77,11 +77,26 @@ def jira_project(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def jira_config_path(tmp_path, jira_token, jira_server_url):
+def templates_path():
+    yield Path(__file__).parent.joinpath("templates")
+
+
+@pytest.fixture(autouse=True)
+def jira_configs_templates_path(templates_path):
+    yield templates_path.joinpath("jira_configs")
+
+
+@pytest.fixture(autouse=True)
+def firewatch_configs_templates_path(templates_path):
+    yield templates_path.joinpath("firewatch_configs")
+
+
+@pytest.fixture(autouse=True)
+def jira_config_path(tmp_path, jira_configs_templates_path, jira_token, jira_server_url):
     path = tmp_path.joinpath("jira.config")
     path.parent.mkdir(exist_ok=True, parents=True)
     loader = Environment(
-        loader=FileSystemLoader("src/templates"),
+        loader=FileSystemLoader(jira_configs_templates_path.as_posix()),
         autoescape=select_autoescape(),
     )
     template = loader.get_template("jira.config.j2")
