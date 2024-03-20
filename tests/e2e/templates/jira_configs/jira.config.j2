@@ -1,0 +1,10 @@
+{
+    "token": "{{ token }}",
+    {% if "stage" in server_url %}
+    "proxies": {
+        "http": "http://squid.corp.redhat.com:3128",
+        "https": "http://squid.corp.redhat.com:3128"
+    },
+    {% endif %}
+    "url": "{{ server_url }}"
+}

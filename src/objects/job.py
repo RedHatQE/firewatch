@@ -338,8 +338,13 @@ class Job:
                 unique_steps_with_failures.add(failure.step)
                 if failure_rules := self.firewatch_config.failure_rules:
                     for rule in failure_rules:
-                        failure.ignore = rule.matches_failure(failure) and rule.ignore
-                failures_list.append(failure)
+                        if rule.matches_failure(failure) and rule.ignore:
+                            self.logger.warning(
+                                f"Ignoring detected {failure.failure_type} in step {failure.step}",
+                            )
+                            failure.ignore = True
+                if not failure.ignore:
+                    failures_list.append(failure)
 
         if len(failures_list) > 0:
             return failures_list
