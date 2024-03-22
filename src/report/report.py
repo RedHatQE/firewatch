@@ -53,7 +53,7 @@ class Report:
             )
             if len(bugs_filed) > 1:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
-        if (bugs_filed is None or len(bugs_filed) == 0) and (bugs_updated is None or len(bugs_updated) == 0):
+        if not bugs_filed and not bugs_updated:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 
             # Report success
