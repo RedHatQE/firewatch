@@ -3,6 +3,7 @@ import shutil
 from datetime import datetime
 from typing import Any
 from typing import Optional
+from typing import Tuple
 
 import jira
 from simple_logger.logger import get_logger
@@ -41,16 +42,18 @@ class Report:
             else:
                 exit(0)
 
+        bugs_filed = None
+        bugs_updated = None
         # If job has failures, file bugs
         if job.has_failures:
-            bugs_filed = self.file_jira_issues(
+            bugs_filed, bugs_updated = self.file_jira_issues(
                 failures=job.failures,  # type: ignore
                 firewatch_config=firewatch_config,
                 job=job,
             )
             if len(bugs_filed) > 1:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
-        else:
+        if (bugs_filed is None or len(bugs_filed) == 0) and (bugs_updated is None or len(bugs_updated) == 0):
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 
             # Report success
@@ -98,7 +101,7 @@ class Report:
         failures: list[Failure],
         firewatch_config: Configuration,
         job: Job,
-    ) -> list[str]:
+    ) -> Tuple[list[str], list[str]]:
         """
         Using a list of failures, the firewatch config, and the Job object, file issues in Jira.
 
@@ -109,9 +112,11 @@ class Report:
 
         Returns:
             list[str]: A list of strings representing the bugs filed in Jira.
+            list[str]: A list of strings representing the duplicate bugs updated in Jira.
         """
         rule_failure_pairs = []
         bugs_filed: list[str] = []
+        dup_bugs_updated: list[str] = []
 
         # Get rule_failure_pairs
         for failure in failures:
@@ -214,6 +219,7 @@ class Report:
                             else None
                         ),  # type: ignore
                     )
+                    dup_bugs_updated.append(bug)
             # If duplicates are not found, file a bug
             else:
                 jira_issue = firewatch_config.jira.create_issue(
@@ -232,7 +238,7 @@ class Report:
                 )
                 bugs_filed.append(jira_issue.key)
 
-        return bugs_filed
+        return bugs_filed, dup_bugs_updated
 
     def report_success(self, job: Job, firewatch_config: Configuration) -> None:
         """
