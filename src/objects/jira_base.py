@@ -121,8 +121,7 @@ class Jira:
 
         if file_attachments is not None:
             for file_path in file_attachments:
-                self.connection.add_attachment(issue=issue.key, attachment=file_path)
-                self.logger.info(f"Attachment {file_path} has been uploaded to {issue}")
+                self.add_attachment_to_issue(issue=issue, attachment_path=file_path)
 
         if epic is not None:
             epic_search = self.connection.search_issues(f'issue="{epic}"', maxResults=False)
@@ -147,6 +146,23 @@ class Jira:
             )
 
         return issue
+
+    def add_attachment_to_issue(self, issue: Issue, attachment_path: str) -> None:
+        """
+        Add and upload the attachment from attachment_path to the Jira Issue object provided.
+
+        Args:
+            issue (Issue): The Jira issue the attachment should be added to.
+            attachment_path (str): The path of the file to upload as an attachment to the issue.
+
+        Returns:
+            None
+        """
+        try:
+            self.connection.add_attachment(issue=issue.key, attachment=attachment_path)
+            self.logger.info(f"Attachment {attachment_path} has been uploaded to {issue}")
+        except JIRAError as e:
+            self.logger.exception(msg=e)
 
     def search(self, jql_query: str) -> list[Any]:
         """
