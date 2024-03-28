@@ -529,9 +529,7 @@ def patch_jira_api_requests(
         else:
             LOGGER.info(f"Unpatched PUT request to: {url}")
             monkeypatch.undo()
-            r = requests.sessions.Session.put(self, url, *args, **kwargs)
-            return r
-
+            return requests.sessions.Session.put(self, url, *args, **kwargs)
     monkeypatch.setattr(requests.sessions.Session, "get", get)
     monkeypatch.setattr(requests.sessions.Session, "post", post)
     monkeypatch.setattr(requests.sessions.Session, "put", put)
