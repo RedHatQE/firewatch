@@ -162,7 +162,14 @@ class Jira:
             self.connection.add_attachment(issue=issue.key, attachment=attachment_path)
             self.logger.info(f"Attachment {attachment_path} has been uploaded to {issue}")
         except JIRAError as e:
-            self.logger.exception(msg=e)
+            self.logger.exception(
+                msg=f"""
+            exception caught while attempting to upload attachment to Jira issue:
+                {e=}
+                {issue=}
+                {attachment_path=}
+            """
+            )
 
     def search(self, jql_query: str) -> list[Any]:
         """
