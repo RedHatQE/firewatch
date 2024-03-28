@@ -15,6 +15,7 @@
 #
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Type
@@ -459,6 +460,20 @@ def patch_jira_api_requests(
 ):
     caps = {"get": {}, "post": {}, "put": {}}
 
+    def url_contains_fake_issue_id_or_key(url):
+        if fake_issue_id in url or fake_issue_key in url:
+            return True
+        return False
+
+    def url_ends_with_fake_issue_id_or_key(url):
+        return bool(url.endswith(fake_issue_id) or url.endswith(fake_issue_key))
+
+    def url_contains_subpath(url, pat):
+        return bool(re.match(pat, url))
+
+    def url_contains_issue_subpath(url):
+        return bool(url_contains_subpath(url, r".+/issue/.+"))
+
     def get(self, url, *args, **kwargs):
         LOGGER.info(f"Patching GET request to URL: {url}")
         caps["get"][url] = (args, kwargs)
@@ -466,38 +481,31 @@ def patch_jira_api_requests(
         if url.endswith("/serverInfo"):
             LOGGER.info("Faking Jira serverInfo")
             return MockJiraApiResponse(_json=fake_server_info_json, _status_code=200)
-
-        if url.endswith("/field"):
+        elif url.endswith("/field"):
             LOGGER.info("Faking Jira fields")
             return MockJiraApiResponse(_json=fake_fields_response_json, _status_code=200)
-        if url.endswith("/search"):
+        elif url.endswith("/search"):
             LOGGER.info("Faking Jira search results")
             return MockJiraApiResponse(_json=fake_search_response_json, _status_code=200)
-        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}",
-        ):
+        elif url_ends_with_fake_issue_id_or_key(url) and url_contains_issue_subpath(url):
             LOGGER.info(f"Faking Jira issue: {url}")
             return MockJiraApiResponse(_json=fake_issue_json, _status_code=200)
+
         else:
             LOGGER.info(f"Unpatched GET request to: {url}")
             monkeypatch.undo()
-            r = requests.sessions.Session.get(self=self, url=url, *args, **kwargs)
-            return r
+            return requests.sessions.Session.get(self=self, url=url, *args, **kwargs)
 
     def post(self, url, *args, **kwargs):
         LOGGER.info(f"Patching POST request to URL: {url}")
         caps["post"][url] = (args, kwargs)
 
-        if url.endswith(f"/{fake_issue_key}/comment") or url.endswith(
-            f"/{fake_issue_id}/comment",
-        ):
+        if url_contains_fake_issue_id_or_key(url) and url.endswith("/comment"):
             return MockJiraApiResponse(
                 _json=fake_comment_response_json,
                 _status_code=201,
             )
-        if url.endswith(f"/issue/{fake_issue_id}/attachments") or url.endswith(
-            f"/issue/{fake_issue_key}/attachments",
-        ):
+        elif url_contains_fake_issue_id_or_key(url) and url_contains_issue_subpath and url.endswith("/attachments"):
             LOGGER.info(f"Faking Jira file upload: {url}")
             return fake_issue_add_attachment_response
         else:
@@ -510,8 +518,10 @@ def patch_jira_api_requests(
         LOGGER.info(f"Patching PUT request to URL: {url}")
         caps["put"][url] = (data, args, kwargs)
 
-        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}",
+        if (
+            url_contains_fake_issue_id_or_key(url)
+            and url_ends_with_fake_issue_id_or_key(url)
+            and url_contains_issue_subpath(url)
         ):
             data = json.loads(data)
             _json = fake_issue_json.copy()
