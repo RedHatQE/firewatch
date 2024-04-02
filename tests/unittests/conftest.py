@@ -15,8 +15,10 @@
 #
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Type
 
 import pytest
 import requests
@@ -81,6 +83,9 @@ JIRA_FAKE_COMMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_comment_response.json
 
 JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_fields_response.json"
 
+JIRA_FAKE_ISSUE_ADD_ATTACHMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_issue_add_attachment_response.json"
+
+
 FIREWATCH_CONFIG_TEST_TEMPLATES_DIR_NAME = "firewatch_configs"
 
 FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME = "firewatch_config_sample.json"
@@ -131,7 +136,7 @@ def firewatch_configs_templates(firewatch_configs_test_templates_dir):
 
 
 @pytest.fixture
-def fake_server_info_json(jira_api_templates):
+def fake_server_info_json(jira_api_templates) -> dict:
     template = jira_api_templates.get_template(
         JIRA_FAKE_SERVER_INFO_JSON_TEMPLATE_FILE_NAME,
     )
@@ -177,6 +182,20 @@ def fake_fields_response_json(jira_api_templates):
     )
     rendered_template = template.render()
     yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_issue_add_attachment_response_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_ISSUE_ADD_ATTACHMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME,
+    )
+    rendered_template = template.render()
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
+def fake_issue_add_attachment_response(fake_issue_add_attachment_response_json):
+    yield MockJiraApiResponse(_json=fake_issue_add_attachment_response_json, _status_code=200)
 
 
 @pytest.fixture
@@ -376,13 +395,55 @@ def fake_issue_with_labels_json(monkeypatch, fake_issue_json):
 @dataclass
 class MockJiraApiResponse:
     _json: dict | list = None
-    status_code: int = 200
+    _status_code: int = None
+    _ok: bool = None
+    _content: bytes = None
+    _headers: dict = None
+    _url: str = None
 
+    @property
     def ok(self):
-        return True
+        if not self._ok:
+            if str(self.status_code).startswith("2"):
+                self._ok = True
+            else:
+                self._ok = False
+        return self._ok
+
+    @property
+    def status_code(self):
+        if not self._status_code:
+            self._status_code = 200
+        return self._status_code
 
     def json(self):
+        if not self._json:
+            self._json = json.loads(self.content.decode())
         return self._json
+
+    @property
+    def headers(self):
+        if not self._headers:
+            self._headers = {}
+        return self._headers
+
+    @property
+    def content(self):
+        return self._content
+
+    @property
+    def text(self):
+        if self.content:
+            return self.content.decode("UTF-8")
+
+    @property
+    def url(self):
+        return self._url
+
+
+@pytest.fixture
+def mock_jira_api_response() -> Type[MockJiraApiResponse]:
+    yield MockJiraApiResponse
 
 
 @pytest.fixture
@@ -395,8 +456,23 @@ def patch_jira_api_requests(
     fake_search_response_json,
     fake_comment_response_json,
     fake_fields_response_json,
+    fake_issue_add_attachment_response,
 ):
     caps = {"get": {}, "post": {}, "put": {}}
+
+    def url_contains_fake_issue_id_or_key(url):
+        if fake_issue_id in url or fake_issue_key in url:
+            return True
+        return False
+
+    def url_ends_with_fake_issue_id_or_key(url):
+        return bool(url.endswith(fake_issue_id) or url.endswith(fake_issue_key))
+
+    def url_contains_subpath(url, pat):
+        return bool(re.match(pat, url))
+
+    def url_contains_issue_subpath(url):
+        return bool(url_contains_subpath(url, r".+/issue/.+"))
 
     def get(self, url, *args, **kwargs):
         LOGGER.info(f"Patching GET request to URL: {url}")
@@ -404,52 +480,56 @@ def patch_jira_api_requests(
 
         if url.endswith("/serverInfo"):
             LOGGER.info("Faking Jira serverInfo")
-            return MockJiraApiResponse(_json=fake_server_info_json, status_code=200)
-
-        if url.endswith("/field"):
+            return MockJiraApiResponse(_json=fake_server_info_json, _status_code=200)
+        elif url.endswith("/field"):
             LOGGER.info("Faking Jira fields")
-            return MockJiraApiResponse(_json=fake_fields_response_json, status_code=200)
-        if url.endswith("/search"):
+            return MockJiraApiResponse(_json=fake_fields_response_json, _status_code=200)
+        elif url.endswith("/search"):
             LOGGER.info("Faking Jira search results")
-            return MockJiraApiResponse(_json=fake_search_response_json, status_code=200)
-        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}",
-        ):
+            return MockJiraApiResponse(_json=fake_search_response_json, _status_code=200)
+        elif url_ends_with_fake_issue_id_or_key(url) and url_contains_issue_subpath(url):
             LOGGER.info(f"Faking Jira issue: {url}")
-            return MockJiraApiResponse(_json=fake_issue_json, status_code=200)
+            return MockJiraApiResponse(_json=fake_issue_json, _status_code=200)
+
         else:
+            LOGGER.info(f"Unpatched GET request to: {url}")
             monkeypatch.undo()
-            return requests.sessions.Session.get(self, url, *args, **kwargs)
+            return requests.sessions.Session.get(self=self, url=url, *args, **kwargs)
 
     def post(self, url, *args, **kwargs):
         LOGGER.info(f"Patching POST request to URL: {url}")
         caps["post"][url] = (args, kwargs)
 
-        if url.endswith(f"/{fake_issue_key}/comment") or url.endswith(
-            f"/{fake_issue_id}/comment",
-        ):
+        if url_contains_fake_issue_id_or_key(url) and url.endswith("/comment"):
             return MockJiraApiResponse(
                 _json=fake_comment_response_json,
-                status_code=201,
+                _status_code=201,
             )
+        elif url_contains_fake_issue_id_or_key(url) and url_contains_issue_subpath and url.endswith("/attachments"):
+            LOGGER.info(f"Faking Jira file upload: {url}")
+            return fake_issue_add_attachment_response
         else:
+            LOGGER.info(f"Unpatched POST request to: {url}")
             monkeypatch.undo()
-            return requests.sessions.Session.get(self, url, *args, **kwargs)
+            return requests.sessions.Session.post(self=self, url=url, *args, **kwargs)
 
     def put(self, url, data, *args, **kwargs):
         LOGGER.info(f"Patching PUT request to URL: {url}")
         caps["put"][url] = (data, args, kwargs)
 
-        if url.endswith(f"/issue/{fake_issue_id}") or url.endswith(
-            f"/issue/{fake_issue_key}",
+        if (
+            url_contains_fake_issue_id_or_key(url)
+            and url_ends_with_fake_issue_id_or_key(url)
+            and url_contains_issue_subpath(url)
         ):
             data = json.loads(data)
             _json = fake_issue_json.copy()
             _json["fields"].update(data["fields"])
-            return MockJiraApiResponse(_json=_json, status_code=204)
+            return MockJiraApiResponse(_json=_json, _status_code=204)
         else:
+            LOGGER.info(f"Unpatched PUT request to: {url}")
             monkeypatch.undo()
-            return requests.sessions.Session.get(self, url, *args, **kwargs)
+            return requests.sessions.Session.put(self, url, *args, **kwargs)
 
     monkeypatch.setattr(requests.sessions.Session, "get", get)
     monkeypatch.setattr(requests.sessions.Session, "post", post)
