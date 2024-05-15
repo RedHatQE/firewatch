@@ -1,5 +1,6 @@
 import json
 import os
+import fnmatch
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -119,7 +120,8 @@ class Configuration:
             return default_project
         elif not default_project:
             self.logger.error(
-                "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try again.",
+                "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try "
+                "again.",
             )
             exit(1)
         else:
@@ -143,6 +145,7 @@ class Configuration:
             dict[Any, Any]: A dictionary object representing the firewatch config data.
         """
         base_config_data = "{}"
+        steps_map = {}
 
         if base_config_file_path is not None:
             # Read the contents of the config file
@@ -172,27 +175,29 @@ class Configuration:
             )
             exit(1)
 
-        for key in ["failure_rules", "success_rules"]:
-            if key in base_config_data:
-                # Create a dict to map keys to dictionaries for quick lookup and update
-                steps_map = {d["step"]: d for d in base_config_data[key]}
+        # If a step exists in base config, and mentioned by use, update and override it using unpack
+        config_data = {**base_config_data, **additional_config_data}
 
-            if key in additional_config_data:
-                for dict in additional_config_data[key]:
-                    step = dict["step"]
-                    if step in steps_map:
-                        # If step exists in base config, update and override it
-                        steps_map[step].update(dict)
-                    else:
-                        # Add user input to base config and expend it
-                        base_config_data[key].append(dict)
-                        steps_map[step] = dict  # Also update the key_map to include this new key
-
-        if not base_config_data:
+        if not config_data:
             self.logger.error(
                 "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. "
                 "Please fix error and try again.",
             )
             exit(1)
 
-        return base_config_data  # type: ignore
+        # Include patterns from base config and expend user input
+        for key in ["failure_rules", "success_rules"]:
+            if key in config_data:
+                steps_map = {d["step"]: d for d in config_data[key]}
+            if key in base_config_data:
+                for step_dict in base_config_data[key]:
+                    step = step_dict["step"]
+                    if step not in steps_map.keys():
+                        # Check if user didn't mention a pattern that already overrides this step
+                        if not any(fnmatch.fnmatch(step,k) for k in steps_map.keys()):
+                            if key not in config_data:
+                                config_data[key] = step_dict
+                            else:
+                                config_data[key].append(step_dict)
+                            steps_map[step] = step_dict  # Also update the steps_map to include this step
+        return config_data  # type: ignore
