@@ -5,7 +5,10 @@ from typing import Optional
 from jira import Issue
 from jira import JIRA
 from jira.exceptions import JIRAError
+from pyhelper_utils.general import ignore_exceptions
 from simple_logger.logger import get_logger
+
+LOGGER = get_logger(name=__name__)
 
 
 class Jira:
@@ -16,7 +19,6 @@ class Jira:
         Args:
             jira_config_path (str): The path to the configuration file that hold authentication credentials.
         """
-        self.logger = get_logger(__name__)
         self.proxies: dict[str, str] = {}
 
         with open(jira_config_path) as jira_config_file:
@@ -38,8 +40,9 @@ class Jira:
                 token_auth=self.token,
             )
 
-        self.logger.info("Jira authentication successful...")
+        LOGGER.info("Jira authentication successful...")
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def create_issue(
         self,
         project: str,
@@ -111,11 +114,11 @@ class Jira:
             if security_id:
                 issue_dict.update({"security": {"id": security_id}})
 
-        self.logger.info(
+        LOGGER.info(
             "A Jira issue will be reported.",
         )
         issue = self.connection.create_issue(issue_dict)
-        self.logger.info(
+        LOGGER.info(
             f"{issue} has been reported to Jira: {self.url}/browse/{issue}",
         )
 
@@ -132,11 +135,11 @@ class Jira:
                     issue_keys=issue.key,
                 )
             else:
-                self.logger.error(f"Error finding Jira ID of epic {epic}")
+                LOGGER.error(f"Error finding Jira ID of epic {epic}")
 
         if assignee is not None:
             self.assign_issue(user_email=assignee, issue=issue.key)
-            self.logger.info(f"Issue {issue} has been assigned to user {assignee}")
+            LOGGER.info(f"Issue {issue} has been assigned to user {assignee}")
 
         if close_issue:
             self.connection.transition_issue(
@@ -147,6 +150,7 @@ class Jira:
 
         return issue
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def add_attachment_to_issue(self, issue: Issue, attachment_path: str) -> None:
         """
         Add and upload the attachment from attachment_path to the Jira Issue object provided.
@@ -160,9 +164,9 @@ class Jira:
         """
         try:
             self.connection.add_attachment(issue=issue.key, attachment=attachment_path)
-            self.logger.info(f"Attachment {attachment_path} has been uploaded to {issue}")
+            LOGGER.info(f"Attachment {attachment_path} has been uploaded to {issue}")
         except JIRAError as e:
-            self.logger.exception(
+            LOGGER.exception(
                 msg=f"""
             exception caught while attempting to upload attachment to Jira issue:
                 {e=}
@@ -171,6 +175,7 @@ class Jira:
             """
             )
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def search(self, jql_query: str) -> list[Any]:
         """
         Performs a Jira JQL query using the Jira connection and returns a list of issues, including all fields.
@@ -183,6 +188,7 @@ class Jira:
         """
         return self.connection.search_issues(jql_query, maxResults=False)
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def search_issues(self, jql_query: str) -> list[str]:
         """
         Performs a Jira JQL query using the Jira connection and returns a list of strings representing issue keys.
@@ -201,6 +207,7 @@ class Jira:
 
         return issues
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def comment(self, issue_id: str, comment: str) -> None:
         """
         Comments on the issue_id.
@@ -211,6 +218,7 @@ class Jira:
         """
         self.connection.add_comment(issue_id, comment)
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def relate_issues(self, inward_issue: str, outward_issue: str) -> bool:
         """
         Used to relate two issues in Jira.
@@ -228,13 +236,13 @@ class Jira:
                 inwardIssue=inward_issue,
                 outwardIssue=outward_issue,
             )
-            self.logger.info(
+            LOGGER.info(
                 f"Issue {inward_issue} and issue {outward_issue} related successfully",
             )
             return True
         except Exception as ex:
-            self.logger.error(f"Failure relating {inward_issue} with {outward_issue}")
-            self.logger.error(ex)
+            LOGGER.error(f"Failure relating {inward_issue} with {outward_issue}")
+            LOGGER.error(ex)
             return False
 
     def project_exists(self, project_key: str) -> bool:
@@ -251,24 +259,25 @@ class Jira:
             project = self.connection.project(project_key)
 
             if project:
-                self.logger.debug(f"Jira project {project_key} exists...")
+                LOGGER.debug(f"Jira project {project_key} exists...")
                 return True
             else:
-                self.logger.error(
+                LOGGER.error(
                     f"Jira project {project_key} does not exist on {self.url}...",
                 )
                 return False
 
         except JIRAError as e:
             if e.status_code == 404:
-                self.logger.error(
+                LOGGER.error(
                     f"Jira project {project_key} does not exist on {self.url}...",
                 )
                 return False
             else:
-                self.logger.error(f"Error: {e.text}")
+                LOGGER.error(f"Error: {e.text}")
                 return False
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def assign_issue(self, user_email: str, issue: str) -> bool:
         """
         Assigns a given issue to the user specified.
@@ -284,10 +293,11 @@ class Jira:
         try:
             return self.connection.assign_issue(issue=issue, assignee=user_email)
         except Exception as ex:
-            self.logger.error(f"Unable to assign issue {issue} to user {user_email}.")
-            self.logger.error(ex)
+            LOGGER.error(f"Unable to assign issue {issue} to user {user_email}.")
+            LOGGER.error(ex)
             return False
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def _get_security_level_id(
         self,
         security_level: str,
@@ -313,11 +323,12 @@ class Jira:
             if level.name.lower() == security_level.lower():
                 return level.id
 
-        self.logger.error(
+        LOGGER.error(
             f"Security level {security_level} not found in {project_key}, no security level will be applied.",
         )
         return None
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def get_issue_by_id_or_key(self, issue: str) -> Issue:
         """
         Get a Jira Issue object from the given issue id or key field value.
@@ -330,6 +341,7 @@ class Jira:
         """
         return self.connection.issue(id=issue)
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def add_labels_to_issue(self, issue_id_or_key: str, labels: list[str]) -> Issue:
         """
         Append the given labels to a Jira issue, as identified by the issue's key or ID field value.
@@ -349,10 +361,10 @@ class Jira:
         # Check if the error is a 400 code and potentially due to user permissions.
         except JIRAError as error:
             if error.status_code == 400:
-                self.logger.error(
+                LOGGER.error(
                     f"Failed to add labels {labels} to issue {issue_id_or_key}. Error: {error.text}",
                 )
-                self.logger.info(
+                LOGGER.info(
                     "This error could be caused by missing permissions on the Jira user."
                     'Please see the "Jira User Permissions" section in the README for more information.',
                 )
