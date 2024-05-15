@@ -86,7 +86,7 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        rules = [match_rule,pattern_rule]
+        rules = [match_rule, pattern_rule]
 
         self.failure.step = "exact-failed-step"
         matching_rules = self.report.failure_matches_rule(
@@ -94,9 +94,9 @@ class TestFailureMatchesRule(ReportBaseTest):
             rules=rules,
             default_jira_project=self.config.default_jira_project,
         )
-        print([s.step for s in matching_rules]) #TODO
+        print([s.step for s in matching_rules])  # TODO
         import ipdb
+
         ipdb.set_trace()
         assert len(matching_rules) == 1
-        assert (matching_rules[0].step == match_rule.step)
-
+        assert matching_rules[0].step == match_rule.step
