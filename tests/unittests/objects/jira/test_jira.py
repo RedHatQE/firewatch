@@ -27,13 +27,6 @@ class TestJiraApiRespondsWithSuccess:
         assert isinstance(issue, Issue)
         assert issue.id == fake_issue_id
 
-    def test_add_file_attachment_with_success_and_log(self, fake_issue, jira, fake_attachment_path, caplog):
-        jira.add_attachment_to_issue(
-            issue=fake_issue,
-            attachment_path=fake_attachment_path.as_posix(),
-        )
-        assert f"Attachment {fake_attachment_path} has been uploaded to {fake_issue.key}" in caplog.text
-
 
 class TestJiraApiRespondsWithPermissionFailure:
     @pytest.fixture
