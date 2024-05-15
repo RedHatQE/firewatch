@@ -68,3 +68,35 @@ class TestFailureMatchesRule(ReportBaseTest):
         assert (matching_rules[0].step == match_rule.step) and (
             matching_rules[0].failure_type == match_rule.failure_type
         )
+
+    def test_configuration_gets_failure_rules_with_two_matching_steps(self):
+        match_rule = FailureRule(
+            rule_dict={
+                "step": "exact-failed-step",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        pattern_rule = FailureRule(
+            rule_dict={
+                "step": "exact-*",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        rules = [match_rule,pattern_rule]
+
+        self.failure.step = "exact-failed-step"
+        matching_rules = self.report.failure_matches_rule(
+            failure=self.failure,
+            rules=rules,
+            default_jira_project=self.config.default_jira_project,
+        )
+        print([s.step for s in matching_rules]) #TODO
+        import ipdb
+        ipdb.set_trace()
+        assert len(matching_rules) == 1
+        assert (matching_rules[0].step == match_rule.step)
+
