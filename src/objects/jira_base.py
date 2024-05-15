@@ -19,6 +19,7 @@ class Jira:
         Args:
             jira_config_path (str): The path to the configuration file that hold authentication credentials.
         """
+        self.logger = LOGGER
         self.proxies: dict[str, str] = {}
 
         with open(jira_config_path) as jira_config_file:
