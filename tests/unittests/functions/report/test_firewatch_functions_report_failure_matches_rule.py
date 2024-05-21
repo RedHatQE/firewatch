@@ -70,10 +70,20 @@ class TestFailureMatchesRule(ReportBaseTest):
         )
 
     def test_configuration_gets_failure_rules_with_two_matching_steps(self):
+        failure = Failure(failed_step="exact-failed-step", failure_type="test_failure")
+
         match_rule = FailureRule(
             rule_dict={
                 "step": "exact-failed-step",
                 "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        different_type_rule = FailureRule(
+            rule_dict={
+                "step": "exact-failed-step",
+                "failure_type": "pod_failure",
                 "classification": "NONE",
                 "jira_project": "NONE",
             },
@@ -86,17 +96,13 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        rules = [match_rule, pattern_rule]
+        rules = [pattern_rule, different_type_rule, match_rule]
 
-        self.failure.step = "exact-failed-step"
         matching_rules = self.report.failure_matches_rule(
-            failure=self.failure,
+            failure=failure,
             rules=rules,
             default_jira_project=self.config.default_jira_project,
         )
-        print([s.step for s in matching_rules])  # TODO
-        import ipdb
 
-        ipdb.set_trace()
-        assert len(matching_rules) == 1
-        assert matching_rules[0].step == match_rule.step
+        # Check if match_rule is sorted higher than pattern_rule
+        assert matching_rules[0].step.__eq__(failure.step)
