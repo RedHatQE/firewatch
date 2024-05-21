@@ -188,7 +188,7 @@ class Configuration:
         # Include patterns from base config and expend user input
         for key in ["failure_rules", "success_rules"]:
             if key in config_data:
-                steps_map = {d["step"]: d for d in config_data[key]}
+                steps_map = {d.get("step"): d for d in config_data[key]}
             if key in base_config_data:
                 for step_dict in base_config_data[key]:
                     step = step_dict["step"]
