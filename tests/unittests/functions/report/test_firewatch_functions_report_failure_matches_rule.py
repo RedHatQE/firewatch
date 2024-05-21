@@ -1,6 +1,10 @@
+import os
+import tempfile
+
 from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from tests.unittests.functions.report.report_base_test import ReportBaseTest
+from unittest.mock import patch
 
 
 class TestFailureMatchesRule(ReportBaseTest):
@@ -107,3 +111,66 @@ class TestFailureMatchesRule(ReportBaseTest):
         assert matching_rules[0].step.__eq__(failure.step)
         # Eliminate the rule with the wrong failure_type
         assert len(matching_rules) == 2
+
+    @patch.dict(
+        os.environ,
+        {
+            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "specific-step-logic","failure_type": "test_failure",'
+            '"classification": "NONE", "jira_project": "NONE"}]}',
+        },
+    )
+    def test_configuration_gets_failure_rules_with_specific_step_prioritized_over_pattern(self):
+        failure = Failure(failed_step="specific-step-logic", failure_type="test_failure")
+
+        base_config_data = (
+            '{"failure_rules": [{"step": "*step-logic*", "failure_type": "test_failure", '
+            '"classification": "NONE", "jira_project": "NONE"}]}'
+        )
+        with tempfile.TemporaryDirectory() as tmp_path:
+            base_config_file = os.path.join(tmp_path, "base_config.json")
+            with open(base_config_file, "w") as f:
+                f.write(base_config_data)
+
+            config = self.config._get_config_data(base_config_file_path=base_config_file)
+            rules = [FailureRule(rule_dict=rule) for rule in config.get("failure_rules")]
+            matching_rules = self.report.failure_matches_rule(
+                failure=failure,
+                rules=rules,
+                default_jira_project=self.config.default_jira_project,
+            )
+
+            # Keep both rules in firewatch config since pattern might match other failures
+            assert len(matching_rules) == 2
+            # Check that the specific rule is prioritised on top of the pattern
+            assert matching_rules[0].step.__eq__("specific-step-logic")
+
+    @patch.dict(
+        os.environ,
+        {
+            "FIREWATCH_CONFIG": '{"failure_rules": [{"step": "*step-logic*","failure_type": "test_failure",'
+            '"classification": "NONE", "jira_project": "NONE"}]}',
+        },
+    )
+    def test_configuration_gets_failure_rules_with_pattern_overriding_specific_step(self):
+        failure = Failure(failed_step="specific-step-logic", failure_type="test_failure")
+
+        base_config_data = (
+            '{"failure_rules": [{"step": "specific-step-logic", "failure_type": "test_failure", '
+            '"classification": "NONE", "jira_project": "NONE"}]}'
+        )
+        with tempfile.TemporaryDirectory() as tmp_path:
+            base_config_file = os.path.join(tmp_path, "base_config.json")
+            with open(base_config_file, "w") as f:
+                f.write(base_config_data)
+
+            config = self.config._get_config_data(base_config_file_path=base_config_file)
+            rules = [FailureRule(rule_dict=rule) for rule in config.get("failure_rules")]
+            matching_rules = self.report.failure_matches_rule(
+                failure=failure,
+                rules=rules,
+                default_jira_project=self.config.default_jira_project,
+            )
+
+            # Keep only the pattern rule by overriding the one from the base config file
+            assert len(matching_rules) == 1
+            assert matching_rules[0].step.__eq__("*step-logic*")
