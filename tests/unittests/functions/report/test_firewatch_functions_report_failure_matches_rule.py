@@ -103,6 +103,7 @@ class TestFailureMatchesRule(ReportBaseTest):
             rules=rules,
             default_jira_project=self.config.default_jira_project,
         )
-
         # Check if match_rule is sorted higher than pattern_rule
         assert matching_rules[0].step.__eq__(failure.step)
+        # Eliminate the rule with the wrong failure_type
+        assert len(matching_rules) == 2
