@@ -144,14 +144,15 @@ class Configuration:
         Returns:
             dict[Any, Any]: A dictionary object representing the firewatch config data.
         """
-        base_config_data = "{}"
+        base_config_str = ""
+        base_config_data = {}
         steps_map = {}
 
         if base_config_file_path is not None:
             # Read the contents of the config file
             try:
                 with open(base_config_file_path) as file:
-                    base_config_data = file.read()
+                    base_config_str = file.read()
             except Exception:
                 self.logger.error(
                     f"Unable to read configuration file at {base_config_file_path}. Please verify permissions/path and try again.",
@@ -160,7 +161,8 @@ class Configuration:
 
         # Verify that the config data is properly formatted JSON
         try:
-            base_config_data = json.loads(base_config_data)
+            if base_config_str:
+                base_config_data = json.loads(base_config_str)
 
             # Will update base config with additional logic from env vars
             additional_config_data = json.loads(os.getenv("FIREWATCH_CONFIG") or "{}")
