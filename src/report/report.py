@@ -350,6 +350,9 @@ class Report:
             if default_rule not in matching_rules:
                 matching_rules.append(default_rule)
 
+        # Sort matching_rules by the identical rules to failure.step
+        if matching_rules:
+            matching_rules = sorted(matching_rules, key=lambda x: x.step.__eq__(failure.step), reverse=True)
         return matching_rules
 
     def add_passing_job_comment(self, job: Job, jira: Jira, issue_id: str) -> None:
