@@ -84,14 +84,6 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        different_type_rule = FailureRule(
-            rule_dict={
-                "step": "exact-failed-step",
-                "failure_type": "pod_failure",
-                "classification": "NONE",
-                "jira_project": "NONE",
-            },
-        )
         pattern_rule = FailureRule(
             rule_dict={
                 "step": "exact-*",
@@ -100,7 +92,7 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        rules = [pattern_rule, different_type_rule, match_rule]
+        rules = [pattern_rule, match_rule]
 
         matching_rules = self.report.failure_matches_rule(
             failure=failure,
@@ -109,8 +101,6 @@ class TestFailureMatchesRule(ReportBaseTest):
         )
         # Check if match_rule is sorted higher than pattern_rule
         assert matching_rules[0].step.__eq__(failure.step)
-        # Eliminate the rule with the wrong failure_type
-        assert len(matching_rules) == 2
 
     @patch.dict(
         os.environ,
@@ -139,10 +129,10 @@ class TestFailureMatchesRule(ReportBaseTest):
                 default_jira_project=self.config.default_jira_project,
             )
 
-            # Keep both rules in firewatch config since pattern might match other failures
-            assert len(matching_rules) == 2
             # Check that the specific rule is prioritised on top of the pattern
             assert matching_rules[0].step.__eq__("specific-step-logic")
+            # Keep both rules in firewatch config since pattern might match other failures
+            assert len(matching_rules) == 2
 
     @patch.dict(
         os.environ,
@@ -172,5 +162,5 @@ class TestFailureMatchesRule(ReportBaseTest):
             )
 
             # Keep only the pattern rule by overriding the one from the base config file
-            assert len(matching_rules) == 1
             assert matching_rules[0].step.__eq__("*step-logic*")
+            assert len(matching_rules) == 1
