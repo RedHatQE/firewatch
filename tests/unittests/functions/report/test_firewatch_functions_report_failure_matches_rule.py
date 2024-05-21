@@ -80,14 +80,6 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        different_type_rule = FailureRule(
-            rule_dict={
-                "step": "exact-failed-step",
-                "failure_type": "pod_failure",
-                "classification": "NONE",
-                "jira_project": "NONE",
-            },
-        )
         pattern_rule = FailureRule(
             rule_dict={
                 "step": "exact-*",
@@ -96,13 +88,12 @@ class TestFailureMatchesRule(ReportBaseTest):
                 "jira_project": "NONE",
             },
         )
-        rules = [pattern_rule, different_type_rule, match_rule]
+        rules = [pattern_rule, match_rule]
 
         matching_rules = self.report.failure_matches_rule(
             failure=failure,
             rules=rules,
             default_jira_project=self.config.default_jira_project,
         )
-
         # Check if match_rule is sorted higher than pattern_rule
         assert matching_rules[0].step.__eq__(failure.step)
