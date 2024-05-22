@@ -78,3 +78,8 @@ class TestGetConfigData(ConfigurationBaseTest):
             config = Configuration(self.mock_jira, True, True, True, 10, base_config_file)
             new_steps = [rule["step"] for rule in config.config_data["failure_rules"]]
             assert new_steps == ["specific-step-pattern", "*step-logic*", "*step-pattern*"]
+
+    def test_configuration_gets_config_data_with_base_config_from_invalid_url(self):
+        base_config_file = "https://"
+        with self.assertRaises(SystemExit):
+            Configuration(self.mock_jira, True, True, True, 10, base_config_file)

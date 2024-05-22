@@ -12,6 +12,29 @@ from src.objects.jira_base import Jira
 from src.objects.rule import Rule
 
 
+def read_base_config_file(path: str) -> str:
+    from urllib.request import urlopen
+
+    try:
+        response = urlopen(path)
+        response_data = response.read()
+        return response_data
+    # Path is not a URL type
+    except ValueError:
+        # Read the contents of the config file
+        try:
+            with open(path) as file:
+                base_config_str = file.read()
+                return base_config_str
+        except Exception:
+            pass
+    # Path is an invalid or unreadable URL
+    except Exception:
+        pass
+
+    return None  # type: ignore
+
+
 class Configuration:
     def __init__(
         self,
@@ -134,12 +157,12 @@ class Configuration:
         """
         Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable or
         both.
-        Will exit with code 1 if both a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
+        Will exit with code 1 if both a config file isn't provided (or isn't readable) or the FIREWATCH_CONFIG environment variable isn't set.
         The configuration file is considered as the basis of the configuration data,
         And it will be overridden and expended by the additional set of rules that will be applied to the env var.
 
         Args:
-            base_config_file_path (Optional[str]): The firewatch config can be stored in a file or an environment var.
+            base_config_file_path (Optional[str]): The firewatch config can be stored in a file or url path.
 
         Returns:
             dict[Any, Any]: A dictionary object representing the firewatch config data.
@@ -149,13 +172,11 @@ class Configuration:
         steps_map = {}
 
         if base_config_file_path is not None:
-            # Read the contents of the config file
-            try:
-                with open(base_config_file_path) as file:
-                    base_config_str = file.read()
-            except Exception:
+            base_config_str = read_base_config_file(path=base_config_file_path)
+            if not base_config_str:
                 self.logger.error(
-                    f"Unable to read configuration file at {base_config_file_path}. Please verify permissions/path and try again.",
+                    f"Unable to read configuration file at {base_config_file_path}."
+                    f"\nPlease verify permissions/path and try again.",
                 )
                 exit(1)
 
