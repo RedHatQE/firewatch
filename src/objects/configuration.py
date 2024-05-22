@@ -1,5 +1,6 @@
 import json
 import os
+import fnmatch
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -9,6 +10,29 @@ from simple_logger.logger import get_logger
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.rule import Rule
+
+
+def read_base_config_file(path: str) -> str:
+    from urllib.request import urlopen
+
+    try:
+        response = urlopen(path)
+        response_data = response.read()
+        return response_data
+    # Path is not a URL type
+    except ValueError:
+        # Read the contents of the config file
+        try:
+            with open(path) as file:
+                base_config_str = file.read()
+                return base_config_str
+        except Exception:
+            pass
+    # Path is an invalid or unreadable URL
+    except Exception:
+        pass
+
+    return None  # type: ignore
 
 
 class Configuration:
@@ -51,7 +75,7 @@ class Configuration:
         self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
 
         # Get the config data
-        self.config_data = self._get_config_data(config_file_path=config_file_path)
+        self.config_data = self._get_config_data(base_config_file_path=config_file_path)
 
         # Create the lists of Rule objects using the config data
         self.success_rules = self._get_success_rules(
@@ -119,7 +143,8 @@ class Configuration:
             return default_project
         elif not default_project:
             self.logger.error(
-                "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try again.",
+                "Environment variable $FIREWATCH_DEFAULT_JIRA_PROJECT is not set, please set the variable and try "
+                "again.",
             )
             exit(1)
         else:
@@ -128,38 +153,41 @@ class Configuration:
             )
             exit(1)
 
-    def _get_config_data(self, config_file_path: Optional[str]) -> dict[Any, Any]:
+    def _get_config_data(self, base_config_file_path: Optional[str]) -> dict[Any, Any]:
         """
-        Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable.
-        Will exit with code 1 if either a config file isn't provided (or isn't able to be read) or the FIREWATCH_CONFIG environment variable isn't set.
+        Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable or
+        both.
+        Will exit with code 1 if both a config file isn't provided (or isn't readable) or the FIREWATCH_CONFIG environment variable isn't set.
+        The configuration file is considered as the basis of the configuration data,
+        And it will be overridden and expended by the additional set of rules that will be applied to the env var.
 
         Args:
-            config_file_path (Optional[str]): The firewatch config can be stored in a file or an environment var.
+            base_config_file_path (Optional[str]): The firewatch config can be stored in a file or url path.
 
         Returns:
             dict[Any, Any]: A dictionary object representing the firewatch config data.
         """
-        if config_file_path is not None:
-            # Read the contents of the config file
-            try:
-                with open(config_file_path) as file:
-                    config_data = file.read()
-            except Exception:
+        base_config_str = ""
+        base_config_data = {}
+        steps_map = {}
+
+        if base_config_file_path is not None:
+            base_config_str = read_base_config_file(path=base_config_file_path)
+            if not base_config_str:
                 self.logger.error(
-                    f"Unable to read configuration file at {config_file_path}. Please verify permissions/path and try again.",
-                )
-                exit(1)
-        else:
-            config_data = os.getenv("FIREWATCH_CONFIG")  # type: ignore
-            if not config_data:
-                self.logger.error(
-                    "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. Please fix error and try again.",
+                    f"Unable to read configuration file at {base_config_file_path}."
+                    f"\nPlease verify permissions/path and try again.",
                 )
                 exit(1)
 
         # Verify that the config data is properly formatted JSON
         try:
-            config_data = json.loads(config_data)
+            if base_config_str:
+                base_config_data = json.loads(base_config_str)
+
+            # Will update base config with additional logic from env vars
+            additional_config_data = json.loads(os.getenv("FIREWATCH_CONFIG") or "{}")
+
         except json.decoder.JSONDecodeError as error:
             self.logger.error(
                 "Firewatch config contains malformed JSON. Please check for missing or additional commas:",
@@ -170,4 +198,29 @@ class Configuration:
             )
             exit(1)
 
+        # If a step exists in base config, and mentioned by use, update and override it using unpack
+        config_data = {**base_config_data, **additional_config_data}
+
+        if not config_data:
+            self.logger.error(
+                "A configuration file must be provided or the $FIREWATCH_CONFIG environment variable must be set. "
+                "Please fix error and try again.",
+            )
+            exit(1)
+
+        # Include patterns from base config and expend user input
+        for key in ["failure_rules", "success_rules"]:
+            if key in config_data:
+                steps_map = {d.get("step"): d for d in config_data[key]}
+            if key in base_config_data:
+                for step_dict in base_config_data[key]:
+                    step = step_dict["step"]
+                    if step not in steps_map.keys():
+                        # Check if user didn't mention a pattern that already overrides this step
+                        if not any(fnmatch.fnmatch(step, k) for k in steps_map.keys()):
+                            if key not in config_data:
+                                config_data[key] = step_dict
+                            else:
+                                config_data[key].append(step_dict)
+                            steps_map[step] = step_dict  # Also update the steps_map to include this step
         return config_data  # type: ignore
