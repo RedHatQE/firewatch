@@ -81,7 +81,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     "--firewatch-config-path",
     help="The path to the firewatch configuration file",
     required=False,
-    type=click.Path(exists=True),
+    type=click.Path(),
 )
 @click.option(
     "--jira-config-path",

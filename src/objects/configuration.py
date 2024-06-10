@@ -214,8 +214,8 @@ class Configuration:
                 steps_map = {d.get("step"): d for d in config_data[key]}
             if key in base_config_data:
                 for step_dict in base_config_data[key]:
-                    step = step_dict["step"]
-                    if step not in steps_map.keys():
+                    step = step_dict.get("step")
+                    if step and step not in steps_map.keys():
                         # Check if user didn't mention a pattern that already overrides this step
                         if not any(fnmatch.fnmatch(step, k) for k in steps_map.keys()):
                             if key not in config_data:
