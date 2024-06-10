@@ -340,7 +340,7 @@ Using the example configuration above:
 
 ### Using a base config file
 
-For occurring steps and workflows in our project, we can initialize a source that holds a Firewatch base config, combined with user input.
+For reoccurring steps and workflows in our project, we can initialize a source that holds a Firewatch base config, combined with user input.
 
 The configuration file is considered as the basis of the configuration data,
 and it will be overridden and extended by the additional set of rules that will be applied by the `FIREWATCH_CONFIG` environment variable.
