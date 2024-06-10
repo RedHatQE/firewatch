@@ -63,7 +63,9 @@ Options:
                                   execution.
   --fail-with-test-failures       Firewatch will fail with a non-zero exit
                                   code if a test failure is found.
-  --jira-config-path PATH         The path to the jira configuration file
+  --jira-config-path PATH         The path to the jira configuration file.
+                                  Can be used as a Base configutation file with additional
+                                  rules set in $FIREWATCH_CONFIG env var.
   --firewatch-config-path PATH    The path to the firewatch configuration file
   --gcs-bucket TEXT               The name of the GCS bucket that holds
                                   OpenShift CI logs

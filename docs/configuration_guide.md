@@ -48,6 +48,9 @@ Firewatch was designed to allow for users to define which Jira issues get create
 
 The firewatch configuration can be saved to a file (can be stored wherever you want and named whatever you want, it must be JSON though) or defined in the `FIREWATCH_CONFIG` variable. When using the `report` command, if an argument for `--firewatch-config-path` is not provided, the environment variable will be used.
 
+  > **NOTE:**
+  > For more information how to use a configuration file as a "Base" config combining with additional rules set on top of it, please see the ['Using a base config file'](#using-a-base-config-file) section.
+
 The firewatch configuration is a list of rules, each rule is defined using the following values:
 
 ### `failure_rules`
@@ -105,6 +108,10 @@ The Jira project you'd like the issue to be filed under. This should just be a s
 ### `step`
 
 The exact or partial name of a step in OpenShift CI. Using this value, we can usually determine what may have gone wrong during an OpenShift CI run.
+
+**For a step with more than one matching rules:**
+
+The rule with the exact same name (if exists) will be prioritized over a partial name (pattern).
 
 **Example:**
 
@@ -330,3 +337,24 @@ Using the example configuration above:
 - If `step-1` fails causing `step-2` and `step-3` to fail, only the rule for `step-1` will be reported because it has the highest priority.
 - If `step-2` fails causing `step-3` to fail, only the rule for `step-2` will be reported because it has the highest priority.
 - If `step-3` fails, only the rule for `step-3` will be reported.
+
+### Using a base config file
+
+For reoccurring steps and workflows in our project, we can initialize a source that holds a Firewatch base config, combined with user input.
+
+The configuration file is considered as the basis of the configuration data,
+and it will be overridden and extended by the additional set of rules that will be applied by the `FIREWATCH_CONFIG` environment variable.
+
+By setting the env var, the user may override the base config with:
+
+- Replacing steps with general patterns with specific step names and vice versa.
+- Updating existing rules with new logic.
+
+**Examples:**
+
+- A project consistently uses a rule with `"ignore": "True"`, and mentions it in the base config file
+  - A specific scenario might need to set the `"ignore"` with `False`
+  - In this case, we will mention this specific step in the `FIREWATCH_CONFIG` variable, and override the original rule
+- The base file configures a rule for the step `exact-step-name`
+  - A specific scenario requires to apply this rule on a set of similar steps
+  - In this case, we will extend it and use `*-step-*` to override the step name by a pattern
