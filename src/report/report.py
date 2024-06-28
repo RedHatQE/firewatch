@@ -571,6 +571,7 @@ class Report:
         job_name: Optional[str],
         type: str,
         jira_additional_labels: Optional[list[str]],
+        jira_additional_labels_filepath: Optional[str] = ADDITIONAL_LABELS_FILEPATH,
         failed_test_name: Optional[str] = None,
         step_name: Optional[str] = None,
     ) -> list[Optional[str]]:
@@ -595,8 +596,8 @@ class Report:
         # Add any additional labels
         if jira_additional_labels:
             labels.extend(jira_additional_labels)
-        if os.path.exists(ADDITIONAL_LABELS_FILEPATH):
-            with open(ADDITIONAL_LABELS_FILEPATH, "r") as file:
+        if os.path.exists(jira_additional_labels_filepath):
+            with open(jira_additional_labels_filepath, "r") as file:
                 labels.extend(line.strip() for line in file if line.strip())
 
         return list(set(labels))
