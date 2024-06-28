@@ -571,7 +571,7 @@ class Report:
         job_name: Optional[str],
         type: str,
         jira_additional_labels: Optional[list[str]],
-        jira_additional_labels_filepath: Optional[str] = ADDITIONAL_LABELS_FILEPATH,
+        jira_additional_labels_filepath: str = ADDITIONAL_LABELS_FILEPATH,
         failed_test_name: Optional[str] = None,
         step_name: Optional[str] = None,
     ) -> list[Optional[str]]:
