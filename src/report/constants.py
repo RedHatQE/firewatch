@@ -14,4 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+import os
+
 JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
+
+SHARED_DIR_PATH = os.getenv('SHARED_DIR')
+ADDITIONAL_LABELS_FILEPATH = f"{SHARED_DIR_PATH}/firewatch-additional-labels"

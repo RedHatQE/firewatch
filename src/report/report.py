@@ -13,7 +13,7 @@ from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.job import Job
-from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, ADDITIONAL_LABELS_FILEPATH
 
 
 class Report:
@@ -595,6 +595,9 @@ class Report:
         # Add any additional labels
         if jira_additional_labels:
             labels.extend(jira_additional_labels)
+        if os.path.exists(ADDITIONAL_LABELS_FILEPATH):
+            with open(ADDITIONAL_LABELS_FILEPATH, "r") as file:
+                labels.extend(line.strip() for line in file if line.strip())
 
         return list(set(labels))
 
