@@ -66,3 +66,7 @@ def _get_tmp_junit_dir(tmp_path: str) -> str:
     if not os.path.exists(junit_dir):
         os.mkdir(junit_dir)
     return junit_dir
+
+
+def _get_additional_labels_filepath() -> str:
+    return f"{str(os.path.dirname(__file__))}/resources/firewatch-additional-labels"
