@@ -13,7 +13,7 @@ from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.job import Job
-from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, ADDITIONAL_LABELS_FILEPATH
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 
 
 class Report:
@@ -571,7 +571,7 @@ class Report:
         job_name: Optional[str],
         type: str,
         jira_additional_labels: Optional[list[str]],
-        jira_additional_labels_filepath: str = ADDITIONAL_LABELS_FILEPATH,
+        jira_additional_labels_filepath: str = f"{os.getenv('SHARED_DIR', '')}/firewatch-additional-labels",
         failed_test_name: Optional[str] = None,
         step_name: Optional[str] = None,
     ) -> list[Optional[str]]:
