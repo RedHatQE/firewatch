@@ -14,5 +14,4 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
