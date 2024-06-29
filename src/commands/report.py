@@ -120,7 +120,6 @@ def validate_verbose_test_failure_reporting_ticket_limit(
 @click.option(
     "--additional-labels-file",
     help="A file containing a list of additional labels separated by new lines to add to any new Jira issue.",
-    required=False,
     type=click.Path(exists=True),
 )
 @click.option(
