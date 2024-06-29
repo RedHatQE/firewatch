@@ -9,6 +9,7 @@ class TestGetIssueLabels(ReportBaseTest):
             step_name="test-step-name",
             type="test_failure",
             jira_additional_labels=[],
+            jira_additional_labels_filepath=None,
         )
 
         assert len(labels) == 4
@@ -23,6 +24,7 @@ class TestGetIssueLabels(ReportBaseTest):
             step_name="test-step-name",
             type="test_failure",
             jira_additional_labels=["additional-label-1", "additional-label-2"],
+            jira_additional_labels_filepath=None,
         )
 
         assert len(labels) == 6
@@ -40,7 +42,7 @@ class TestGetIssueLabels(ReportBaseTest):
             jira_additional_labels=[],
             jira_additional_labels_filepath=helpers._get_additional_labels_filepath(),
         )
-        assert "test-1" and "test-1" in labels
+        assert "test-1" and "test-2" in labels
 
     def test_get_issue_labels_with_failed_test_name(self):
         labels = self.report._get_issue_labels(
@@ -49,6 +51,7 @@ class TestGetIssueLabels(ReportBaseTest):
             type="test_failure",
             failed_test_name="test-name",
             jira_additional_labels=[],
+            jira_additional_labels_filepath=None,
         )
 
         assert len(labels) == 5
@@ -64,6 +67,7 @@ class TestGetIssueLabels(ReportBaseTest):
             step_name="test-step-name",
             type="test_failure",
             jira_additional_labels=["test-step-name", "test_failure"],
+            jira_additional_labels_filepath=None,
         )
 
         assert len(labels) == 4
