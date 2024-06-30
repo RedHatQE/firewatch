@@ -600,7 +600,7 @@ class Report:
             labels.extend(jira_additional_labels)
         if jira_additional_labels_filepath:
             with open(jira_additional_labels_filepath, "r") as file:
-                labels.extend(line.strip() for line in file if line.strip())
+                labels.extend(line.strip() for line in file)
 
         return list(set(labels))
 
