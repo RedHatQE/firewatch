@@ -35,3 +35,12 @@ class TestReport(ReportBaseTest):
             Report(self.config, job)
         error = rc.exception
         self.assertEqual(error.code, 1)
+
+    def test_report_initialization_fail_with_pod_failures_true(self):
+        self.config.fail_with_pod_failures = True
+        job = Job("rehearse-1234-job1", "job1_safe", "123", "bucket1", self.config)
+        job.has_pod_failures = True
+        with self.assertRaises(SystemExit) as rc:
+            Report(self.config, job)
+        error = rc.exception
+        self.assertEqual(error.code, 1)

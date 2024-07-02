@@ -16,7 +16,13 @@ class TestGetFailureRules(ConfigurationBaseTest):
         },
     )
     def test_configuration_gets_failure_rules_with_valid_input(self):
-        config = Configuration(self.mock_jira, False, False, False)
+        config = Configuration(
+            jira=self.mock_jira,
+            fail_with_test_failures=False,
+            fail_with_pod_failures=False,
+            keep_job_dir=False,
+            verbose_test_failure_reporting=False,
+        )
         failure_rules = config._get_failure_rules(
             config.config_data.get("failure_rules"),
         )

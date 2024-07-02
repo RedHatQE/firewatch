@@ -35,6 +35,7 @@ def firewatch_config(monkeypatch, mock_jira, default_jira_project):
     yield Configuration(
         jira=mock_jira,
         fail_with_test_failures=True,
+        fail_with_pod_failures=True,
         keep_job_dir=True,
         verbose_test_failure_reporting=False,
     )

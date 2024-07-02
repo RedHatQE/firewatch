@@ -208,6 +208,7 @@ def firewatch_config(jira):
     yield Configuration(
         jira=jira,
         fail_with_test_failures=False,
+        fail_with_pod_failures=False,
         keep_job_dir=True,
         verbose_test_failure_reporting=False,
     )
