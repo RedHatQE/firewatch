@@ -44,6 +44,7 @@ class Configuration:
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
+        additional_lables_file: Optional[str] = None,
     ):
         """
         Constructs the Configuration object. This class is mainly used to validate the firewatch configuration given.
@@ -55,29 +56,18 @@ class Configuration:
             verbose_test_failure_reporting (bool): If true, firewatch will report all test failures found in the job.
             verbose_test_failure_reporting_ticket_limit (Optional[int]): Used as a safeguard to prevent firewatch from filing too many bugs. If verbose_test_reporting is set to true, this value will be used to limit the number of bugs filed. Defaults to 10.
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
+            additional_lables_file (Optional[str]): If set, the filepath provided will be parsed for additional labels. Each label should be separated by a new line.
         """
         self.logger = get_logger(__name__)
 
-        # Jira Connection
         self.jira = jira
-
-        # Get defaults
         self.default_jira_project = self._get_default_jira_project()
-
-        # Boolean value representing if the program should fail if test failures are found.
         self.fail_with_test_failures = fail_with_test_failures
-
-        # Boolean value to decide if firewatch should delete the job directory following execution.
         self.keep_job_dir = keep_job_dir
-
-        # Boolean value to decide if firewatch should report all test failures found in the job.
+        self.additional_labels_file = additional_lables_file
         self.verbose_test_failure_reporting = verbose_test_failure_reporting
         self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
-
-        # Get the config data
         self.config_data = self._get_config_data(base_config_file_path=config_file_path)
-
-        # Create the lists of Rule objects using the config data
         self.success_rules = self._get_success_rules(
             rules_list=self.config_data.get("success_rules"),
         )

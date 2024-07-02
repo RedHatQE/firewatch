@@ -118,6 +118,11 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     callback=validate_verbose_test_failure_reporting_ticket_limit,
 )
 @click.option(
+    "--additional-labels-file",
+    help="A file containing a list of additional labels separated by new lines to add to any new Jira issue.",
+    type=click.Path(exists=True),
+)
+@click.option(
     "--pdb",
     help="Drop to `ipdb` shell on exception",
     is_flag=True,
@@ -137,6 +142,7 @@ def report(
     keep_job_dir: bool,
     verbose_test_failure_reporting: bool,
     verbose_test_failure_reporting_ticket_limit: Optional[int],
+    additional_labels_file: Optional[str],
     pdb: bool,
 ) -> None:
     ctx.obj["PDB"] = pdb
@@ -150,6 +156,7 @@ def report(
         verbose_test_failure_reporting=verbose_test_failure_reporting,
         verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
         config_file_path=firewatch_config_path,
+        additional_lables_file=additional_labels_file,
     )
     job = Job(
         name=job_name,

@@ -30,7 +30,7 @@ logger = simple_logger.logger.get_logger(__name__)
 
 @pytest.fixture
 def job_name():
-    yield "periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws"
+    yield "periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp4.16-lp-interop-openshift-pipelines-interop-aws"
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def job_name_safe():
 
 @pytest.fixture
 def build_id():
-    yield "1739164176636448768"
+    yield "1805119554108526592"
 
 
 @pytest.fixture

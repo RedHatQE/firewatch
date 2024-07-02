@@ -2,14 +2,15 @@
 
 ## Table of Contents
 
-* [Using the firewatch CLI](#using-the-firewatch-cli)
-  * [Installation](#installation)
-    * [Docker (recommended)](#docker-recommended)
-    * [Local Machine (using venv)](#local-machine-using-venv)
-  * [Configuration](#configuration)
-  * [Usage](#usage)
-    * [`report`](#report)
-    * [`jira-config-gen`](#jiraconfiggen)
+- [Using the firewatch CLI](#using-the-firewatch-cli)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Docker (recommended)](#docker-recommended)
+    - [Local Machine (using venv)](#local-machine-using-venv)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+    - [`report`](#report)
+    - [`jira-config-gen`](#jira-config-gen)
 
 ## Installation
 
@@ -50,6 +51,10 @@ Many of the arguments for this command have set defaults or will use an environm
 Usage: firewatch report [OPTIONS]
 
 Options:
+  --pdb                           Drop to `ipdb` shell on exception
+  --additional-labels-file PATH   A file containing a list of additional
+                                  labels separated by new lines to add to any
+                                  new Jira issue.
   --verbose-test-failure-reporting-ticket-limit INTEGER
                                   Used to limit the number of bugs created
                                   when --verbose-test-reporting is set. If not
@@ -63,16 +68,14 @@ Options:
                                   execution.
   --fail-with-test-failures       Firewatch will fail with a non-zero exit
                                   code if a test failure is found.
-  --jira-config-path PATH         The path to the jira configuration file.
-                                  Can be used as a Base configutation file with additional
-                                  rules set in $FIREWATCH_CONFIG env var.
+  --jira-config-path PATH         The path to the jira configuration file
   --firewatch-config-path PATH    The path to the firewatch configuration file
   --gcs-bucket TEXT               The name of the GCS bucket that holds
                                   OpenShift CI logs
+  --pr-id TEXT                    The pull request number that the rehearsal
+                                  job is for. The value of $PULL_NUMBER
   --build-id TEXT                 The build ID that needs to be reported. The
                                   value of $BUILD_ID
-  --pr-id TEXT                    The pull request number that rehearsal job is
-                                  for. The value of $PULL_NUMBER
   --job-name-safe TEXT            The safe name of a test in a Prow job. The
                                   value of $JOB_NAME_SAFE
   --job-name TEXT                 The full name of a Prow job. The value of
@@ -114,6 +117,9 @@ $ firewatch report --keep-job-dir
 # Report a bug for each test failure found in a JUnit file for a step
 $ firewatch report --verbose-test-failure-reporting
 $ firewatch report --verbose-test-failure-reporting --verbose-test-failure-reporting-ticket-limit 100
+
+# Include additional labels from a file on all issues created. All labels must be separated by a new line.
+$ firewatch report --additional-labels-file /some/additional-labels-file
 ```
 
 **Example of Jira Ticket Created:**

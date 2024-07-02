@@ -29,6 +29,9 @@ Thank you for your interest in the firewatch project! Please find some informati
   - Firewatch can optionally be configured to report test failures in a more verbose way (verbose test failure reporting).
     - When configured to do this, firewatch will report on EVERY test failure in all JUnit files. The issues created from this will specify the failed test name in the title and description.
     - **This functionality has the potential to create A LOT of tickets if cascading failures occur.** Because of this, firewatch is configured by default to only report up to 10 test failures per run. This value can be overridden, but do so with caution.
+  - Firewatch will add any additional labels listed in the file provided in the `--additional-labels-file` argument to any bug created. Each label must be separated by a new line.
+    - How to add a label to a file: `echo "some-label" >> $SHARED_DIR/firewatch-additional-labels`
+    - This should be used if you'd like to dynamically add labels based on parameters that can only be determined during test execution in OpenShift CI.
 
 ## Getting Started
 

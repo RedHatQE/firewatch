@@ -43,7 +43,7 @@ JIRA_TOKEN_ENV_VAR = "JIRA_TOKEN"
 FIREWATCH_CONFIG_ENV_VAR = "FIREWATCH_CONFIG"
 
 BUILD_IDS_TO_TEST = [
-    "1739164176636448768",
+    "1805119554108526592",
 ]
 
 DEFAULT_JIRA_PROJECTS_TO_TEST = [
@@ -216,7 +216,7 @@ def firewatch_config(jira):
 @pytest.fixture
 def job(firewatch_config, build_id):
     yield Job(
-        name="periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws",
+        name="periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp4.16-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
         build_id=build_id,
         gcs_bucket="test-platform-results",

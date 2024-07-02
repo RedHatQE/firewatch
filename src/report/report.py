@@ -183,6 +183,7 @@ class Report:
                 step_name=pair["failure"].step,  # type: ignore
                 type=pair["failure"].failure_type,  # type: ignore
                 jira_additional_labels=pair["rule"].jira_additional_labels,  # type: ignore
+                jira_additional_labels_filepath=firewatch_config.additional_labels_file,
                 failed_test_name=(
                     pair["failure"].failed_test_name  # type: ignore
                     if firewatch_config.verbose_test_failure_reporting
@@ -256,6 +257,7 @@ class Report:
                 job_name=job.name,
                 type="success",
                 jira_additional_labels=rule.jira_additional_labels,  # type: ignore
+                jira_additional_labels_filepath=firewatch_config.additional_labels_file,
             )
 
             firewatch_config.jira.create_issue(
@@ -571,6 +573,7 @@ class Report:
         job_name: Optional[str],
         type: str,
         jira_additional_labels: Optional[list[str]],
+        jira_additional_labels_filepath: Optional[str],
         failed_test_name: Optional[str] = None,
         step_name: Optional[str] = None,
     ) -> list[Optional[str]]:
@@ -595,6 +598,9 @@ class Report:
         # Add any additional labels
         if jira_additional_labels:
             labels.extend(jira_additional_labels)
+        if jira_additional_labels_filepath:
+            with open(jira_additional_labels_filepath, "r") as file:
+                labels.extend(line.strip() for line in file)
 
         return list(set(labels))
 
