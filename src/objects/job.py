@@ -96,9 +96,7 @@ class Job:
             logs_dir=self.logs_dir,
             junit_dir=self.junit_dir,
         )
-        # self.has_test_failures = self._check_has_test_failures(failures=self.failures)
         self.has_test_failures = any(failure.failure_type == "test_failure" for failure in self.failures or [])
-        # self.has_pod_failures = self._check_has_pod_failures(failures=self.failures)
         self.has_pod_failures = any(failure.failure_type == "pod_failure" for failure in self.failures or [])
         self.has_failures = True if self.failures else False
 
