@@ -96,9 +96,15 @@ class Job:
             logs_dir=self.logs_dir,
             junit_dir=self.junit_dir,
         )
-        self.has_test_failures = any(failure.failure_type == "test_failure" for failure in self.failures or [])
-        self.has_pod_failures = any(failure.failure_type == "pod_failure" for failure in self.failures or [])
-        self.has_failures = True if self.failures else False
+
+        self.has_pod_failures = self.has_test_failures = False
+        for failure in self.failures:
+            if failure.failure_type == "test_failure":
+                self.has_test_failures = True
+                break
+            elif failure.failure_type == "pod_failure":
+                self.has_pod_failures = True
+                break
 
     def _check_is_rehearsal(
         self,
@@ -313,7 +319,7 @@ class Job:
 
         return download_path
 
-    def _find_failures(self, logs_dir: str, junit_dir: str) -> Optional[list[Failure]]:
+    def _find_failures(self, logs_dir: str, junit_dir: str) -> list[Failure]:
         """
         Used to find failures from a given job using that downloaded logs and JUnit artifacts.
 
@@ -344,10 +350,7 @@ class Job:
                 if not failure.ignore:
                     failures_list.append(failure)
 
-        if len(failures_list) > 0:
-            return failures_list
-        else:
-            return None
+        return failures_list
 
     def _find_pod_failures(self, logs_dir: str) -> list[Failure]:
         """

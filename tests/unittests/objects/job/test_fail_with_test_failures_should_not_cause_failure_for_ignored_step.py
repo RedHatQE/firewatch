@@ -100,7 +100,7 @@ def test_fail_with_test_failures_should_not_cause_failure_for_ignored_step(
         if rule.failure_type == "test_failure":
             assert rule.ignore
     assert not job.has_test_failures
-    assert not job.has_failures
+    assert not job.failures
     assert not job.failures
 
 
@@ -112,5 +112,5 @@ def test_fail_with_test_failures_should_cause_failure_unignored_step(
         if rule.failure_type == "test_failure":
             assert not rule.ignore
     assert job.has_test_failures
-    assert job.has_failures
+    assert job.failures
     assert job.failures

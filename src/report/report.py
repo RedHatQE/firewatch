@@ -34,23 +34,15 @@ class Report:
                 shutil.rmtree(job.download_path)
             except Exception as error:
                 self.logger.error(f"Error deleting job directory: {error}")
-            if firewatch_config.fail_with_test_failures and job.has_test_failures:
-                self.logger.info(
-                    "Test failures found and --fail-with-test-failures flag is set. Exiting with exit code 1",
-                )
-                exit(1)
-            elif firewatch_config.fail_with_pod_failures and job.has_pod_failures:
-                self.logger.info(
-                    "Pod failures found and --fail-with-pod-failures flag is set. Exiting with exit code 1",
-                )
-                exit(1)
-            else:
-                exit(0)
+
+            self.exit_on_failures(firewatch_config=firewatch_config, job=job)
+
+            exit(0)
 
         bugs_filed = None
         bugs_updated = None
         # If job has failures, file bugs
-        if job.has_failures:
+        if job.failures:
             bugs_filed, bugs_updated = self.file_jira_issues(
                 failures=job.failures,  # type: ignore
                 firewatch_config=firewatch_config,
@@ -94,16 +86,7 @@ class Report:
             self.logger.info(f"Deleting job directory: {job.download_path}")
             shutil.rmtree(job.download_path)
 
-        # Exit with code 1 if the fail_with_test_failures flag is set.
-        if firewatch_config.fail_with_test_failures and job.has_test_failures:
-            self.logger.info(
-                "Test failures found and --fail-with-test-failures flag is set. Exiting with exit code 1",
-            )
-            exit(1)
-
-        if firewatch_config.fail_with_pod_failures and job.has_pod_failures:
-            self.logger.info("Pod failures found and --fail-with-pod-failures flag is set. Exiting with exit code 1")
-            exit(1)
+        self.exit_on_failures(firewatch_config=firewatch_config, job=job)
 
     def file_jira_issues(
         self,
@@ -477,6 +460,15 @@ class Report:
                     if related_issue:
                         relations[key].append(issue)
                         relations[issue].append(key)
+
+    def exit_on_failures(self, firewatch_config: Configuration, job: Job) -> None:
+        if firewatch_config.fail_with_test_failures and job.has_test_failures:
+            self.logger.error("Test failures found and --fail-with-test-failures flag is set. Exiting with exit code 1")
+            exit(1)
+
+        if firewatch_config.fail_with_pod_failures and job.has_pod_failures:
+            self.logger.error("Pod failures found and --fail-with-pod-failures flag is set. Exiting with exit code 1")
+            exit(1)
 
     def _get_file_attachments(
         self,
