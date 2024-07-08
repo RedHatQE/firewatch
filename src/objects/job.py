@@ -101,10 +101,8 @@ class Job:
         for failure in self.failures:
             if failure.failure_type == "test_failure":
                 self.has_test_failures = True
-                break
             elif failure.failure_type == "pod_failure":
                 self.has_pod_failures = True
-                break
 
     def _check_is_rehearsal(
         self,
