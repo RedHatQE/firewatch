@@ -19,7 +19,13 @@ class ReportBaseTest(unittest.TestCase):
     )
     def setUp(self, mock_jira):
         mock_jira.return_value = MagicMock()
-        self.config = Configuration(mock_jira, False, True, False)
+        self.config = Configuration(
+            jira=mock_jira,
+            fail_with_test_failures=False,
+            fail_with_pod_failures=False,
+            keep_job_dir=True,
+            verbose_test_failure_reporting=False,
+        )
         self.mock_get_steps = patch.object(
             Job,
             "_get_steps",

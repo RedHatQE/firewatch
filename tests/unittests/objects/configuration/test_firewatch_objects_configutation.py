@@ -19,6 +19,7 @@ class TestConfiguration(ConfigurationBaseTest):
         config = Configuration(
             jira=self.mock_jira,
             fail_with_test_failures=True,
+            fail_with_pod_failures=True,
             keep_job_dir=True,
             verbose_test_failure_reporting=True,
             verbose_test_failure_reporting_ticket_limit=10,

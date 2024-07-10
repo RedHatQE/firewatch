@@ -16,7 +16,13 @@ class TestGetSuccessRules(ConfigurationBaseTest):
         },
     )
     def test_configuration_gets_success_rules_with_valid_input(self):
-        config = Configuration(self.mock_jira, False, False, False)
+        config = Configuration(
+            jira=self.mock_jira,
+            fail_with_test_failures=False,
+            fail_with_pod_failures=False,
+            keep_job_dir=False,
+            verbose_test_failure_reporting=False,
+        )
         success_rules = config._get_success_rules(
             config.config_data.get("success_rules"),
         )
@@ -31,7 +37,13 @@ class TestGetSuccessRules(ConfigurationBaseTest):
         },
     )
     def test_configuration_gets_success_rules_with_no_rules(self):
-        config = Configuration(self.mock_jira, False, False, False)
+        config = Configuration(
+            jira=self.mock_jira,
+            fail_with_test_failures=False,
+            fail_with_pod_failures=False,
+            keep_job_dir=False,
+            verbose_test_failure_reporting=False,
+        )
         success_rules = config._get_success_rules(
             config.config_data.get("success_rules"),
         )

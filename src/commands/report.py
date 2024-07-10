@@ -93,21 +93,24 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     "--fail-with-test-failures",
     help="Firewatch will fail with a non-zero exit code if a test failure is found.",
     is_flag=True,
-    default=False,
+    type=click.BOOL,
+)
+@click.option(
+    "--fail-with-pod-failures",
+    help="Firewatch will fail with a non-zero exit code if a pod failure is found. For use with jobs using best effort steps.",
+    is_flag=True,
     type=click.BOOL,
 )
 @click.option(
     "--keep-job-dir",
     help="If set, firewatch will not delete the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.",
     is_flag=True,
-    default=False,
     type=click.BOOL,
 )
 @click.option(
     "--verbose-test-failure-reporting",
     help="If set, firewatch will report a bug for each test failure found.",
     is_flag=True,
-    default=False,
     type=click.BOOL,
 )
 @click.option(
@@ -139,6 +142,7 @@ def report(
     firewatch_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
+    fail_with_pod_failures: bool,
     keep_job_dir: bool,
     verbose_test_failure_reporting: bool,
     verbose_test_failure_reporting_ticket_limit: Optional[int],
@@ -152,6 +156,7 @@ def report(
     config = Configuration(
         jira=jira_connection,
         fail_with_test_failures=fail_with_test_failures,
+        fail_with_pod_failures=fail_with_pod_failures,
         keep_job_dir=keep_job_dir,
         verbose_test_failure_reporting=verbose_test_failure_reporting,
         verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,

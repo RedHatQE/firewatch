@@ -40,6 +40,7 @@ class Configuration:
         self,
         jira: Jira,
         fail_with_test_failures: bool,
+        fail_with_pod_failures: bool,
         keep_job_dir: bool,
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
@@ -63,6 +64,7 @@ class Configuration:
         self.jira = jira
         self.default_jira_project = self._get_default_jira_project()
         self.fail_with_test_failures = fail_with_test_failures
+        self.fail_with_pod_failures = fail_with_pod_failures
         self.keep_job_dir = keep_job_dir
         self.additional_labels_file = additional_lables_file
         self.verbose_test_failure_reporting = verbose_test_failure_reporting

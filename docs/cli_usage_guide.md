@@ -66,6 +66,9 @@ Options:
                                   directory (/tmp/12345) that is created to
                                   hold logs and results for a job following
                                   execution.
+  --fail-with-pod-failures        Firewatch will fail with a non-zero exit
+                                  code if a pod failure is found. For use with
+                                  jobs using best effort steps.
   --fail-with-test-failures       Firewatch will fail with a non-zero exit
                                   code if a test failure is found.
   --jira-config-path PATH         The path to the jira configuration file
@@ -108,8 +111,11 @@ $ firewatch report
 # Using CLI arguments
 $ firewatch report --build-id some_build_id --job-name-safe some_safe_job_name --job_name some_job_name --firewatch-config-path /some/path/to/firewatch_config.json
 
-# Exit with a non-zero exit code if test failures are found in any JUnit file for a step
+# Exit with a non-zero exit code if test failures are found in any JUnit file for a step.
 $ firewatch report --fail-with-test-failures
+
+# Exit with a non-zero exit code if a step has exited with a non-zero exit code. Should be used with "best effort" steps.
+$ firewatch report --fail-with-pod-failures
 
 # Don't delete the job directory in /tmp (would usually be used for debugging purposes).
 $ firewatch report --keep-job-dir

@@ -18,7 +18,15 @@ class TestGetConfigData(ConfigurationBaseTest):
             config_file = os.path.join(tmp_path, "config.json")
             with open(config_file, "w") as f:
                 f.write(valid_config_data)
-            config = Configuration(self.mock_jira, True, True, True, 10, config_file)
+            config = Configuration(
+                jira=self.mock_jira,
+                fail_with_test_failures=True,
+                fail_with_pod_failures=True,
+                keep_job_dir=True,
+                verbose_test_failure_reporting=True,
+                verbose_test_failure_reporting_ticket_limit=10,
+                config_file_path=config_file,
+            )
             assert config.config_data == {
                 "failure_rules": [
                     {
@@ -31,7 +39,15 @@ class TestGetConfigData(ConfigurationBaseTest):
 
     def test_configuration_gets_config_data_with_invalid_file_path(self):
         with self.assertRaises(SystemExit):
-            Configuration(self.mock_jira, True, True, True, 10, "/tmp/invalid.json")
+            Configuration(
+                jira=self.mock_jira,
+                fail_with_test_failures=True,
+                fail_with_pod_failures=True,
+                keep_job_dir=True,
+                verbose_test_failure_reporting=True,
+                verbose_test_failure_reporting_ticket_limit=10,
+                config_file_path="/tmp/invalid.json",
+            )
 
     @patch.dict(
         os.environ,
@@ -40,7 +56,15 @@ class TestGetConfigData(ConfigurationBaseTest):
         },
     )
     def test_configuration_gets_config_data_with_valid_env_var(self):
-        config = Configuration(self.mock_jira, True, True, True, 10, None)
+        config = Configuration(
+            jira=self.mock_jira,
+            fail_with_test_failures=True,
+            fail_with_pod_failures=True,
+            keep_job_dir=True,
+            verbose_test_failure_reporting=True,
+            verbose_test_failure_reporting_ticket_limit=10,
+            config_file_path=None,
+        )
         assert config.config_data == {
             "failure_rules": [
                 {
@@ -55,7 +79,15 @@ class TestGetConfigData(ConfigurationBaseTest):
         if "FIREWATCH_CONFIG" in os.environ:
             del os.environ["FIREWATCH_CONFIG"]
         with self.assertRaises(SystemExit):
-            Configuration(self.mock_jira, True, True, True, 10, None)
+            Configuration(
+                jira=self.mock_jira,
+                fail_with_test_failures=True,
+                fail_with_pod_failures=True,
+                keep_job_dir=True,
+                verbose_test_failure_reporting=True,
+                verbose_test_failure_reporting_ticket_limit=10,
+                config_file_path=None,
+            )
 
     @patch.dict(
         os.environ,
@@ -75,11 +107,27 @@ class TestGetConfigData(ConfigurationBaseTest):
             base_config_file = os.path.join(tmp_path, "base_config.json")
             with open(base_config_file, "w") as f:
                 f.write(base_config_data)
-            config = Configuration(self.mock_jira, True, True, True, 10, base_config_file)
+            config = Configuration(
+                jira=self.mock_jira,
+                fail_with_test_failures=True,
+                fail_with_pod_failures=True,
+                keep_job_dir=True,
+                verbose_test_failure_reporting=True,
+                verbose_test_failure_reporting_ticket_limit=10,
+                config_file_path=base_config_file,
+            )
             new_steps = [rule["step"] for rule in config.config_data["failure_rules"]]
             assert new_steps == ["specific-step-pattern", "*step-logic*", "*step-pattern*"]
 
     def test_configuration_gets_config_data_with_base_config_from_invalid_url(self):
         base_config_file = "https://"
         with self.assertRaises(SystemExit):
-            Configuration(self.mock_jira, True, True, True, 10, base_config_file)
+            Configuration(
+                jira=self.mock_jira,
+                fail_with_test_failures=True,
+                fail_with_pod_failures=True,
+                keep_job_dir=True,
+                verbose_test_failure_reporting=True,
+                verbose_test_failure_reporting_ticket_limit=10,
+                config_file_path=base_config_file,
+            )
