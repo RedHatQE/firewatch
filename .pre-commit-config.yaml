@@ -14,7 +14,7 @@ repos:
     - id: check-json
     - id: check-yaml
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.10.1
+  rev: v1.11.0
   hooks:
   - id: mypy
     exclude: ^(tests/)
@@ -37,7 +37,7 @@ repos:
     - id: detect-secrets
       exclude: tests/unittests/resources/templates/jira_api/fake_server_info.json
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.5.2
+  rev: v0.5.4
   hooks:
     - id: ruff
     - id: ruff-format
