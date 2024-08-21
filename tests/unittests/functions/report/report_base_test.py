@@ -38,7 +38,14 @@ class ReportBaseTest(unittest.TestCase):
             "src.objects.job.storage.Client.create_anonymous_client",
         )
         self.mock_storage_client.start().return_value = MagicMock()
-        self.job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        self.job = Job(
+            name="job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         self.report = Report(self.config, self.job)
 
     def tearDown(self):

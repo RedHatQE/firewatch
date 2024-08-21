@@ -9,7 +9,14 @@ class TestFindPodFailures(JobBaseTest):
     def test_find_pod_failures_with_failures(self):
         temp_dir = tempfile.TemporaryDirectory()
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_failed_step_pod(logs_dir=logs_dir)
         pod_failures = job._find_pod_failures(logs_dir=logs_dir)
         assert len(pod_failures) == 1
@@ -17,7 +24,14 @@ class TestFindPodFailures(JobBaseTest):
     def test_find_pod_failures_without_failures(self):
         temp_dir = tempfile.TemporaryDirectory()
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_successful_step_pod(logs_dir=logs_dir)
         pod_failures = job._find_pod_failures(logs_dir=logs_dir)
         assert len(pod_failures) == 0

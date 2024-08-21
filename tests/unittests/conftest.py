@@ -221,6 +221,7 @@ def job(firewatch_config, build_id):
         name_safe="openshift-pipelines-interop-aws",
         build_id=build_id,
         gcs_bucket="test-platform-results",
+        gcs_creds_file=None,
         firewatch_config=firewatch_config,
     )
 
