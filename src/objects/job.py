@@ -62,7 +62,8 @@ class Job:
         self.gcs_bucket = gcs_bucket
         self.storage_client = (
             storage.Client(credentials=service_account.Credentials.from_service_account_file(gcs_creds_file))
-            if gcs_creds_file else storage.Client.create_anonymous_client()
+            if gcs_creds_file
+            else storage.Client.create_anonymous_client()
         )
 
         # Get a list of steps
