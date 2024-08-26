@@ -381,7 +381,7 @@ Firewatch allows for the use of a private GCS bucket if needed. In order to use 
   "type": "service_account",
   "project_id": "some-project",
   "private_key_id": "0000000000000000000000000",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nABCDEFG\n-----END PRIVATE KEY-----\n",
+  "private_key": "<PRIVATE KEY>",
   "client_email": "email@example.com",
   "client_id": "12345678",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
