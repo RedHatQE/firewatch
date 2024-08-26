@@ -73,6 +73,7 @@ Options:
                                   code if a test failure is found.
   --jira-config-path PATH         The path to the jira configuration file
   --firewatch-config-path PATH    The path to the firewatch configuration file
+  --gcs-creds-file PATH           The path to the GCS credentials file
   --gcs-bucket TEXT               The name of the GCS bucket that holds
                                   OpenShift CI logs
   --pr-id TEXT                    The pull request number that the rehearsal
