@@ -67,26 +67,17 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 
 **Optional Values**:
 
-- [Jira Issue Creation Configuration](#jira-issue-creation-configuration)
-  - [`failure_rules`](#failure_rules)
-  - [`success_rules` (OPTIONAL)](#success_rules-optional)
-- [Rule Configuration Value Definitions](#rule-configuration-value-definitions)
-  - [`jira_project`](#jira_project)
-  - [`step`](#step)
-  - [`failure_type`](#failure_type)
-  - [`classification`](#classification)
-  - [`jira_epic`](#jira_epic)
-  - [`jira_component`](#jira_component)
-  - [`jira_affects_version`](#jira_affects_version)
-  - [`jira_additional_labels`](#jira_additional_labels)
-  - [`jira_assignee`](#jira_assignee)
-  - [`jira_priority`](#jira_priority)
-  - [`jira_security_level`](#jira_security_level)
-  - [`ignore`](#ignore)
-  - [`group`](#group)
-  - [Using a base config file](#using-a-base-config-file)
-- [Configuring Use With Private GCS Bucket](#configuring-use-with-private-gcs-bucket)
-
+<!-- no toc -->
+- [`jira_epic`](#jiraepic)
+- [`jira_component`](#jiracomponent)
+- [`jira_affects_version`](#jiraaffectsversion)
+- [`jira_additional_labels`](#jiraadditionallabels)
+- [`jira_assignee`](#jiraassignee)
+- [`jira_priority`](#jirapriority)
+- [`jira_security_level`](#jirasecuritylevel)
+- [`ignore`](#ignore)
+- [`group`](#group)
+- 
 ### `success_rules` (OPTIONAL)
 
 **Required Values**:
