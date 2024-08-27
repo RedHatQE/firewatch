@@ -1,24 +1,27 @@
-# Configuring Firewatch
+# Configuring Firewatch<!-- omit in toc -->
 
-## Table of Contents
+## Table of Contents<!-- omit in toc -->
 
 - [Jira Issue Creation Configuration](#jira-issue-creation-configuration)
-  - [Getting Started](#getting-started)
-    - [Usage in OpenShift CI](#usage-in-openshift-ci)
-  - [Rule Configuration Value Definitions](#rule-configuration-value-definitions)
-    - [`jira_project`](#jiraproject)
-    - [`step`](#step)
-    - [`failure_type`](#failuretype)
-    - [`classification`](#classification)
-    - [`jira_epic`](#jiraepic)
-    - [`jira_component`](#jiracomponent)
-    - [`jira_affects_version`](#jiraaffectsversion)
-    - [`jira_additional_labels`](#jiraadditionallabels)
-    - [`jira_assignee`](#jiraassignee)
-    - [`jira_priority`](#jirapriority)
-    - [`jira_security_level`](#jirasecuritylevel)
-    - [`ignore`](#ignore)
-    - [`group`](#group)
+  - [`failure_rules`](#failure_rules)
+  - [`success_rules` (OPTIONAL)](#success_rules-optional)
+- [Rule Configuration Value Definitions](#rule-configuration-value-definitions)
+  - [`jira_project`](#jira_project)
+  - [`step`](#step)
+  - [`failure_type`](#failure_type)
+  - [`classification`](#classification)
+  - [`jira_epic`](#jira_epic)
+  - [`jira_component`](#jira_component)
+  - [`jira_affects_version`](#jira_affects_version)
+  - [`jira_additional_labels`](#jira_additional_labels)
+  - [`jira_assignee`](#jira_assignee)
+  - [`jira_priority`](#jira_priority)
+  - [`jira_security_level`](#jira_security_level)
+  - [`ignore`](#ignore)
+  - [`group`](#group)
+  - [Using a base config file](#using-a-base-config-file)
+- [Configuring Use With Private GCS Bucket](#configuring-use-with-private-gcs-bucket)
+
 
 ## Jira Issue Creation Configuration
 
@@ -64,6 +67,7 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 
 **Optional Values**:
 
+<!-- no toc -->
 - [`jira_epic`](#jiraepic)
 - [`jira_component`](#jiracomponent)
 - [`jira_affects_version`](#jiraaffectsversion)
@@ -358,3 +362,26 @@ By setting the env var, the user may override the base config with:
 - The base file configures a rule for the step `exact-step-name`
   - A specific scenario requires to apply this rule on a set of similar steps
   - In this case, we will extend it and use `*-step-*` to override the step name by a pattern
+
+## Configuring Use With Private GCS Bucket
+
+Firewatch allows for the use of a private GCS bucket if needed. In order to use this, you will need to receive [service account credentials](https://developers.google.com/workspace/guides/create-credentials) from an administator of the GCS bucket. The credentials should be in JSON format. Example:
+
+```json
+{
+  "type": "service_account",
+  "project_id": "some-project",
+  "private_key_id": "0000000000000000000000000",
+  "private_key": "<PRIVATE KEY>",
+  "client_email": "email@example.com",
+  "client_id": "12345678",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "<Cert URL>",
+  "universe_domain": "googleapis.com"
+}
+
+```
+
+You will need to provide the name of the bucket and the path to the service account credentials in the [CLI](./cli_usage_guide.md#report). Exmaple: `firewatch report --gcs-bucket "my-bucket-name" --gcs-creds-file ./some/creds/file.json`

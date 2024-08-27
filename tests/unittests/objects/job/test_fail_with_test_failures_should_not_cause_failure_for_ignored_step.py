@@ -81,6 +81,7 @@ def job(firewatch_config):
         name_safe="amq-broker-interop-aws",
         build_id="1769607768542547968",
         gcs_bucket="test-platform-results",
+        gcs_creds_file=None,
         firewatch_config=firewatch_config,
     )
 

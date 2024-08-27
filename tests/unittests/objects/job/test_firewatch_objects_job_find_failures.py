@@ -10,7 +10,14 @@ class TestFindFailures(JobBaseTest):
         temp_dir = tempfile.TemporaryDirectory()
         junit_dir = helpers._get_tmp_junit_dir(tmp_path=temp_dir.name)
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_failed_step_junit(junit_dir=junit_dir)
         failures = job._find_failures(
             junit_dir=junit_dir,
@@ -22,7 +29,14 @@ class TestFindFailures(JobBaseTest):
         temp_dir = tempfile.TemporaryDirectory()
         junit_dir = helpers._get_tmp_junit_dir(tmp_path=temp_dir.name)
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_failed_step_pod(logs_dir=logs_dir)
         failures = job._find_failures(
             junit_dir=junit_dir,
@@ -34,7 +48,14 @@ class TestFindFailures(JobBaseTest):
         temp_dir = tempfile.TemporaryDirectory()
         junit_dir = helpers._get_tmp_junit_dir(tmp_path=temp_dir.name)
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_failed_step_pod(logs_dir=logs_dir)
         helpers._create_failed_step_junit(junit_dir=junit_dir)
         failures = job._find_failures(
@@ -47,7 +68,14 @@ class TestFindFailures(JobBaseTest):
         temp_dir = tempfile.TemporaryDirectory()
         junit_dir = helpers._get_tmp_junit_dir(tmp_path=temp_dir.name)
         logs_dir = helpers._get_tmp_logs_dir(tmp_path=temp_dir.name)
-        job = Job("job1", "job1_safe", "123", "bucket1", self.config)
+        job = Job(
+            name="rehearse-1234-job1",
+            name_safe="job1_safe",
+            build_id="123",
+            gcs_bucket="bucket1",
+            gcs_creds_file=None,
+            firewatch_config=self.config,
+        )
         helpers._create_successful_step_pod(logs_dir=logs_dir)
         helpers._create_successful_step_junit(junit_dir=junit_dir)
         failures = job._find_failures(

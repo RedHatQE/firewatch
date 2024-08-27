@@ -78,6 +78,11 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.STRING,
 )
 @click.option(
+    "--gcs-creds-file",
+    help="The path to the GCS credentials file",
+    type=click.Path(exists=True),
+)
+@click.option(
     "--firewatch-config-path",
     help="The path to the firewatch configuration file",
     required=False,
@@ -139,6 +144,7 @@ def report(
     build_id: str,
     pr_id: str,
     gcs_bucket: str,
+    gcs_creds_file: Optional[str],
     firewatch_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
@@ -168,6 +174,7 @@ def report(
         name_safe=job_name_safe,
         build_id=build_id,
         gcs_bucket=gcs_bucket,
+        gcs_creds_file=gcs_creds_file,
         firewatch_config=config,
         pr_id=pr_id,
     )

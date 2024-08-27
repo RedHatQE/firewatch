@@ -6,6 +6,7 @@ from xml.etree.ElementTree import ParseError
 
 import junitparser
 from google.cloud import storage
+from google.oauth2 import service_account
 from simple_logger.logger import get_logger
 
 from src.objects.configuration import Configuration
@@ -19,6 +20,7 @@ class Job:
         name_safe: str,
         build_id: Optional[str],
         gcs_bucket: str,
+        gcs_creds_file: Optional[str],
         firewatch_config: Configuration,
         pr_id: Optional[str] = "",
     ) -> None:
@@ -58,8 +60,11 @@ class Job:
 
         # Set GCS bucket values
         self.gcs_bucket = gcs_bucket
-        self.storage_client = storage.Client.create_anonymous_client()
-        self.bucket = self.storage_client.bucket(gcs_bucket)
+        self.storage_client = (
+            storage.Client(credentials=service_account.Credentials.from_service_account_file(gcs_creds_file))
+            if gcs_creds_file
+            else storage.Client.create_anonymous_client()
+        )
 
         # Get a list of steps
         self.steps = self._get_steps(
