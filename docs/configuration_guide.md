@@ -77,7 +77,7 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 - [`jira_security_level`](#jirasecuritylevel)
 - [`ignore`](#ignore)
 - [`group`](#group)
--
+
 ### `success_rules` (OPTIONAL)
 
 **Required Values**:
