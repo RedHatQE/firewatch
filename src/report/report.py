@@ -150,8 +150,7 @@ class Report:
                 step_name=pair["failure"].step,  # type: ignore
                 failure_type=pair["failure"].failure_type,  # type: ignore
                 classification=pair["rule"].classification,  # type: ignore
-                job_name=job.name,  # type: ignore
-                build_id=job.build_id,  # type: ignore
+                job=job,  # type: ignore
                 failed_test_name=(
                     pair["failure"].failed_test_name  # type: ignore
                     if firewatch_config.verbose_test_failure_reporting
@@ -256,8 +255,7 @@ class Report:
                 project=rule.jira_project,
                 summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
                 description=self._get_issue_description(
-                    job_name=job.name,  # type: ignore
-                    build_id=job.build_id,  # type: ignore
+                    job=job,  # type: ignore
                     success_issue=True,
                 ),
                 issue_type="Story",
@@ -515,8 +513,7 @@ class Report:
 
     def _get_issue_description(
         self,
-        job_name: str,
-        build_id: str,
+        job: Job,
         step_name: Optional[str] = None,
         failure_type: Optional[str] = None,
         classification: Optional[str] = None,
@@ -539,8 +536,13 @@ class Report:
         Returns:
             str: String object representing the description.
         """
-        link_line = f"*Prow Job Link:* [{job_name} #{build_id}|https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job_name}/{build_id}]"
-        build_id_line = f"*Build ID:* {build_id}"
+        link_line_base_url = (
+            "https://qe-private-deck-ci.apps.ci.l2s4.p1.openshiftapps.com/view/gs/qe-private-deck/logs/"
+            if job.is_private_deck
+            else "https://prow.ci.openshift.org/view/gs/test-platform-results/logs/"
+        )
+        link_line = f"*Prow Job Link:* [{job.name} #{job.build_id}|{link_line_base_url}{job.name}/{job.build_id}]"
+        build_id_line = f"*Build ID:* {job.build_id}"
         firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
 
         # If the issue is being created for a failure

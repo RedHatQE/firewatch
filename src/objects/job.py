@@ -57,6 +57,7 @@ class Job:
         else:
             self.pr_id = ""
         self.firewatch_config = firewatch_config
+        self.is_private_deck = True if gcs_creds_file else False
 
         # Set GCS bucket values
         self.gcs_bucket = gcs_bucket
