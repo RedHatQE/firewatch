@@ -23,7 +23,7 @@ def firewatch_config(monkeypatch, mock_jira, default_jira_project):
         json.dumps({
             "failure_rules": [
                 {
-                    "step": "gather-*",
+                    "step": "openshift-pipelines-tests",
                     "failure_type": "test_failure",
                     "classification": "NONE",
                     "jira_project": "NONE",
@@ -43,7 +43,7 @@ def firewatch_config(monkeypatch, mock_jira, default_jira_project):
 
 @pytest.fixture
 def job_step_names():
-    yield ["gather-must-gather"]
+    yield ["openshift-pipelines-tests"]
 
 
 @pytest.fixture(autouse=True)
@@ -77,9 +77,9 @@ def test_failure_artifacts_present(job_step_names, job_artifacts_dir):
 @pytest.fixture
 def job(firewatch_config):
     yield Job(
-        name="periodic-ci-rh-messaging-qe-claire-lpt-amq-broker-ocp4.16-lp-interop-amq-broker-interop-aws",
-        name_safe="amq-broker-interop-aws",
-        build_id="1769607768542547968",
+        name="periodic-ci-openshift-pipelines-release-tests-release-v1.15-openshift-pipelines-ocp4.17-lp-interop-openshift-pipelines-interop-aws",
+        name_safe="openshift-pipelines-interop-aws",
+        build_id="1833066891065692160",
         gcs_bucket="test-platform-results",
         gcs_creds_file=None,
         firewatch_config=firewatch_config,
@@ -102,7 +102,6 @@ def test_fail_with_test_failures_should_not_cause_failure_for_ignored_step(
             assert rule.ignore
     assert not job.has_test_failures
     assert not job.failures
-    assert not job.failures
 
 
 def test_fail_with_test_failures_should_cause_failure_unignored_step(
@@ -113,5 +112,4 @@ def test_fail_with_test_failures_should_cause_failure_unignored_step(
         if rule.failure_type == "test_failure":
             assert not rule.ignore
     assert job.has_test_failures
-    assert job.failures
     assert job.failures
