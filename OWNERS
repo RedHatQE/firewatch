@@ -3,17 +3,14 @@ approvers:
 - btjd
 - ascerra
 - myakove
-- rnetser
-options: {}
-reviewers:
-- madunn
-- chetna14manku
+- vi-patel
+- dfrazzette
+- amp-rh
 - smatula
+- chetna14manku
 - liswang89
 - Sau1506mya
-- amp-rh
-- macharya0907
-- myakove
-- rnetser
 - oharan2
-- dfrazzette
+- madunn
+options: {}
+
