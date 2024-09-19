@@ -543,6 +543,7 @@ class Report:
         )
         link_line = f"*Prow Job Link:* [{job.name} #{job.build_id}|{link_line_base_url}{job.name}/{job.build_id}]"
         build_id_line = f"*Build ID:* {job.build_id}"
+        job_history_link_line = f"*Job History:* [{job.name}|https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/{job.name}]"
         firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
 
         # If the issue is being created for a failure
@@ -556,9 +557,7 @@ class Report:
                 failed_test_name=failed_test_name,  # type: ignore
                 jira=jira,  # type: ignore
             )
-            description = (
-                f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n"
-            )
+            description = f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n{job_history_link_line}\n"
             if past_bugs:
                 failed_test_portion = f" and failed test *{failed_test_name}*" if failed_test_name else ""
                 description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}*{failed_test_portion}:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
