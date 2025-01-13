@@ -19,15 +19,15 @@
 1. Ensure you have [Docker installed](https://www.docker.com/get-started/) on your system.
 2. Clone the repository: `git clone https://github.com/CSPI-QE/firewatch.git`.
 3. Navigate to the project root in your terminal: `cd firewatch`.
-4. Run the following to build and run a Docker container with firewatch installed: `make build-run`.
-5. Use the `firewatch` command to execute the tool. See the [CLI usage guide](docs/cli_usage_guide.md) for instructions on using the tool.
+4. Run the following to build and run a Docker container with firewatch installed: `make container-build-run`.
+5. Use the `firewatch` command to execute the tool. See the [CLI usage guide](cli_usage_guide.md) for instructions on using the tool.
 
 ### Local Machine (using venv)
 
 1. Clone the repository: `git clone https://github.com/CSPI-QE/firewatch.git`
 2. Navigate to the project root: `cd firewatch`
 3. Install the necessary dependencies: `make dev-environment`
-4. Use the `firewatch` command to execute the tool. See the [CLI usage guide](docs/cli_usage_guide.md) for instructions on using the tool.
+4. Use the `firewatch` command to execute the tool. See the [CLI usage guide](cli_usage_guide.md) for instructions on using the tool.
 
 ## Configuration
 
