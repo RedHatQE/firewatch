@@ -39,6 +39,11 @@ class Report:
 
             exit(0)
 
+         # If job is retrigger
+        if job.is_retriggered:
+            self.logger.info(f"Adding retrigger label to issue: {job.name}")
+            self.add_retrigger_job_label(jira=firewatch_config.jira, issue_id=job.name)
+
         bugs_filed = None
         bugs_updated = None
         # If job has failures, file bugs
@@ -388,6 +393,22 @@ class Report:
         jira.add_labels_to_issue(
             issue_id_or_key=issue_id,
             labels=[JOB_PASSED_SINCE_TICKET_CREATED_LABEL],
+        )
+
+    def add_retrigger_job_label(self, jira: Jira, issue_id: str) -> None:
+        """
+        Used to add a label on a Jira issue that the latest build is retrigger of job.
+
+        Args:
+            jira (Jira): Jira object.
+            issue_id (str): Issue ID of the open issue to comment on.
+
+        Returns:
+            None
+        """
+        jira.add_labels_to_issue(
+            issue_id_or_key=issue_id,
+            labels=["RETRIGGER_JOB"],
         )
 
     def add_duplicate_comment(
