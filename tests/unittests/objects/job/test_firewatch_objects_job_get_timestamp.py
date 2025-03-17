@@ -13,7 +13,7 @@ class TestGetTimestamp(JobBaseTest):
 
         mock_storage_client.return_value = mock_client
         mock_client.bucket.return_value = mock_bucket
-        mock_bucket.blob.return_value = mock_blob()
+        mock_bucket.blob.return_value = mock_blob
 
         # Mock the content of the started.json file
         mock_blob.download_as_text.return_value = '{"timestamp": 1617184800}'
