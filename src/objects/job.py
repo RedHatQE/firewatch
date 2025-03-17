@@ -539,19 +539,18 @@ class Job:
         job_name: Optional[str],
         build_id: Optional[str],
     ) -> bool:
-        """ Check if the current job build is retriggered within same week as last build.
-        
+        """Check if the current job build is retriggered within the same week as a previous build.
+
         Args:
             job_name (Optional[str]): The name of the job to get timestamp for.
             build_id (Optional[str]): The build ID of the job to get timestamp for.
 
         Returns:
-            bool: True, means it retriggered within same week.
-                False, means it is NOT a retriggered job in current week.
+            bool: True if retriggered within the same week, False otherwise.
         """
         current_timestamp = self._get_timestamp(job_name, build_id)
         if current_timestamp is None:
-            self.logger.error(f"Failed to get current timestamp for job {job_name} with build ID {build_id}")
+            self.logger.error(f"Failed to get timestamp for job {job_name} with build ID {build_id}")
             return False
 
         current_datetime = datetime.fromtimestamp(current_timestamp, tz=timezone.utc)
@@ -560,20 +559,18 @@ class Job:
         week_start = current_datetime - timedelta(days=current_datetime.weekday())
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        build_ids = self._get_all_build_ids(job_name)
+        build_ids = sorted(self._get_all_build_ids(job_name))  # Ensure sorting
+        previous_builds = [b_id for b_id in build_ids if b_id < build_id]  # Filter before loop
 
-        # Find the previous build within the same week
-        for build_id in build_ids:
-            if build_id >= self.build_id:
-                continue  # Skip current and newer builds
-            build_timestamp = self._get_timestamp(job_name, build_id)
-            if build_timestamp is None:
-                self.logger.error(f"Failed to get timestamp for build ID {build_id}")
+        for prev_build_id in reversed(previous_builds):  # Iterate in descending order
+            prev_timestamp = self._get_timestamp(job_name, prev_build_id)
+            if prev_timestamp is None:
+                self.logger.error(f"Failed to get timestamp for build ID {prev_build_id}")
                 continue
-            build_datetime = datetime.fromtimestamp(build_timestamp, tz=timezone.utc)
-            # Check if the build is within the same week (Monday 00:00 to now)
-            if week_start <= build_datetime < current_datetime:
-                print(f"Previous build within the same week: {build_id}")
+            prev_datetime = datetime.fromtimestamp(prev_timestamp, tz=timezone.utc)
+            if week_start <= prev_datetime < current_datetime:
+                self.logger.info(f"Previous build within the same week found: {prev_build_id}")
                 return True
-        print("No previous build found within the same week.")
+
+        self.logger.info("No previous build found within the same week.")
         return False
