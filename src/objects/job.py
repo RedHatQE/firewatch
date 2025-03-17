@@ -110,7 +110,7 @@ class Job:
                 self.has_test_failures = True
             elif failure.failure_type == "pod_failure":
                 self.has_pod_failures = True
-        
+
         # Check if job is retriggered within same week of last build
         self.is_retriggered= self._check_is_retriggered(
             job_name=self.name,
@@ -541,20 +541,23 @@ class Job:
     ) -> bool:
         """ Check if the current job build is retriggered within same week as last build.
         
-         Args:
+        Args:
             job_name (Optional[str]): The name of the job to get timestamp for.
             build_id (Optional[str]): The build ID of the job to get timestamp for.
-    
-        Returns:
-            bool: True, means it retriggered within same week. 
-                  False, means it is NOT a retriggered job in current week.
-        """
 
+        Returns:
+            bool: True, means it retriggered within same week.
+                False, means it is NOT a retriggered job in current week.
+        """
         current_timestamp = self._get_timestamp(job_name, build_id)
+        if current_timestamp is None:
+            self.logger.error(f"Failed to get current timestamp for job {job_name} with build ID {build_id}")
+            return False
+
         current_datetime = datetime.fromtimestamp(current_timestamp, tz=timezone.utc)
 
         # Calculate the start of the current week (Monday, 00:00 UTC)
-        week_start = current_datetime - timedelta(days=current_datetime.weekday()) 
+        week_start = current_datetime - timedelta(days=current_datetime.weekday())
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
         build_ids = self._get_all_build_ids(job_name)
@@ -564,6 +567,9 @@ class Job:
             if build_id >= self.build_id:
                 continue  # Skip current and newer builds
             build_timestamp = self._get_timestamp(job_name, build_id)
+            if build_timestamp is None:
+                self.logger.error(f"Failed to get timestamp for build ID {build_id}")
+                continue
             build_datetime = datetime.fromtimestamp(build_timestamp, tz=timezone.utc)
             # Check if the build is within the same week (Monday 00:00 to now)
             if week_start <= build_datetime < current_datetime:
