@@ -7,6 +7,9 @@ from simple_logger.logger import get_logger
 from src.commands.jira_config_gen import jira_config_gen
 from src.commands.report import report
 
+# from src.commands.jira_automation import jira_automation
+from src.commands.jira_escalation import jira_escalation
+
 
 @click.group()
 @click.option(
@@ -23,6 +26,8 @@ def main(ctx: Context, pdb: bool) -> None:
 
 main.add_command(report)
 main.add_command(jira_config_gen)
+# main.add_command(jira_automation)
+main.add_command(jira_escalation)
 
 if __name__ == "__main__":
     should_raise = False
