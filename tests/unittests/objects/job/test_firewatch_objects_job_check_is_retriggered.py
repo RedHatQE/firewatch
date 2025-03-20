@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
 from src.objects.job import Job
@@ -34,7 +33,7 @@ def test_check_is_retriggered():
             "8125": 1617357600,  # Friday, April 2, 2021
             "8126": 1617444000,  # Sat, April 3, 2021 (new build)
         }.get(build_id, None)):
-            
+
             with patch("src.objects.job.datetime", autospec=True) as mock_datetime:
                 mock_datetime.now.return_value = datetime(2021, 4, 3, tzinfo=timezone.utc)
                 mock_datetime.fromtimestamp.side_effect = lambda ts, tz=timezone.utc: datetime.fromtimestamp(ts, tz)

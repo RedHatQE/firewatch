@@ -509,7 +509,7 @@ class Job:
 
     def _get_all_build_ids(
         self,
-        job_name: Optional[str],       
+        job_name: Optional[str],
     ) -> list[str]:
         """
         Get the list of all build IDs from the job directory.
