@@ -531,7 +531,7 @@ class Job:
 
         # Get the build IDs from the prefixes
         build_ids = [prefix.split('/')[-2] for prefix in build_ids if prefix.endswith('/')]
-
+        self.logger.info(f"Build IDs retrieved for {job_name}: {build_ids}")
         return build_ids
 
     def _check_is_retriggered(
@@ -559,10 +559,11 @@ class Job:
         week_start = current_datetime - timedelta(days=current_datetime.weekday())
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        build_ids = sorted(self._get_all_build_ids(job_name))  # Ensure sorting
-        previous_builds = [b_id for b_id in build_ids if b_id < build_id]  # Filter before loop
+        build_ids = sorted(self._get_all_build_ids(job_name))
+        previous_builds = [b_id for b_id in build_ids if int(b_id) < int(build_id)]
 
-        for prev_build_id in reversed(previous_builds):  # Iterate in descending order
+        # Iterate in descending order to find the previous build within the same week
+        for prev_build_id in reversed(previous_builds):
             prev_timestamp = self._get_timestamp(job_name, prev_build_id)
             if prev_timestamp is None:
                 self.logger.error(f"Failed to get timestamp for build ID {prev_build_id}")
