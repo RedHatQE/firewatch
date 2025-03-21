@@ -10,12 +10,15 @@ The tests are organized into subdirectories that mirror the structure of the sou
 
 You can use tox from command line to execute the unit tests. The tox.ini file defines the tox config for automatically running the tests. Tox installs the project dependencies and runs the tests using pytest command.
 To invoke the pytest test execution command using tox, simply run the following command at project root directory:
+
 ```sh
 tox
 ```
+
 This will run all the tests under the directory tests/unittests with specified coverage.
 
 To run all tests in a single file/module, you can execute pytest command with necessary options, for example:
+
 ```sh
 pytest -c ./tests/unittests/pytest.ini --verbose ./tests/unittests/objects/job/test_firewatch_objects_job_check_is_rehearsal.py
 ```
@@ -31,7 +34,9 @@ Alternatively you can use the python `unittest` framework. The following command
 ```sh
 python -m unittest discover -s tests/unittests
 ```
+
 You can run tests in a specific test file using option like below:
+
 ```sh
 python -m unittest tests.unittests.objects.job.test_firewatch_objects_job_check_is_rehearsal
 ```
