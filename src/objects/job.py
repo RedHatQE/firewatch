@@ -504,7 +504,7 @@ class Job:
             started_json = json.loads(blob.download_as_text())
             return started_json.get("timestamp")
         except Exception as e:
-            self.logger.error(f"Failed to fetch timestamp from started.json: {e}")
+            self.logger.error(f"Failed to get timestamp for job {job_name} with build ID {build_id} from started.json: {e}")
             return None
 
     def _get_all_build_ids(
@@ -550,7 +550,6 @@ class Job:
         """
         current_timestamp = self._get_timestamp(job_name, build_id)
         if current_timestamp is None:
-            self.logger.error(f"Failed to get timestamp for job {job_name} with build ID {build_id}")
             return False
 
         current_datetime = datetime.fromtimestamp(current_timestamp, tz=timezone.utc)
@@ -566,7 +565,6 @@ class Job:
         for prev_build_id in reversed(previous_builds):
             prev_timestamp = self._get_timestamp(job_name, prev_build_id)
             if prev_timestamp is None:
-                self.logger.error(f"Failed to get timestamp for build ID {prev_build_id}")
                 continue
             prev_datetime = datetime.fromtimestamp(prev_timestamp, tz=timezone.utc)
             if week_start <= prev_datetime < current_datetime:
