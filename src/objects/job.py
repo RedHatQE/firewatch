@@ -487,7 +487,7 @@ class Job:
     ) -> Optional[int]:
         """
         Fetches the UNIX timestamp of job
-        
+
         Args:
             job_name (Optional[str]): The name of the job to get timestamp for.
             build_id (Optional[str]): The build ID of the job to get timestamp for.
@@ -513,10 +513,10 @@ class Job:
     ) -> list[str]:
         """
         Get the list of all build IDs from the job directory.
-        
+    
         Args:
             job_name (Optional[str]): The name of the job to get timestamp for.
-    
+
         Returns:
             List[str]: A list of build IDs.
         """
