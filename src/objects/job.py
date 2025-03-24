@@ -548,6 +548,10 @@ class Job:
         Returns:
             bool: True if retriggered within the same week, False otherwise.
         """
+        if build_id is None:
+            self.logger.error("build_id cannot be None")
+            return False
+
         current_timestamp = self._get_timestamp(job_name, build_id)
         if current_timestamp is None:
             return False
@@ -559,7 +563,8 @@ class Job:
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
         build_ids = sorted(self._get_all_build_ids(job_name))
-        previous_builds = [b_id for b_id in build_ids if int(b_id) < int(build_id)]
+        # Ensure all build_ids are valid integers
+        previous_builds = [b_id for b_id in build_ids if b_id is not None and int(b_id) < int(build_id)]
         if not previous_builds:
             self.logger.info("No previous build found within the same week.")
             return False
