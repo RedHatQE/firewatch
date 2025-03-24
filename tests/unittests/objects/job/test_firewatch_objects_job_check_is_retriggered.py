@@ -28,16 +28,16 @@ def test_check_is_retriggered():
 
         # Mock the content of the started.json files
         with patch.object(job, "_get_timestamp", side_effect=lambda job_name, build_id: {
-            "8123": 1617184800,  # Wed, March 31, 2021
-            "8124": 1617271200,  # Thursday, April 1, 2021
-            "8125": 1617357600,  # Friday, April 2, 2021
-            "8126": 1617444000,  # Sat, April 3, 2021 (new build)
+            "8123": 1739167564,# Mon, Feb 10, 2025(previous week build)
+            "8124": 1739772346,# Mon, Feb 17, 2025(current week build)
+            "8125": 1739979486,# Wed, Feb 19, 2025(retriggered build)
+            "8126": 1740377174,# Mon, Feb 24, 2025 (newer week build)
         }.get(build_id, None)):
 
             with patch("src.objects.job.datetime", autospec=True) as mock_datetime:
                 mock_datetime.now.return_value = datetime(2021, 4, 3, tzinfo=timezone.utc)
                 mock_datetime.fromtimestamp.side_effect = lambda ts, tz=timezone.utc: datetime.fromtimestamp(ts, tz)
 
-                is_retriggered = job._check_is_retriggered(job_name="rehearse-1234-job1", build_id="8126")
+                is_retriggered = job._check_is_retriggered(job_name="rehearse-1234-job1", build_id="8125")
 
         assert is_retriggered is True

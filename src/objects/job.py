@@ -560,6 +560,9 @@ class Job:
 
         build_ids = sorted(self._get_all_build_ids(job_name))
         previous_builds = [b_id for b_id in build_ids if int(b_id) < int(build_id)]
+        if not previous_builds:
+            self.logger.info("No previous build found within the same week.")
+            return False
 
         # Iterate in descending order to find the previous build within the same week
         for prev_build_id in reversed(previous_builds):
@@ -570,6 +573,4 @@ class Job:
             if week_start <= prev_datetime < current_datetime:
                 self.logger.info(f"Previous build within the same week found: {prev_build_id}")
                 return True
-
-        self.logger.info("No previous build found within the same week.")
         return False
