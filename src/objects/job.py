@@ -513,7 +513,7 @@ class Job:
     ) -> list[str]:
         """
         Get the list of all build IDs from the job directory.
-    
+
         Args:
             job_name (Optional[str]): The name of the job to get timestamp for.
 

@@ -27,6 +27,7 @@ def test_check_is_retriggered():
         )
 
         # Mock the content of the started.json files
+        # https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/periodic-ci-oadp-qe-oadp-qe-automation-main-oadp1.4-ocp4.18-lp-interop-oadp-interop-aws
         with patch.object(job, "_get_timestamp", side_effect=lambda job_name, build_id: {
             "8123": 1739167564,# Mon, Feb 10, 2025(previous week build)
             "8124": 1739772346,# Mon, Feb 17, 2025(current week build)
