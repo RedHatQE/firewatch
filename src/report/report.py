@@ -39,10 +39,13 @@ class Report:
 
             exit(0)
 
-         # If job is retrigger
+        # If job is retrigger
         if job.is_retriggered:
             self.logger.info(f"Adding retrigger label to issue: {job.name}")
-            self.add_retrigger_job_label(jira=firewatch_config.jira, issue_id=job.name)
+            if job.name:
+                self.add_retrigger_job_label(jira=firewatch_config.jira, issue_id=job.name)
+            else:
+                self.logger.warning("Job name is None. Cannot add retrigger label")
 
         bugs_filed = None
         bugs_updated = None
@@ -406,6 +409,7 @@ class Report:
         Returns:
             None
         """
+        assert issue_id is not None, "issue_id cannot be None"
         jira.add_labels_to_issue(
             issue_id_or_key=issue_id,
             labels=["RETRIGGER_JOB"],

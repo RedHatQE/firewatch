@@ -2,6 +2,7 @@ from unittest.mock import patch, MagicMock
 from src.objects.job import Job
 from tests.unittests.objects.job.job_base_test import JobBaseTest
 
+
 class TestGetDownloadPath(JobBaseTest):
     @patch("os.path.exists")
     @patch("os.mkdir")

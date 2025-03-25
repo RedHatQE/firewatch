@@ -112,7 +112,7 @@ class Job:
                 self.has_pod_failures = True
 
         # Check if job is retriggered within same week of last build
-        self.is_retriggered= self._check_is_retriggered(
+        self.is_retriggered = self._check_is_retriggered(
             job_name=self.name,
             build_id=self.build_id,
         )
@@ -504,7 +504,9 @@ class Job:
             started_json = json.loads(blob.download_as_text())
             return started_json.get("timestamp")
         except Exception as e:
-            self.logger.error(f"Failed to get timestamp for job {job_name} with build ID {build_id} from started.json: {e}")
+            self.logger.error(
+                f"Failed to get timestamp for job {job_name} with build ID {build_id} from started.json: {e}"
+            )
             return None
 
     def _get_all_build_ids(
@@ -523,14 +525,14 @@ class Job:
         client = storage.Client()
         bucket = client.bucket(self.gcs_bucket)
         prefix = f"logs/{job_name}/"
-        blobs = bucket.list_blobs(prefix=prefix, delimiter='/')
+        blobs = bucket.list_blobs(prefix=prefix, delimiter="/")
 
         build_ids = []
         for page in blobs.pages:
             build_ids.extend(page.prefixes)
 
         # Get the build IDs from the prefixes
-        build_ids = [prefix.split('/')[-2] for prefix in build_ids if prefix.endswith('/')]
+        build_ids = [prefix.split("/")[-2] for prefix in build_ids if prefix.endswith("/")]
         self.logger.info(f"Build IDs retrieved for {job_name}: {build_ids}")
         return build_ids
 

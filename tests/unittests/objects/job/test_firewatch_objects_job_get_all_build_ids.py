@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.objects.job import Job
 from tests.unittests.objects.job.job_base_test import JobBaseTest
 
+
 class TestGetAllBuildIds(JobBaseTest):
     @patch("src.objects.job.storage.Client")
     def test_get_all_build_ids(self, mock_storage_client):
@@ -17,11 +18,13 @@ class TestGetAllBuildIds(JobBaseTest):
 
         # Mock the list of blobs with prefixes
         mock_blobs.pages = [
-            MagicMock(prefixes=[
-                "logs/rehearse-1234-job1/8123/",
-                "logs/rehearse-1234-job1/8124/",
-                "logs/rehearse-1234-job1/8125/",
-            ])
+            MagicMock(
+                prefixes=[
+                    "logs/rehearse-1234-job1/8123/",
+                    "logs/rehearse-1234-job1/8124/",
+                    "logs/rehearse-1234-job1/8125/",
+                ]
+            )
         ]
 
         job = Job(
@@ -35,6 +38,7 @@ class TestGetAllBuildIds(JobBaseTest):
 
         build_ids = job._get_all_build_ids(job_name="rehearse-1234-job1")
         assert build_ids == ["8123", "8124", "8125"]
+
 
 if __name__ == "__main__":
     unittest.main()

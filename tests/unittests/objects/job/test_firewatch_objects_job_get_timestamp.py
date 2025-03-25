@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from src.objects.job import Job
 from tests.unittests.objects.job.job_base_test import JobBaseTest
 
+
 class TestGetTimestamp(JobBaseTest):
     @patch("src.objects.job.storage.Client")
     def test_get_timestamp(self, mock_storage_client):
@@ -29,6 +30,7 @@ class TestGetTimestamp(JobBaseTest):
 
         timestamp = job._get_timestamp(job_name="rehearse-1234-job1", build_id="123")
         assert timestamp == 1617184800
+
 
 if __name__ == "__main__":
     unittest.main()
