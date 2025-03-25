@@ -3,6 +3,7 @@ import os
 from typing import Any
 from typing import Optional
 from xml.etree.ElementTree import ParseError
+from datetime import datetime, timezone, timedelta
 
 import junitparser
 from google.cloud import storage
@@ -109,6 +110,12 @@ class Job:
                 self.has_test_failures = True
             elif failure.failure_type == "pod_failure":
                 self.has_pod_failures = True
+
+        # Check if job is retriggered within same week of last build
+        self.is_retriggered = self._check_is_retriggered(
+            job_name=self.name,
+            build_id=self.build_id,
+        )
 
     def _check_is_rehearsal(
         self,
@@ -472,3 +479,105 @@ class Job:
             )
 
         return failures
+
+    def _get_timestamp(
+        self,
+        job_name: Optional[str],
+        build_id: Optional[str],
+    ) -> Optional[int]:
+        """
+        Fetches the UNIX timestamp of job
+
+        Args:
+            job_name (Optional[str]): The name of the job to get timestamp for.
+            build_id (Optional[str]): The build ID of the job to get timestamp for.
+
+        Returns:
+            Optional[int]: The timestamp if found, otherwise None.
+        """
+
+        client = storage.Client()
+        bucket = client.bucket(self.gcs_bucket)
+        blob = bucket.blob(f"{job_name}/{build_id}/started.json")
+
+        try:
+            started_json = json.loads(blob.download_as_text())
+            return started_json.get("timestamp")
+        except Exception as e:
+            self.logger.error(
+                f"Failed to get timestamp for job {job_name} with build ID {build_id} from started.json: {e}"
+            )
+            return None
+
+    def _get_all_build_ids(
+        self,
+        job_name: Optional[str],
+    ) -> list[str]:
+        """
+        Get the list of all build IDs from the job directory.
+
+        Args:
+            job_name (Optional[str]): The name of the job to get timestamp for.
+
+        Returns:
+            List[str]: A list of build IDs.
+        """
+        client = storage.Client()
+        bucket = client.bucket(self.gcs_bucket)
+        prefix = f"logs/{job_name}/"
+        blobs = bucket.list_blobs(prefix=prefix, delimiter="/")
+
+        build_ids = []
+        for page in blobs.pages:
+            build_ids.extend(page.prefixes)
+
+        # Get the build IDs from the prefixes
+        build_ids = [prefix.split("/")[-2] for prefix in build_ids if prefix.endswith("/")]
+        self.logger.info(f"Build IDs retrieved for {job_name}: {build_ids}")
+        return build_ids
+
+    def _check_is_retriggered(
+        self,
+        job_name: Optional[str],
+        build_id: Optional[str],
+    ) -> bool:
+        """Check if the current job build is retriggered within the same week as a previous build.
+
+        Args:
+            job_name (Optional[str]): The name of the job to get timestamp for.
+            build_id (Optional[str]): The build ID of the job to get timestamp for.
+
+        Returns:
+            bool: True if retriggered within the same week, False otherwise.
+        """
+        if build_id is None:
+            self.logger.error("build_id cannot be None")
+            return False
+
+        current_timestamp = self._get_timestamp(job_name, build_id)
+        if current_timestamp is None:
+            return False
+
+        current_datetime = datetime.fromtimestamp(current_timestamp, tz=timezone.utc)
+
+        # Calculate the start of the current week (Monday, 00:00 UTC)
+        week_start = current_datetime - timedelta(days=current_datetime.weekday())
+        week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        build_ids = sorted(self._get_all_build_ids(job_name))
+        # Ensure all build_ids are valid integers
+        previous_builds = [b_id for b_id in build_ids if b_id is not None and int(b_id) < int(build_id)]
+        if not previous_builds:
+            self.logger.info("No previous build found within the same week.")
+            return False
+
+        # Iterate in descending order to find the previous build within the same week
+        for prev_build_id in reversed(previous_builds):
+            prev_timestamp = self._get_timestamp(job_name, prev_build_id)
+            if prev_timestamp is None:
+                continue
+            prev_datetime = datetime.fromtimestamp(prev_timestamp, tz=timezone.utc)
+            if week_start <= prev_datetime < current_datetime:
+                self.logger.info(f"Previous build within the same week found: {prev_build_id}")
+                return True
+        return False
