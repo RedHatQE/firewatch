@@ -545,7 +545,7 @@ class Job:
         Get the list of all build IDs from the job directory.
 
         Args:
-            job_name (Optional[str]): The name of the job to get timestamp for.
+            job_name (Optional[str]): The name of the job to get build ids for.
             storage_client (Any): The storage client used to gather steps from GCS.
             gcs_bucket (str): The GCS bucket that job logs are stored in.
 
@@ -583,8 +583,10 @@ class Job:
         """Check if the current job build is retriggered within the same week as a previous build.
 
         Args:
-            job_name (Optional[str]): The name of the job to get timestamp for.
+            job_name (Optional[str]): The name of the job to check if its retriggered the same week.
             build_id (Optional[str]): The build ID of the job to get timestamp for.
+            timestamp (Optional[int]): The timestamp of the given job build_id in UNIX time.
+            all_build_ids (list[str]): A list of all build IDs for the job.
             storage_client (Any): The storage client used to gather steps from GCS.
             gcs_bucket (str): The GCS bucket that job logs are stored in.
 
