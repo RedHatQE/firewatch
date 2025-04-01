@@ -28,7 +28,9 @@ class TestGetTimestamp(JobBaseTest):
             firewatch_config=self.config,
         )
 
-        timestamp = job._get_timestamp(job_name="rehearse-1234-job1", build_id="123")
+        timestamp = job._get_timestamp(
+            job_name="rehearse-1234-job1", build_id="123", storage_client=mock_client, gcs_bucket=mock_bucket
+        )
         assert timestamp == 1617184800
 
 

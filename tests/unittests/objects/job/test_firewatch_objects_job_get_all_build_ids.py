@@ -36,7 +36,9 @@ class TestGetAllBuildIds(JobBaseTest):
             firewatch_config=self.config,
         )
 
-        build_ids = job._get_all_build_ids(job_name="rehearse-1234-job1")
+        build_ids = job._get_all_build_ids(
+            job_name="rehearse-1234-job1", storage_client=mock_client, gcs_bucket=mock_bucket
+        )
         assert build_ids == ["8123", "8124", "8125"]
 
 
