@@ -43,10 +43,10 @@ class SlackClient:
         try:
             response = self.client.users_lookupByEmail(email=email)
             user = response["user"]
-            LOGGER.info(f"username : {user['profile']['display_name']}")
+            # LOGGER.info(f"username : {user['profile']['display_name']}")
             return user["profile"]["display_name"]
         except SlackApiError as e:
-            LOGGER.info(f"Error looking up user {e.response['error']}")
+            LOGGER.error(f"Error looking up user {e.response['error']}")
             return None
 
     def send_notification(self, channel: str, text: str) -> None:
@@ -65,3 +65,26 @@ class SlackClient:
 
         except SlackApiError as e:
             print(f"Error posting slack message: {e.response['error']}")
+
+    def get_slack_usergroup(self, group_name: str) -> Optional[str]:
+        """
+        Look up a slack user by their email address.
+
+        Args:
+          email (str): Email of the slack user to look up
+
+        Returns:
+          dict: A dictionary containing user information if found, else None.
+        """
+        try:
+            response = self.client.usergroups_list()
+            # LOGGER.info(f" response: {response}")
+            for group in response['usergroups']:
+                if group['name'] == group_name:
+                  LOGGER.info(f"user group : {group['id']}")
+                  LOGGER.info(f"user group : {group['name']}")
+            
+                  return group['id']
+        except SlackApiError as e:
+            LOGGER.info(f"Error looking up user {e.response['error']}")
+            return None
