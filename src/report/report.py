@@ -13,7 +13,7 @@ from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.job import Job
-from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL
 
 
 class Report:
@@ -39,13 +39,21 @@ class Report:
 
             exit(0)
 
-        # If job is retrigger
+        # If job is retriggered
         if job.is_retriggered:
-            self.logger.info(f"Adding retrigger label to issue: {job.name}")
-            if job.name:
-                self.add_retrigger_job_label(jira=firewatch_config.jira, issue_id=job.name)
+            self.logger.info(f"Job {job.name} is retriggered in current week. Checking for open bugs.")
+
+            open_bugs = self._get_open_bugs(
+                job_name=job.name,
+                jira=firewatch_config.jira,
+            )
+
+            if open_bugs:
+                for bug in open_bugs:
+                    self.logger.info(f"Adding retrigger label to issue: {bug}")
+                    self.add_retrigger_job_label(jira=firewatch_config.jira, issue_id=bug)
             else:
-                self.logger.warning("Job name is None. Cannot add retrigger label")
+                self.logger.warning(f"No open bugs found for retriggered job: {job.name}")
 
         bugs_filed = None
         bugs_updated = None
@@ -409,10 +417,9 @@ class Report:
         Returns:
             None
         """
-        assert issue_id is not None, "issue_id cannot be None"
         jira.add_labels_to_issue(
             issue_id_or_key=issue_id,
-            labels=["RETRIGGER_JOB"],
+            labels=[JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL],
         )
 
     def add_duplicate_comment(
