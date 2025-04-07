@@ -91,6 +91,12 @@ FIREWATCH_CONFIG_TEST_TEMPLATES_DIR_NAME = "firewatch_configs"
 FIREWATCH_CONFIG_SAMPLE_JSON_FILE_NAME = "firewatch_config_sample.json"
 
 
+@pytest.fixture(autouse=True)
+def mock_required_env_vars(monkeypatch):
+    monkeypatch.setenv("FIREWATCH_DEFAULT_JIRA_COMPONENT", '["default-component"]')
+    monkeypatch.setenv("FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS", '["default-label"]')
+
+
 @pytest.fixture
 def test_resources_dir():
     test_resources_dir = Path(__file__).parent / TEST_RESOURCES_DIR_RELATIVE_PATH
@@ -215,7 +221,17 @@ def firewatch_config(jira):
 
 
 @pytest.fixture
-def job(firewatch_config, build_id):
+def patch_job_get_steps(monkeypatch):
+    LOGGER.info("Patching Job step names")
+
+    def _get_steps(*args, **kwargs):
+        return []
+
+    monkeypatch.setattr(Job, "_get_steps", _get_steps)
+
+
+@pytest.fixture
+def job(firewatch_config, build_id, patch_job_get_steps):
     yield Job(
         name="periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp4.16-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
@@ -254,21 +270,6 @@ def patch_job_download_dirs(monkeypatch, job_artifacts_dir, patch_job_junit_dir,
         return job_artifacts_dir.parent.as_posix()
 
     monkeypatch.setattr(Job, "_get_download_path", _get_download_path)
-
-
-@pytest.fixture
-def job_step_names():
-    return []
-
-
-@pytest.fixture
-def patch_job_get_steps(monkeypatch, job_step_names):
-    LOGGER.info("Patching Job step names")
-
-    def _get_steps(*args, **kwargs):
-        return job_step_names
-
-    monkeypatch.setattr(Job, "_get_steps", _get_steps)
 
 
 @pytest.fixture

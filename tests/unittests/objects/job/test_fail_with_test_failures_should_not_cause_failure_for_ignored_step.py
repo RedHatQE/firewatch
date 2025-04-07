@@ -42,8 +42,14 @@ def firewatch_config(monkeypatch, mock_jira, default_jira_project):
 
 
 @pytest.fixture
-def job_step_names():
-    yield ["openshift-pipelines-tests"]
+def job_step_names(monkeypatch):
+    step_names = ["openshift-pipelines-tests"]
+
+    def _mock_get_steps(*args, **kwargs):
+        return step_names
+
+    monkeypatch.setattr(Job, "_get_steps", _mock_get_steps)
+    return step_names
 
 
 @pytest.fixture(autouse=True)
@@ -75,7 +81,7 @@ def test_failure_artifacts_present(job_step_names, job_artifacts_dir):
 
 
 @pytest.fixture
-def job(firewatch_config):
+def job(firewatch_config, job_step_names):
     yield Job(
         name="periodic-ci-openshift-pipelines-release-tests-release-v1.15-openshift-pipelines-ocp4.17-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
