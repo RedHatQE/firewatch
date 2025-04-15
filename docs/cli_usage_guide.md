@@ -187,7 +187,7 @@ If Any issues are found that match all the conditions above, we can be fairly co
 
 Additionality, a Jira label `job_passed_since_ticket_created` is added to above OPEN issues.
 
-This tool also has the functionality to find open Jira issues that were retriggered in the current week. It will detect if a job was re-run in current week (due to infra, pre-phase failures etc), and add the JIRA label `job_retriggered_since_ticket_created` to exiting open JIRA issues.
+This tool also has the functionality to find open Jira issues that were retriggered in the current week. It will detect if a job was re-run in current week (due to infra, pre-phase failures etc), and add the JIRA label `job_retriggered_since_ticket_created` to existing open JIRA issues.
 
 ### `jira-config-gen`
 
