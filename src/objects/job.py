@@ -522,7 +522,7 @@ class Job:
         try:
             # Construct the blob path
             bucket = storage_client.bucket(gcs_bucket)
-            blob_path = f"{job_name}/{build_id}/started.json"
+            blob_path = f"logs/{job_name}/{build_id}/started.json"
             blob = bucket.blob(blob_path)
 
             # Get the timestamp from path
