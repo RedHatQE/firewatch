@@ -51,7 +51,7 @@
       },
       {
         "id": "31",
-        "name": "Closed", 
+        "name": "Closed",
         "to": {
            "self": "{{ JIRA_API_BASE_URL }}/rest/api/2/status/6",
            "description": "The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.",
@@ -73,10 +73,10 @@
         "isConditional": false
       },
        {
-        "id": "41", 
-        "name": "PASS", 
+        "id": "41",
+        "name": "PASS",
         "to": {
-           "self": "{{ JIRA_API_BASE_URL }}/rest/api/2/status/10001", 
+           "self": "{{ JIRA_API_BASE_URL }}/rest/api/2/status/10001",
            "description": "Indicates the test or condition passed.",
            "iconUrl": "{{ JIRA_API_BASE_URL }}/images/icons/statuses/passed.png",
            "name": "Passed",
