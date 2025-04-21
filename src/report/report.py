@@ -13,7 +13,11 @@ from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.job import Job
-from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL
+from src.report.constants import (
+    JOB_PASSED_SINCE_TICKET_CREATED_LABEL,
+    JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL,
+    LPINTEROP_BOARD_NAME,
+)
 
 
 class Report:
@@ -93,6 +97,11 @@ class Report:
                             f"Adding passed job label to issue {bug}",
                         )
                         self.add_passing_job_label(
+                            jira=firewatch_config.jira,
+                            issue_id=bug,
+                        )
+                        self.close_passing_job_issue(
+                            job=job,
                             jira=firewatch_config.jira,
                             issue_id=bug,
                         )
@@ -405,6 +414,51 @@ class Report:
             issue_id_or_key=issue_id,
             labels=[JOB_PASSED_SINCE_TICKET_CREATED_LABEL],
         )
+
+    def close_passing_job_issue(self, job: Job, jira: Jira, issue_id: str) -> None:
+        """
+        Used to close a Jira issue that is open but has had a passing job since the issue was filed.
+
+        Args:
+            job (Job): Job object of the passing job.
+            jira (Jira): Jira object.
+            issue_id (str): Issue ID of the open issue to comment on.
+
+        Returns:
+            None
+        """
+        try:
+            # Determine transition name based on the project
+            issue_project_key = issue_id.split("-")[0].upper()  # Extract project key (e.g., "LPINTEROP")
+            if issue_project_key == LPINTEROP_BOARD_NAME:
+                target_transition_name = "PASS"
+            else:
+                target_transition_name = "Closed"
+            self.logger.info(
+                f"Auto-closing issue {issue_id} in project '{issue_project_key}' as job passed (using transition '{target_transition_name}')."
+            )
+            transition_comment = (
+                f"Automatically transitioned to '{target_transition_name}' by Firewatch: "
+                f"Job {job.name} #{job.build_id} passed successfully after ticket creation."
+            )
+
+            # Use the determined transition name
+            closed_successfully = jira.transition_issue(
+                issue_id_or_key=issue_id,
+                transition_name=target_transition_name,
+                comment=transition_comment,
+            )
+
+            if not closed_successfully:
+                self.logger.warning(
+                    f"Attempt to auto-transition issue {issue_id} might have failed (check previous logs)."
+                )
+
+        except IndexError:
+            # Handle cases where the issue key might not have a '-' in it
+            self.logger.error(f"Could not determine project key from issue key '{issue_id}'. Skipping auto-transition.")
+        except Exception as e:
+            self.logger.error(f"Failed to auto-transition issue {issue_id}: {e}")
 
     def add_retrigger_job_label(self, jira: Jira, issue_id: str) -> None:
         """

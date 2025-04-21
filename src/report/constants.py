@@ -16,3 +16,4 @@
 #
 JOB_PASSED_SINCE_TICKET_CREATED_LABEL = "job_passed_since_ticket_created"
 JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL = "job_retriggered_since_ticket_created"
+LPINTEROP_BOARD_NAME = "LPINTEROP"

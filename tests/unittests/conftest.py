@@ -85,6 +85,7 @@ JIRA_FAKE_FIELDS_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_fields_response.json"
 
 JIRA_FAKE_ISSUE_ADD_ATTACHMENT_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_issue_add_attachment_response.json"
 
+JIRA_FAKE_TRANSITIONS_RESPONSE_JSON_TEMPLATE_FILE_NAME = "fake_transitions_response.json"
 
 FIREWATCH_CONFIG_TEST_TEMPLATES_DIR_NAME = "firewatch_configs"
 
@@ -450,6 +451,15 @@ def mock_jira_api_response() -> Type[MockJiraApiResponse]:
 
 
 @pytest.fixture
+def fake_transitions_response_json(jira_api_templates):
+    template = jira_api_templates.get_template(
+        JIRA_FAKE_TRANSITIONS_RESPONSE_JSON_TEMPLATE_FILE_NAME,
+    )
+    rendered_template = template.render()
+    yield json.loads(rendered_template)
+
+
+@pytest.fixture
 def patch_jira_api_requests(
     monkeypatch,
     fake_server_info_json,
@@ -460,9 +470,11 @@ def patch_jira_api_requests(
     fake_comment_response_json,
     fake_fields_response_json,
     fake_issue_add_attachment_response,
+    fake_transitions_response_json,
 ):
     caps = {"get": {}, "post": {}, "put": {}}
 
+    # Helper Functions for URL Matching
     def url_contains_fake_issue_id_or_key(url):
         if fake_issue_id in url or fake_issue_key in url:
             return True
@@ -474,13 +486,18 @@ def patch_jira_api_requests(
     def url_contains_subpath(url, pat):
         return bool(re.match(pat, url))
 
+    def url_is_transitions_endpoint(url):
+        # Matches .../issue/ID/transitions or .../issue/KEY/transitions
+        return bool(re.search(rf"/issue/({fake_issue_id}|{fake_issue_key})/transitions$", url))
+
     def url_contains_issue_subpath(url):
         return bool(url_contains_subpath(url, r".+/issue/.+"))
 
+    # Mocked HTTP Methods
     def get(self, url, *args, **kwargs):
         LOGGER.info(f"Patching GET request to URL: {url}")
         caps["get"][url] = (args, kwargs)
-
+        # Check if URL matches specific endpoints
         if url.endswith("/serverInfo"):
             LOGGER.info("Faking Jira serverInfo")
             return MockJiraApiResponse(_json=fake_server_info_json, _status_code=200)
@@ -493,6 +510,9 @@ def patch_jira_api_requests(
         elif url_ends_with_fake_issue_id_or_key(url) and url_contains_issue_subpath(url):
             LOGGER.info(f"Faking Jira issue: {url}")
             return MockJiraApiResponse(_json=fake_issue_json, _status_code=200)
+        elif url_is_transitions_endpoint(url):
+            LOGGER.info(f"Faking Jira GET transitions: {url}")
+            return MockJiraApiResponse(_json=fake_transitions_response_json, _status_code=200, _url=url)
 
         else:
             LOGGER.info(f"Unpatched GET request to: {url}")
@@ -511,6 +531,12 @@ def patch_jira_api_requests(
         elif url_contains_fake_issue_id_or_key(url) and url_contains_issue_subpath and url.endswith("/attachments"):
             LOGGER.info(f"Faking Jira file upload: {url}")
             return fake_issue_add_attachment_response
+        elif url_is_transitions_endpoint(url):
+            LOGGER.info(f"Faking Jira POST transition: {url}")
+            return MockJiraApiResponse(
+                _status_code=204,  # 204 No Content is for successful transition
+                _url=url,
+            )
         else:
             LOGGER.info(f"Unpatched POST request to: {url}")
             monkeypatch.undo()
@@ -534,8 +560,10 @@ def patch_jira_api_requests(
             monkeypatch.undo()
             return requests.sessions.Session.put(self, url, *args, **kwargs)
 
+    # Apply the patches
     monkeypatch.setattr(requests.sessions.Session, "get", get)
     monkeypatch.setattr(requests.sessions.Session, "post", post)
     monkeypatch.setattr(requests.sessions.Session, "put", put)
 
+    # Yield the dictionary storing captured calls, if tests need it
     yield caps
