@@ -1,14 +1,16 @@
 import pytest
 
 from unittest.mock import MagicMock, patch
-from logging import getLogger as get_logger   
+from logging import getLogger as get_logger
 from jira.exceptions import JIRAError
 from src.objects.jira_base import Jira
+
 
 @pytest.fixture
 def mock_jira_connection():
     """Provides a MagicMock for the Jira connection."""
     return MagicMock()
+
 
 @pytest.fixture
 def mock_jira(mock_jira_connection):
@@ -20,11 +22,11 @@ def mock_jira(mock_jira_connection):
         instance = Jira(jira_config_path="dummy/path/ignored")
         instance.connection = mock_jira_connection
         instance.logger = get_logger("mock_jira_logger_for_test")
-        instance.url = "http://mock-jira.test" 
+        instance.url = "http://mock-jira.test"
     return instance
 
-class TestJiraTransitionIssue:
 
+class TestJiraTransitionIssue:
     def test_transition_success(self, mock_jira, mock_jira_connection):
         """Verify successful transition logs correctly and makes the call."""
 
@@ -42,12 +44,10 @@ class TestJiraTransitionIssue:
 
     def test_transition_jira_error_returns_false(self, mock_jira, mock_jira_connection, caplog):
         """Verify JIRAError returns False."""
-       
-       # Simulate a Jira Exception, method should return False
+
+        # Simulate a Jira Exception, method should return False
         error_text = "You do not have permission to transition this issue."
-        mock_jira_connection.transition_issue.side_effect = JIRAError(
-            status_code=401, text=error_text
-        )
+        mock_jira_connection.transition_issue.side_effect = JIRAError(status_code=401, text=error_text)
 
         # Call the function - Should return False
         result = mock_jira.transition_issue(
