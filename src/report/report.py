@@ -7,6 +7,7 @@ from typing import Tuple
 
 import jira
 from simple_logger.logger import get_logger
+from jira.exceptions import JIRAError
 
 from src.objects.configuration import Configuration
 from src.objects.failure import Failure
@@ -428,8 +429,12 @@ class Report:
             None
         """
         try:
+            issue = jira.get_issue_by_id_or_key(issue_id)  # Raises JIRAError if not found
+            issue_project_key = issue.fields.project.key
+            self.logger.info(
+                f"Attempting to auto-close issue {issue_id} (Project: {issue_project_key}) for passed job {job.name} #{job.build_id}."
+            )
             # Determine transition name based on the project
-            issue_project_key = issue_id.split("-")[0].upper()  # Extract project key (e.g., "LPINTEROP")
             if issue_project_key == LPINTEROP_BOARD_NAME:
                 target_transition_name = "PASS"
             else:
@@ -449,14 +454,17 @@ class Report:
                 comment=transition_comment,
             )
 
-            if not closed_successfully:
+            if closed_successfully:
+                self.logger.info(f"Successfully auto-closed/transitioned issue {issue_id}.")
+            else:
                 self.logger.warning(
-                    f"Attempt to auto-transition issue {issue_id} might have failed (check previous logs)."
+                    f"Attempt to auto-transition issue {issue_id} failed (check previous log from Jira layer)."
                 )
 
-        except IndexError:
-            # Handle cases where the issue key might not have a '-' in it
-            self.logger.error(f"Could not determine project key from issue key '{issue_id}'. Skipping auto-transition.")
+        # Catch errors from get_issue_by_id_or_key OR potentially transition_issue
+        except JIRAError as e:
+            self.logger.error(f"JIRAError preventing auto-closure of {issue_id}: {e.text}", exc_info=True)
+        # Catch other unexpected errors (e.g., AttributeError if issue object malformed)
         except Exception as e:
             self.logger.error(f"Failed to auto-transition issue {issue_id}: {e}")
 
