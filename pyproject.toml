@@ -44,41 +44,18 @@ tests = [
 [project.scripts]
 firewatch = "src.cli:main"
 
-[tool.poetry.dependencies]
-python = "^3.8"
-click = "^8.1.7"
-google-cloud-storage = "^2.10.0"
-jinja2 = "^3.1.4"
-jira = "^3.5.2"
-junitparser = "^3.1.0"
-python-simple-logger = "^1.0.6"
-ipdb = "*"
-pyhelper-utils = "^0.0.17"
+[tool.uv]
+default-groups = ["commit", "tests"]
 
-[tool.poetry.group.dev.dependencies]
-tox = "^4.11.4"
-pre-commit = "*"
-pytest = "^8.0.0"
-pytest-cov = "^4.1.0"
-pytest-mock = "^3.12.0"
-ipython = "*"
-
-[tool.poetry.group.tests.dependencies]
-google-cloud-storage = "^2.10.0"
-pytest = "^8.0.0"
-pytest-cov = "^4.1.0"
-pytest-mock = "^3.11.1"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-pattern = "((?P<epoch>\\d+)!)?(?P<base>\\d+(\\.\\d+)*)"
-
-[tool.poetry-dynamic-versioning.substitution]
-files = ["VERSION"]
+[tool.uv.sources]
+src = { path = "src", editable = true }
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.ruff]
 preview = true
