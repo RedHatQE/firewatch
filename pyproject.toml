@@ -1,4 +1,3 @@
-[tool.poetry]
 [project]
 name = "firewatch"
 version = "2.0.0"
@@ -114,3 +113,15 @@ commands = [[
     "--cov-report=html:./tests/unittests/coverage",
     "--cov-fail-under=60",
 ]]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests/unittests"
+]
+markers = [
+    "unittests"
+]
+filterwarnings = [
+    "ignore::pytest.PytestCollectionWarning"
+]
+cache_dir = "tests/unittests/.pytest_cache"
