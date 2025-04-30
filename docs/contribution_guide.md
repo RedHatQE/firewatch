@@ -72,7 +72,7 @@ We strive to maintain a friendly and inclusive community. We have not yet establ
 
 - `JIRA_TOKEN`: The token needed to log in to the Jira service account that firewatch will use.
 - `JIRA_SERVER`: URL to Jira server you would like to test against (should be `https://issues.stage.redhat.com`)
-- `BUILD_ID`: Build ID from failed job you are testing with (`1696039978221441024` if using job from the example in step 1)
+- `BUILD_ID`: Build ID from a failed job you are testing with (`1696039978221441024` if using job from the example in step 1)
 - `PULL_NUMBER`: PUll number for the PR of the rehearsal job you are testing with. If using a rehearsal job.
 - `JOB_NAME_SAFE`: Safe job name from the prow job you are testing with (`openshift-pipelines-interop-aws` if using the job from the example in step 1)
 - `JOB_NAME`: Full prow job name that you are testing with (`periodic-ci-openshift-pipelines-release-tests-release-v1.11-openshift-pipelines-ocp4.14-lp-interop-openshift-pipelines-interop-aws` if using the job from the example in step 1)
