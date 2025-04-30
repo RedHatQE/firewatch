@@ -1,21 +1,14 @@
-FROM docker.io/library/python:3.12-slim
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
-COPY pyproject.toml poetry.lock README.md /firewatch/
+COPY pyproject.toml uv.lock README.md /firewatch/
 COPY src /firewatch/src/
 COPY --chmod=0755 development /development
 
 WORKDIR /firewatch
 
-ENV POETRY_HOME=/firewatch
 ENV PATH="/firewatch/bin:$PATH"
 
-RUN python3 -m pip install pip poetry --upgrade \
-    && poetry config cache-dir /firewatch \
-    && poetry config virtualenvs.in-project true \
-    && poetry config installer.max-workers 10 \
-    && poetry install \
-    && printf '#!/bin/bash \n poetry run firewatch $@' > /usr/bin/firewatch \
-    && chmod +x /usr/bin/firewatch
-
+COPY dist/*.whl .
+RUN uv pip install --system *.whl
 
 ENTRYPOINT ["firewatch"]
