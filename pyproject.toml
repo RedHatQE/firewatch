@@ -72,3 +72,20 @@ output-format = "grouped"
 
 [tool.ruff.format]
 exclude = [".git", ".venv", ".mypy_cache", ".tox", "__pycache__"]
+
+[tool.tox]
+envlist = ["py312", "py313"]
+
+[tool.tox.env.uv-venv-lock-runner]
+requires = ["tox>=4.25"]
+#deps = ["pytest"]
+
+[tool.tox.env_run_base]
+runner = "uv-venv-lock-runner"
+commands = [[
+    "pytest",
+    "--verbose",
+    "--cov=src",
+    "--cov-report=html:./tests/unittests/coverage",
+    "--cov-fail-under=60",
+]]
