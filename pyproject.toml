@@ -1,31 +1,48 @@
-[tool.mypy]
-check_untyped_defs = "true"
-disallow_any_generics = "true"
-disallow_incomplete_defs = "true"
-disallow_untyped_defs = "true"
-no_implicit_optional = "true"
-ignore_missing_imports = "true"
-
 [tool.poetry]
+[project]
 name = "firewatch"
 version = "2.0.0"
 description = "A tool to monitor results in OpenShift CI and report pod or test failures to Jira."
-authors = ["CSPI QE <cspi-qe@redhat.com>"]
+authors = [{ name = "CSPI QE", email = "cspi-qe@redhat.com" }]
 readme = "README.md"
-license = "Apche-2.0"
-homepage = "https://github.com/CSPI-QE/firewatch"
-repository = "https://github.com/CSPI-QE/firewatch"
-packages = [{include = "src"}]
+license = { file = "LICENSE" }
+requires-python = ">=3.12,<4"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    "click>=8.1.8",
+    "google-cloud-storage>=3.1.0",
+    "hatchling>=1.27.0",
+    "jinja2>=3.1.6",
+    "jira>=3.8.0",
+    "junitparser>=3.2.0",
+    "pyhelper-utils>=1.0.13",
+    "python-simple-logger>=2.0.9",
+]
 
-[tool.poetry.urls]
+[project.urls]
+Repository = "https://github.com/CSPI-QE/firewatch"
+Homepage = "https://docs.astral.sh/uv"
 Download = "https://github.com/CSPI-QE/firewatch"
 "Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
 
-[tool.poetry.scripts]
+[dependency-groups]
+commit = [
+    "detect-secrets>=1.5.0",
+    "flake8>=7.2.0",
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.7",
+]
+tests = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "requests>=2.32.3",
+]
+
+[project.scripts]
 firewatch = "src.cli:main"
 
 [tool.poetry.dependencies]
@@ -72,6 +89,14 @@ output-format = "grouped"
 
 [tool.ruff.format]
 exclude = [".git", ".venv", ".mypy_cache", ".tox", "__pycache__"]
+
+[tool.mypy]
+check_untyped_defs = "true"
+disallow_any_generics = "true"
+disallow_incomplete_defs = "true"
+disallow_untyped_defs = "true"
+no_implicit_optional = "true"
+ignore_missing_imports = "true"
 
 [tool.tox]
 envlist = ["py312", "py313"]
