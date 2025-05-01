@@ -8,10 +8,8 @@ WORKDIR /firewatch
 
 ENV PATH="/firewatch/bin:$PATH"
 
-RUN <<EOF
-uv sync
-uv build --wheel -o .
-uv pip install --system *.whl
-EOF
+RUN uv sync \
+    && uv build --wheel -o . \
+    && uv pip install --system *.whl
 
 ENTRYPOINT ["firewatch"]
