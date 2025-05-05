@@ -185,6 +185,10 @@ If Any issues are found that match all the conditions above, we can be fairly co
 >
 > This comment was created using firewatch in OpenShift CI.
 
+Additionality, a Jira label `job_passed_since_ticket_created` is added to the existing open Jira issues which match the above defined rules.
+
+This tool also has the functionality to find open Jira issues that were retriggered in the current week. It will detect if a job was re-run in current week (due to infra, pre-phase failures etc), and add the JIRA label `job_retriggered_since_ticket_created` to existing open JIRA issues.
+
 ### `jira-config-gen`
 
 The `jira-config-gen` command is used to generate the Jira configuration file used when firewatch interacts with a Jira server.
