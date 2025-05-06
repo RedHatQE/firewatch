@@ -1,1 +1,0 @@
-{"$schema": "https://docs.renovatebot.com/renovate-schema.json", "packageRules": [{"matchPackagePatterns": ["click", "google-cloud-storage", "jinja2", "jira", "junitparser", "python-simple-logger", "ipdb", "tox", "pre-commit", "pytest", "pytest-cov", "pytest-mock", "ipython", "google-cloud-storage", "pytest", "pytest-cov", "pytest-mock"], "groupName": "poetry-deps"}]}
