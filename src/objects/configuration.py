@@ -1,15 +1,17 @@
 import json
 import os
 import fnmatch
-from typing import Any
-from typing import Optional
-from typing import Union
+from typing import Any, Optional, Union, Dict
 
 from simple_logger.logger import get_logger
 
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.rule import Rule
+from src.objects.constants import (
+    DEFAULT_TRANSITION_MAP_URL,
+    FALLBACK_DEFAULT_TRANSITION,
+)
 
 
 def read_base_config_file(path: str) -> str:
@@ -45,6 +47,7 @@ class Configuration:
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
+        transition_map_path: Optional[str] = DEFAULT_TRANSITION_MAP_URL,
         additional_lables_file: Optional[str] = None,
     ):
         """
@@ -57,6 +60,7 @@ class Configuration:
             verbose_test_failure_reporting (bool): If true, firewatch will report all test failures found in the job.
             verbose_test_failure_reporting_ticket_limit (Optional[int]): Used as a safeguard to prevent firewatch from filing too many bugs. If verbose_test_reporting is set to true, this value will be used to limit the number of bugs filed. Defaults to 10.
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
+            transition_map_path (Optional[str]): Path/URL to the project transition map JSON file. Defaults to DEFAULT_TRANSITION_MAP_URL.
             additional_lables_file (Optional[str]): If set, the filepath provided will be parsed for additional labels. Each label should be separated by a new line.
         """
         self.logger = get_logger(__name__)
@@ -69,6 +73,7 @@ class Configuration:
         self.additional_labels_file = additional_lables_file
         self.verbose_test_failure_reporting = verbose_test_failure_reporting
         self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
+        # Load main config
         self.config_data = self._get_config_data(base_config_file_path=config_file_path)
         self.success_rules = self._get_success_rules(
             rules_list=self.config_data.get("success_rules"),
@@ -76,6 +81,8 @@ class Configuration:
         self.failure_rules = self._get_failure_rules(
             rules_list=self.config_data.get("failure_rules"),
         )
+        # Load Jira tickets transition map
+        self.project_transition_map = self._load_project_transition_map(transition_map_path)
 
     def _get_failure_rules(
         self,
@@ -216,3 +223,57 @@ class Configuration:
                                 config_data[key].append(step_dict)
                             steps_map[step] = step_dict  # Also update the steps_map to include this step
         return config_data  # type: ignore
+
+    def _load_project_transition_map(self, source: Optional[str]) -> Dict[str, str]:
+        """
+        Loads the project-to-transition mapping from the specified source.
+
+        Returns:
+            dict[Any, Any]: A dictionary object representing the jira transition config data. For example: {"LPINTEROP": "PASS"}
+        """
+        self.logger.info(f"Attempting to load project transition map from: {source or 'Default URL'}")
+        source_path = source or DEFAULT_TRANSITION_MAP_URL  # Use default if None
+
+        map_content_str = read_base_config_file(path=source_path)
+
+        if not map_content_str:
+            self.logger.warning(
+                f"Failed to read jira project transition map from '{source_path}'. Using fallback default '{FALLBACK_DEFAULT_TRANSITION}'."
+            )
+            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+
+        try:
+            loaded_mapping = json.loads(map_content_str)
+            if not isinstance(loaded_mapping, dict):
+                raise TypeError("Loaded transition map is not a dictionary.")
+
+            # Ensure keys are uppercase and ensure values are strings
+            project_transition_map = {str(k).upper(): str(v) for k, v in loaded_mapping.items()}
+
+            # Ensure "DEFAULT" key exists, otherwise use the hardcoded fallback
+            if "DEFAULT" not in project_transition_map:
+                self.logger.warning(
+                    f"'DEFAULT' key not found in loaded transition map from '{source_path}'. Using fallback: '{FALLBACK_DEFAULT_TRANSITION}'."
+                )
+                project_transition_map["DEFAULT"] = FALLBACK_DEFAULT_TRANSITION
+
+            self.logger.info(f"Successfully loaded project transition mapping: {project_transition_map}")
+            return project_transition_map
+
+        except json.JSONDecodeError as e:
+            self.logger.error(
+                f"Failed to parse project transition map JSON from '{source_path}': {e}. Using fallback default.",
+                exc_info=True,
+            )
+            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+        except TypeError as e:
+            self.logger.error(
+                f"Error processing loaded transition map from '{source_path}' (expected a dictionary): {e}. Using fallback default."
+            )
+            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+        except Exception as e:  # Catch-all for other unexpected errors
+            self.logger.error(
+                f"An unexpected error occurred loading project transition map from '{source_path}': {e}. Using fallback default.",
+                exc_info=True,
+            )
+            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
