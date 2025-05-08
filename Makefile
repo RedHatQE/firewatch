@@ -5,15 +5,15 @@ pre-commit:
 	pre-commit run --all-files
 
 test:
-	tox
+	uv run --with tox-uv tox
 
 commit: pre-commit test
 
 dev-environment:
-	python3 -m pip install pip poetry --upgrade
-	poetry install
+	uv sync
+	uv build
 
-container-build:
+container-build: dev-environment
 	$(CONTAINER_CMD) build -t firewatch:$(TAG) .
 
 container-test:

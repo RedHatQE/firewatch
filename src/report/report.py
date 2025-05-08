@@ -170,7 +170,7 @@ class Report:
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
             security_level = pair["rule"].jira_security_level  # type: ignore
-            summary = f"Failure in {job.name}{' -' + pair['failure'].failed_test_name if firewatch_config.verbose_test_failure_reporting else ''} - {date.strftime('%m-%d-%Y')}"  # type: ignore
+            summary = f"Failure in {job.name}{" -" + pair["failure"].failed_test_name if firewatch_config.verbose_test_failure_reporting else ""} - {date.strftime("%m-%d-%Y")}"  # type: ignore
             self.logger.info(summary)
             description = self._get_issue_description(
                 step_name=pair["failure"].step,  # type: ignore
@@ -279,7 +279,7 @@ class Report:
 
             firewatch_config.jira.create_issue(
                 project=rule.jira_project,
-                summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
+                summary=f"Job {job.name} passed - {date.strftime("%m-%d-%Y")}",
                 description=self._get_issue_description(
                     job=job,  # type: ignore
                     success_issue=True,
@@ -638,7 +638,7 @@ class Report:
         link_line = f"*Prow Job Link:* [{job.name} #{job.build_id}|{link_line_base_url}{job.name}/{job.build_id}]"
         build_id_line = f"*Build ID:* {job.build_id}"
         job_history_link_line = f"*Job History:* [{job.name}|https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/{job.name}]"
-        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
+        firewatch_link_line = f"This {"issue" if success_issue else "bug"} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
 
         # If the issue is being created for a failure
         if not success_issue:
