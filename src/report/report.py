@@ -1,9 +1,7 @@
 import os
 import shutil
 from datetime import datetime
-from typing import Any
-from typing import Optional
-from typing import Tuple
+from typing import Any, Optional, Tuple, Dict
 
 import jira
 from simple_logger.logger import get_logger
@@ -17,7 +15,6 @@ from src.objects.job import Job
 from src.report.constants import (
     JOB_PASSED_SINCE_TICKET_CREATED_LABEL,
     JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL,
-    LPINTEROP_BOARD_NAME,
 )
 
 
@@ -105,6 +102,7 @@ class Report:
                             job=job,
                             jira=firewatch_config.jira,
                             issue_id=bug,
+                            project_transition_mapping=firewatch_config.project_transition_map,
                         )
 
         # Delete the job directory
@@ -416,14 +414,24 @@ class Report:
             labels=[JOB_PASSED_SINCE_TICKET_CREATED_LABEL],
         )
 
-    def close_passing_job_issue(self, job: Job, jira: Jira, issue_id: str) -> None:
+    def close_passing_job_issue(
+        self,
+        job: Job,
+        jira: Jira,
+        issue_id: str,
+        project_transition_mapping: Dict[str, str],
+    ) -> None:
         """
-        Used to close a Jira issue that is open but has had a passing job since the issue was filed.
+        Attempts to close a Jira issue for a job that has now passed, using a
+        configurable project-to-transition mapping which includes a "DEFAULT" key.
 
         Args:
             job (Job): Job object of the passing job.
             jira (Jira): Jira object.
             issue_id (str): Issue ID of the open issue to comment on.
+            project_transition_mapping (Dict[str, str]): A dictionary mapping project keys
+                (e.g., "LPINTEROP") to their specific "CLOSED" or "DONE" transition names
+                (e.g., {"LPINTEROP": "PASS", "OCSQE": "DONE", "DEFAULT": "Closed"}).
 
         Returns:
             None
@@ -434,20 +442,22 @@ class Report:
             self.logger.info(
                 f"Attempting to auto-close issue {issue_id} (Project: {issue_project_key}) for passed job {job.name} #{job.build_id}."
             )
-            # Determine transition name based on the project
-            if issue_project_key == LPINTEROP_BOARD_NAME:
-                target_transition_name = "PASS"
-            else:
-                target_transition_name = "Closed"
+
+            # Get the default transition name. It will fallback to "Closed" if "DEFAULT" is not defined.
+            default_transition = project_transition_mapping.get("DEFAULT", "Closed")
+            if "DEFAULT" not in project_transition_mapping:
+                self.logger.warning("Transition map missing 'DEFAULT' key, using hardcoded 'Closed'.")
+
+            target_transition_name = project_transition_mapping.get(issue_project_key.upper(), default_transition)
             self.logger.info(
-                f"Auto-closing issue {issue_id} in project '{issue_project_key}' as job passed (using transition '{target_transition_name}')."
+                f"Determined target transition: '{target_transition_name}' for project {issue_project_key} using mapping."
             )
             transition_comment = (
                 f"Automatically transitioned to '{target_transition_name}' by Firewatch: "
                 f"Job {job.name} #{job.build_id} passed successfully after ticket creation."
             )
 
-            # Use the determined transition name
+            # Attempt Transition jira.transition_issue returns True/False and logs internal errors
             closed_successfully = jira.transition_issue(
                 issue_id_or_key=issue_id,
                 transition_name=target_transition_name,
@@ -457,16 +467,20 @@ class Report:
             if closed_successfully:
                 self.logger.info(f"Successfully auto-closed/transitioned issue {issue_id}.")
             else:
+                # The underlying Jira method wouldve logged the failure reason
                 self.logger.warning(
                     f"Attempt to auto-transition issue {issue_id} failed (check previous log from Jira layer)."
                 )
 
-        # Catch errors from get_issue_by_id_or_key OR potentially transition_issue
+        # Handle Exceptions
         except JIRAError as e:
             self.logger.error(f"JIRAError preventing auto-closure of {issue_id}: {e.text}", exc_info=True)
-        # Catch other unexpected errors (e.g., AttributeError if issue object malformed)
-        except Exception as e:
-            self.logger.error(f"Failed to auto-transition issue {issue_id}: {e}")
+        except AttributeError as e:  # Catch potential errors accessing issue.fields.project.key
+            self.logger.error(
+                f"AttributeError accessing issue fields for {issue_id} (is issue object valid?): {e}", exc_info=True
+            )
+        except Exception as e:  # Catch other unexpected errors
+            self.logger.error(f"Unexpected error during auto-closure attempt for issue {issue_id}: {e}", exc_info=True)
 
     def add_retrigger_job_label(self, jira: Jira, issue_id: str) -> None:
         """
