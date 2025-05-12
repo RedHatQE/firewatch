@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from logging import getLogger as get_logger, INFO
+from logging import getLogger as get_logger, INFO, WARNING, ERROR
 from jira import Issue as JiraIssueObject
 from jira.exceptions import JIRAError
 
@@ -8,7 +8,6 @@ from jira.exceptions import JIRAError
 from src.report.report import Report
 from src.objects.jira_base import Jira
 from src.objects.job import Job
-from src.report.constants import LPINTEROP_BOARD_NAME
 
 
 @pytest.fixture
@@ -51,100 +50,160 @@ def report_instance(mock_job):
     return instance
 
 
+@pytest.fixture
+def standard_transition_map():
+    """Provides the standard project transition map."""
+    return {"LPINTEROP": "PASS", "CSPIT": "PASS", "OCSQE": "DONE", "DEFAULT": "CLOSED"}
+
+
 class TestReportClosePassingJobIssue:
-    def test_close_success_lpinterop(self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, caplog):
-        """Verify successful close for LPINTEROP project uses 'PASS' transition."""
-        caplog.set_level(INFO)
-        issue_id = f"{LPINTEROP_BOARD_NAME}-123"
-        mock_jira_issue.fields.project.key = LPINTEROP_BOARD_NAME
-        mock_jira_for_report.get_issue_by_id_or_key.return_value = mock_jira_issue
-        mock_jira_for_report.transition_issue.return_value = True  # Simulate successful transition
-
-        report_instance.close_passing_job_issue(job=mock_job, jira=mock_jira_for_report, issue_id=issue_id)
-
-        mock_jira_for_report.get_issue_by_id_or_key.assert_called_once_with(issue_id)
-        expected_comment = (
-            f"Automatically transitioned to 'PASS' by Firewatch: "
-            f"Job {mock_job.name} #{mock_job.build_id} passed successfully after ticket creation."
-        )
-        mock_jira_for_report.transition_issue.assert_called_once_with(
-            issue_id_or_key=issue_id, transition_name="PASS", comment=expected_comment
-        )
-        # Assertion to match actual log
-        assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
-
-    def test_close_success_other_project(
-        self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, caplog
+    @pytest.mark.parametrize(
+        "issue_project_key, expected_transition_name",
+        [
+            ("LPINTEROP", "PASS"),
+            ("CSPIT", "PASS"),
+            ("OCSQE", "DONE"),
+            ("UNKNOWNPROJ", "CLOSED"),  # Should use DEFAULT from map
+            ("anotherproj", "CLOSED"),
+        ],
+    )
+    def test_close_success_uses_correct_transition(
+        self,
+        report_instance,
+        mock_job,
+        mock_jira_for_report,
+        mock_jira_issue,
+        standard_transition_map,
+        issue_project_key,
+        expected_transition_name,
+        caplog,
     ):
-        """Verify successful close for other projects uses 'Closed' transition."""
+        """Verify correct close transition from the standard map."""
         caplog.set_level(INFO)
-        project_key = "TRACING"
-        issue_id = f"{project_key}-456"
-        mock_jira_issue.fields.project.key = project_key
+        issue_id = f"{issue_project_key}-123"
+        mock_jira_issue.fields.project.key = issue_project_key
+
         mock_jira_for_report.get_issue_by_id_or_key.return_value = mock_jira_issue
         mock_jira_for_report.transition_issue.return_value = True
 
-        report_instance.close_passing_job_issue(job=mock_job, jira=mock_jira_for_report, issue_id=issue_id)
+        report_instance.close_passing_job_issue(
+            job=mock_job,
+            jira=mock_jira_for_report,
+            issue_id=issue_id,
+            project_transition_mapping=standard_transition_map,
+        )
 
         mock_jira_for_report.get_issue_by_id_or_key.assert_called_once_with(issue_id)
         expected_comment = (
-            f"Automatically transitioned to 'Closed' by Firewatch: "
+            f"Automatically transitioned to '{expected_transition_name}' by Firewatch: "
             f"Job {mock_job.name} #{mock_job.build_id} passed successfully after ticket creation."
         )
         mock_jira_for_report.transition_issue.assert_called_once_with(
-            issue_id_or_key=issue_id, transition_name="Closed", comment=expected_comment
+            issue_id_or_key=issue_id, transition_name=expected_transition_name, comment=expected_comment
+        )
+        # Assertion to match Transition AND comment
+        assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == expected_transition_name
+        assert mock_jira_for_report.transition_issue.call_args[1]["comment"] == expected_comment
+        # Check log messages
+        assert f"Attempting to auto-close issue {issue_id} (Project: {issue_project_key})" in caplog.text
+        assert (
+            f"Determined target transition: '{expected_transition_name}' for project {issue_project_key} using mapping."
+            in caplog.text
         )
         assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
 
-    def test_close_transition_fails_returns_false(
+    def test_close_map_missing_default_key_uses_hardcoded_fallback(
         self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, caplog
+    ):
+        """Verify hardcoded 'Closed' is used if 'DEFAULT' key is missing from the provided map."""
+        caplog.set_level(INFO)
+        issue_id = "ROX-789"
+        mock_jira_issue.fields.project.key = "ROX"
+        mock_jira_for_report.get_issue_by_id_or_key.return_value = mock_jira_issue
+        mock_jira_for_report.transition_issue.return_value = True
+
+        map_without_default = {"LPINTEROP": "PASS"}  # Map is missing 'DEFAULT'
+
+        report_instance.close_passing_job_issue(
+            job=mock_job, jira=mock_jira_for_report, issue_id=issue_id, project_transition_mapping=map_without_default
+        )
+
+        mock_jira_for_report.transition_issue.assert_called_once()
+        # Assert call was made with the hardcoded default "Closed" from the function
+        assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == "Closed"
+
+        # Assert both expected log messages
+        assert "Transition map missing 'DEFAULT' key, using hardcoded 'Closed'." in caplog.text
+        # *** THIS IS THE CORRECTED ASSERTION ***
+        assert f"Determined target transition: 'Closed' for project ROX using mapping." in caplog.text
+        assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
+
+    def test_close_transition_call_fails(
+        self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, standard_transition_map, caplog
     ):
         """Verify logs warning when jira.transition_issue returns False."""
         caplog.set_level(INFO)
-        project_key = "PROJ"
-        issue_id = f"{project_key}-789"
-        mock_jira_issue.fields.project.key = project_key
+        issue_id = "LPINTEROP-001"
+        mock_jira_issue.fields.project.key = "LPINTEROP"
         mock_jira_for_report.get_issue_by_id_or_key.return_value = mock_jira_issue
-        mock_jira_for_report.transition_issue.return_value = False  # Simulate transition failure
+        mock_jira_for_report.transition_issue.return_value = False
 
-        report_instance.close_passing_job_issue(job=mock_job, jira=mock_jira_for_report, issue_id=issue_id)
+        report_instance.close_passing_job_issue(
+            job=mock_job,
+            jira=mock_jira_for_report,
+            issue_id=issue_id,
+            project_transition_mapping=standard_transition_map,
+        )
 
         mock_jira_for_report.get_issue_by_id_or_key.assert_called_once_with(issue_id)
         mock_jira_for_report.transition_issue.assert_called_once()
-        # Updated assertion to match actual log warning
+        assert f"Attempting to auto-close issue {issue_id} (Project: LPINTEROP)" in caplog.text
+        assert "Determined target transition: 'PASS' for project LPINTEROP using mapping." in caplog.text
         assert (
             f"Attempt to auto-transition issue {issue_id} failed (check previous log from Jira layer)." in caplog.text
         )
         assert f"Successfully auto-closed/transitioned issue {issue_id}." not in caplog.text
 
-    def test_close_get_issue_fails(self, report_instance, mock_job, mock_jira_for_report, caplog):
-        """Verify logs error and stops if get_issue_by_id_or_key fails."""
-        caplog.set_level(INFO)
-        issue_id = "NONEXIST-1"
+    def test_close_get_issue_by_id_or_key_raises_jiraerror(
+        self, report_instance, mock_job, mock_jira_for_report, standard_transition_map, caplog
+    ):
+        """Verify logs JIRAError and stops if get_issue_by_id_or_key raises JIRAError."""
+        caplog.set_level(ERROR)
+        issue_id = "NONEXISTENT-1"
         error_text = "Issue Does Not Exist"
         mock_jira_for_report.get_issue_by_id_or_key.side_effect = JIRAError(status_code=404, text=error_text)
 
-        report_instance.close_passing_job_issue(job=mock_job, jira=mock_jira_for_report, issue_id=issue_id)
+        report_instance.close_passing_job_issue(
+            job=mock_job,
+            jira=mock_jira_for_report,
+            issue_id=issue_id,
+            project_transition_mapping=standard_transition_map,
+        )
 
         mock_jira_for_report.get_issue_by_id_or_key.assert_called_once_with(issue_id)
-        mock_jira_for_report.transition_issue.assert_not_called()  # Transition should not be attempted
+        mock_jira_for_report.transition_issue.assert_not_called()
         assert f"JIRAError preventing auto-closure of {issue_id}: {error_text}" in caplog.text
         assert "Successfully auto-closed/transitioned issue" not in caplog.text
 
-    def test_close_unexpected_error(self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, caplog):
-        """Verify logs error if an unexpected exception occurs."""
-        caplog.set_level(INFO)
+    def test_close_unexpected_error_during_transition(
+        self, report_instance, mock_job, mock_jira_for_report, mock_jira_issue, standard_transition_map, caplog
+    ):
+        """Verify logs generic Exception if transition_issue raises it."""
+        caplog.set_level(ERROR)
         issue_id = "PROJ-UNEXP"
-        error_message = "Something else went wrong"
-        mock_jira_issue.fields.project.key = "PROJ"
+        mock_jira_issue.fields.project.key = "PROJ"  # This will use "DEFAULT" from map for transition name
+        error_message = "Network connection totally failed"
         mock_jira_for_report.get_issue_by_id_or_key.return_value = mock_jira_issue
-        # Simulate error during transition call
         mock_jira_for_report.transition_issue.side_effect = Exception(error_message)
 
-        report_instance.close_passing_job_issue(job=mock_job, jira=mock_jira_for_report, issue_id=issue_id)
+        report_instance.close_passing_job_issue(
+            job=mock_job,
+            jira=mock_jira_for_report,
+            issue_id=issue_id,
+            project_transition_mapping=standard_transition_map,
+        )
 
         mock_jira_for_report.get_issue_by_id_or_key.assert_called_once_with(issue_id)
-        mock_jira_for_report.transition_issue.assert_called_once()  # Transition was attempted
-        # Updated assertion to match actual log error
-        assert f"Failed to auto-transition issue {issue_id}: {error_message}" in caplog.text
+        mock_jira_for_report.transition_issue.assert_called_once()
+        assert f"Unexpected error during auto-closure attempt for issue {issue_id}: {error_message}" in caplog.text
         assert "Successfully auto-closed/transitioned issue" not in caplog.text
