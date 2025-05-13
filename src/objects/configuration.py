@@ -231,7 +231,7 @@ class Configuration:
         Returns:
             dict[Any, Any]: A dictionary object representing the jira transition config data. For example: {"LPINTEROP": "PASS"}
         """
-        self.logger.info(f"Attempting to load project transition map from: {source or 'Default URL'}")
+        self.logger.info(f"Attempting to load project transition map from: {source or "Default URL"}")
         source_path = source or DEFAULT_TRANSITION_MAP_URL  # Use default if None
 
         map_content_str = read_base_config_file(path=source_path)

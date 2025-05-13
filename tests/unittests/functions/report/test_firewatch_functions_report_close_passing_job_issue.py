@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from logging import getLogger as get_logger, INFO, WARNING, ERROR
+from logging import getLogger as get_logger, INFO, ERROR
 from jira import Issue as JiraIssueObject
 from jira.exceptions import JIRAError
 
@@ -135,7 +135,7 @@ class TestReportClosePassingJobIssue:
         # Assert both expected log messages
         assert "Transition map missing 'DEFAULT' key, using hardcoded 'Closed'." in caplog.text
         # *** THIS IS THE CORRECTED ASSERTION ***
-        assert f"Determined target transition: 'Closed' for project ROX using mapping." in caplog.text
+        assert "Determined target transition: 'Closed' for project ROX using mapping." in caplog.text
         assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
 
     def test_close_transition_call_fails(
