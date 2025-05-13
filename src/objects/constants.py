@@ -16,6 +16,8 @@
 #
 
 # Default URL for the jira transition map if none is provided
-DEFAULT_TRANSITION_MAP_URL = "https://raw.githubusercontent.com/CSPI-QE/cspi-utils/main/firewatch-base-configs/project_transition_map.json"
+DEFAULT_TRANSITION_MAP_URL = (
+    "https://raw.githubusercontent.com/CSPI-QE/cspi-utils/main/firewatch-base-configs/project_transition_map.json"
+)
 # Hardcoded default transition if map loading fails or DEFAULT is missing
 FALLBACK_DEFAULT_TRANSITION = "CLOSED"
