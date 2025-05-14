@@ -236,17 +236,15 @@ class Configuration:
 
         map_content_str = read_base_config_file(path=source_path)
 
+        default_map = {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
         if not map_content_str:
             self.logger.warning(
                 f"Failed to read jira project transition map from '{source_path}'. Using fallback default '{FALLBACK_DEFAULT_TRANSITION}'."
             )
-            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+            return default_map
 
         try:
             loaded_mapping = json.loads(map_content_str)
-            if not isinstance(loaded_mapping, dict):
-                raise TypeError("Loaded transition map is not a dictionary.")
-
             # Ensure keys are uppercase and ensure values are strings
             project_transition_map = {str(k).upper(): str(v) for k, v in loaded_mapping.items()}
 
@@ -265,15 +263,15 @@ class Configuration:
                 f"Failed to parse project transition map JSON from '{source_path}': {e}. Using fallback default.",
                 exc_info=True,
             )
-            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+            return default_map
         except TypeError as e:
             self.logger.error(
                 f"Error processing loaded transition map from '{source_path}' (expected a dictionary): {e}. Using fallback default."
             )
-            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+            return default_map
         except Exception as e:  # Catch-all for other unexpected errors
             self.logger.error(
                 f"An unexpected error occurred loading project transition map from '{source_path}': {e}. Using fallback default.",
                 exc_info=True,
             )
-            return {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
+            return default_map

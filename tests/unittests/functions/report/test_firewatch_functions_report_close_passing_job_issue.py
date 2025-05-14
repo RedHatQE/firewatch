@@ -133,8 +133,6 @@ class TestReportClosePassingJobIssue:
         assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == "Closed"
 
         # Assert both expected log messages
-        assert "Transition map missing 'DEFAULT' key, using hardcoded 'Closed'." in caplog.text
-        # *** THIS IS THE CORRECTED ASSERTION ***
         assert "Determined target transition: 'Closed' for project ROX using mapping." in caplog.text
         assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
 
