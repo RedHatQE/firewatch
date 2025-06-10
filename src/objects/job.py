@@ -1,5 +1,7 @@
 import json
 import os
+import re
+import requests
 from typing import Any
 from typing import Optional
 from xml.etree.ElementTree import ParseError
@@ -135,6 +137,21 @@ class Job:
             storage_client=self.storage_client,
             gcs_bucket=self.gcs_bucket,
         )
+
+    def extract_ocp_build_version(log_url: str) -> str:
+        """
+        Extracts OCP build version from the log content of a Prow job.
+        Looks for patterns like 4.19.0-0.nightly-2025-05-27-223016
+        """
+        try:
+            response = requests.get(log_url)
+            if response.status_code == 200:
+                match = re.search(r'(\d+\.\d+\.\d+-0\.nightly-\d+-\d+)', response.text)
+                if match:
+                    return match.group(1)
+        except Exception as e:
+            print(f"Error fetching or parsing log URL: {e}")
+        return "unknown"
 
     def _check_is_rehearsal(
         self,
