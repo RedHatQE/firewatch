@@ -18,7 +18,7 @@ metadata:
       title: Slack Channel
   annotations:
     github.com/project-slug: CSPI-QE/firewatch
-    backstage.io/techdocs-ref: dir:../../
+    backstage.io/techdocs-entity: location:quality-community/firewatch-root-config
 spec:
   owner: group:redhat/cspi-qe
   domain: quality-community/quality-community
