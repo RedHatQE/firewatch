@@ -1,6 +1,8 @@
 rules:
   master:
     level: failure  # default rules are set to warning
+    ignore:
+      - '**/README.md'
   slave:
     level: failure
   blacklist:
