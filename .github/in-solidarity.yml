@@ -1,8 +1,6 @@
 rules:
   master:
     level: failure  # default rules are set to warning
-    ignore:
-      - '**/README.md'
   slave:
     level: failure
   blacklist:
@@ -14,3 +12,4 @@ ignore:
  - ".github/workflows/*.yml"
  - "**/*.yml"
  - "app/manifests/install-config-template.j2"
+ - "README.md"
