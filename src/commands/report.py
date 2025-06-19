@@ -83,7 +83,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.Path(exists=True),
 )
 @click.option(
-    "--firewatch-config-path",
+    "--firewatch-rules-config-path",
     help="The path to the firewatch configuration file",
     required=False,
     type=click.Path(),
@@ -135,6 +135,11 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     help="Drop to `ipdb` shell on exception",
     is_flag=True,
 )
+@click.option(
+    "--project-config-path",
+    help="The path to the project configuration file",
+    required=False,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -145,7 +150,7 @@ def report(
     pr_id: str,
     gcs_bucket: str,
     gcs_creds_file: Optional[str],
-    firewatch_config_path: Optional[str],
+    firewatch_rules_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
     fail_with_pod_failures: bool,
@@ -154,6 +159,7 @@ def report(
     verbose_test_failure_reporting_ticket_limit: Optional[int],
     additional_labels_file: Optional[str],
     pdb: bool,
+    project_config_path: Optional[str],
 ) -> None:
     ctx.obj["PDB"] = pdb
 
@@ -166,8 +172,9 @@ def report(
         keep_job_dir=keep_job_dir,
         verbose_test_failure_reporting=verbose_test_failure_reporting,
         verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
-        config_file_path=firewatch_config_path,
+        rules_file_path=firewatch_rules_config_path,
         additional_lables_file=additional_labels_file,
+        project_config_file_path=project_config_path,
     )
     job = Job(
         name=job_name,
