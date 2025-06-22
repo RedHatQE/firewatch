@@ -25,6 +25,7 @@ from src.objects.configuration import Configuration
 from src.objects.jira_base import Jira
 from src.objects.job import Job
 from src.report.report import Report
+from src.project.project import Project
 
 
 def validate_verbose_test_failure_reporting_ticket_limit(
@@ -163,18 +164,22 @@ def report(
 ) -> None:
     ctx.obj["PDB"] = pdb
 
+    import ipdb
+
+    ipdb.set_trace()
+    project_data = Project(ctx.params)
+
     # Build Objects
-    jira_connection = Jira(jira_config_path=jira_config_path)
+    jira_connection = Jira(jira_config_path=project_data.jira_config_path)
     config = Configuration(
         jira=jira_connection,
-        fail_with_test_failures=fail_with_test_failures,
-        fail_with_pod_failures=fail_with_pod_failures,
-        keep_job_dir=keep_job_dir,
-        verbose_test_failure_reporting=verbose_test_failure_reporting,
-        verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
-        rules_file_path=firewatch_rules_config_path,
-        additional_lables_file=additional_labels_file,
-        project_config_file_path=project_config_path,
+        fail_with_test_failures=project_data.fail_with_test_failures,
+        fail_with_pod_failures=project_data.fail_with_pod_failures,
+        keep_job_dir=project_data.keep_job_dir,
+        verbose_test_failure_reporting=project_data.verbose_test_failure_reporting,
+        verbose_test_failure_reporting_ticket_limit=project_data.verbose_test_failure_reporting_ticket_limit,
+        rules_file_path=project_data.rules_config_file_path,
+        additional_labels_file=project_data.additional_labels_file,
     )
     job = Job(
         name=job_name,

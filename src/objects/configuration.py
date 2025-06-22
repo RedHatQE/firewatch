@@ -10,29 +10,7 @@ from simple_logger.logger import get_logger
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.rule import Rule
-
-
-def read_base_config_file(path: str) -> str:
-    from urllib.request import urlopen
-
-    try:
-        response = urlopen(path)
-        response_data = response.read()
-        return response_data
-    # Path is not a URL type
-    except ValueError:
-        # Read the contents of the config file
-        try:
-            with open(path) as file:
-                base_config_str = file.read()
-                return base_config_str
-        except Exception:
-            pass
-    # Path is an invalid or unreadable URL
-    except Exception:
-        pass
-
-    return None  # type: ignore
+from src.project.utils import read_url_config
 
 
 class Configuration:
@@ -44,8 +22,8 @@ class Configuration:
         keep_job_dir: bool,
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
-        config_file_path: Union[str, None] = None,
-        additional_lables_file: Optional[str] = None,
+        rules_file_path: Union[str, None] = None,
+        additional_labels_file: Optional[str] = None,
     ):
         """
         Constructs the Configuration object. This class is mainly used to validate the firewatch configuration given.
@@ -56,8 +34,8 @@ class Configuration:
             keep_job_dir (bool): If true, firewatch will not delete the job directory (/tmp/12345) that is created to hold logs and results for a job following execution.
             verbose_test_failure_reporting (bool): If true, firewatch will report all test failures found in the job.
             verbose_test_failure_reporting_ticket_limit (Optional[int]): Used as a safeguard to prevent firewatch from filing too many bugs. If verbose_test_reporting is set to true, this value will be used to limit the number of bugs filed. Defaults to 10.
-            config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
-            additional_lables_file (Optional[str]): If set, the filepath provided will be parsed for additional labels. Each label should be separated by a new line.
+            rules_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
+            additional_labels_file (Optional[str]): If set, the filepath provided will be parsed for additional labels. Each label should be separated by a new line.
         """
         self.logger = get_logger(__name__)
 
@@ -66,10 +44,10 @@ class Configuration:
         self.fail_with_test_failures = fail_with_test_failures
         self.fail_with_pod_failures = fail_with_pod_failures
         self.keep_job_dir = keep_job_dir
-        self.additional_labels_file = additional_lables_file
+        self.additional_labels_file = additional_labels_file
         self.verbose_test_failure_reporting = verbose_test_failure_reporting
         self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
-        self.config_data = self._get_config_data(base_config_file_path=config_file_path)
+        self.config_data = self._get_rules_config_data(base_config_file_path=rules_file_path)
         self.success_rules = self._get_success_rules(
             rules_list=self.config_data.get("success_rules"),
         )
@@ -145,7 +123,7 @@ class Configuration:
             )
             exit(1)
 
-    def _get_config_data(self, base_config_file_path: Optional[str]) -> dict[Any, Any]:
+    def _get_rules_config_data(self, base_config_file_path: Optional[str]) -> dict[Any, Any]:
         """
         Gets the config data from either a configuration file or from the FIREWATCH_CONFIG environment variable or
         both.
@@ -164,7 +142,7 @@ class Configuration:
         steps_map = {}
 
         if base_config_file_path is not None:
-            base_config_str = read_base_config_file(path=base_config_file_path)
+            base_config_str = read_url_config(path=base_config_file_path)
             if not base_config_str:
                 self.logger.error(
                     f"Unable to read configuration file at {base_config_file_path}."
