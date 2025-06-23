@@ -84,7 +84,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.Path(exists=True),
 )
 @click.option(
-    "--firewatch-rules-config-path",
+    "--rules-config-path",
     help="The path to the firewatch configuration file",
     required=False,
     type=click.Path(),
@@ -151,7 +151,7 @@ def report(
     pr_id: str,
     gcs_bucket: str,
     gcs_creds_file: Optional[str],
-    firewatch_rules_config_path: Optional[str],
+    rules_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
     fail_with_pod_failures: bool,
@@ -164,23 +164,11 @@ def report(
 ) -> None:
     ctx.obj["PDB"] = pdb
 
-    import ipdb
-
-    ipdb.set_trace()
     project_data = Project(ctx.params)
 
     # Build Objects
     jira_connection = Jira(jira_config_path=project_data.jira_config_path)
-    config = Configuration(
-        jira=jira_connection,
-        fail_with_test_failures=project_data.fail_with_test_failures,
-        fail_with_pod_failures=project_data.fail_with_pod_failures,
-        keep_job_dir=project_data.keep_job_dir,
-        verbose_test_failure_reporting=project_data.verbose_test_failure_reporting,
-        verbose_test_failure_reporting_ticket_limit=project_data.verbose_test_failure_reporting_ticket_limit,
-        rules_file_path=project_data.rules_config_file_path,
-        additional_labels_file=project_data.additional_labels_file,
-    )
+    config = Configuration(jira=jira_connection, project_data=project_data)
     job = Job(
         name=job_name,
         name_safe=job_name_safe,

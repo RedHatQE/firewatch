@@ -1,19 +1,32 @@
 import tempfile
 import yaml
 from dynaconf import Dynaconf
-from cerberus import Validator
 from pathlib import Path
 from pathlib import PurePath
 from src.project.utils import get_project_config_data
-from src.project.constants import SCHEMA, PROJECT_TEMPLATE_PATH
+from src.project.constants import PROJECT_DATA_SCHEMA, PROJECT_TEMPLATE_PATH
 from typing import Optional
 
 
-def validate_settings(settings):
-    v = Validator(SCHEMA)
-    flat_dict = settings.as_dict()  # Convert Dynaconf to plain dict
-    if not v.validate(flat_dict):
-        raise ValueError(f"Config validation error: {v.errors}")
+def validate_settings(settings: dict, schema=PROJECT_DATA_SCHEMA):
+    errors = []
+    for key, value in settings.items():
+        if not value:
+            # Missing value
+            continue
+        schema_key = schema.get(key.lower())
+        if not schema_key:
+            # Redundant/extra var. Not applied on Firewatch. will not check
+            continue
+        expected_type = schema_key.get("type")
+        if expected_type:
+            if not isinstance(value, expected_type):
+                errors.append(
+                    f"Key '{key}' has invalid type: expected {expected_type.__name__}, "
+                    f"got {type(value).__name__} (value={value})"
+                )
+    if errors:
+        raise ValueError("Config validation failed:\n" + "\n".join(errors))
 
 
 def load_settings_from_dict(
