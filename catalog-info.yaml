@@ -5,6 +5,8 @@ metadata:
   title: Firewatch Root Configuration
   namespace: quality-community
   description: A root collection of all Firewatch configurations for Backstage.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
 spec:
   owner: group:redhat/quality-community
   targets:
