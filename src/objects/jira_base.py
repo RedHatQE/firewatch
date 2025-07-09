@@ -411,3 +411,16 @@ class Jira:
             # Catch other potential exceptions
             self.logger.error(f"An unexpected error occurred while transitioning {issue_id_or_key}: {ex}")
         return False
+
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
+    def get_issue_by_id_or_key_with_changelog(self, issue: str) -> Issue:
+        """
+        Get a Jira Issue object from the given issue id or key field value.
+
+        Args:
+            issue (str): The ID or key field value of the Jira Issue object to return.
+
+        Returns:
+            Issue: A Jira Issue object.
+        """
+        return self.connection.issue(id=issue, expand="changelog")
