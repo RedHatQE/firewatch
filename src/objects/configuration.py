@@ -9,7 +9,6 @@ from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.rule import Rule
 from src.objects.constants import (
-    DEFAULT_TRANSITION_MAP_URL,
     FALLBACK_DEFAULT_TRANSITION,
 )
 
@@ -47,7 +46,7 @@ class Configuration:
         verbose_test_failure_reporting: bool,
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
-        transition_map_path: Optional[str] = DEFAULT_TRANSITION_MAP_URL,
+        transition_map_path: Optional[str] = None,
         additional_lables_file: Optional[str] = None,
     ):
         """
@@ -60,7 +59,7 @@ class Configuration:
             verbose_test_failure_reporting (bool): If true, firewatch will report all test failures found in the job.
             verbose_test_failure_reporting_ticket_limit (Optional[int]): Used as a safeguard to prevent firewatch from filing too many bugs. If verbose_test_reporting is set to true, this value will be used to limit the number of bugs filed. Defaults to 10.
             config_file_path (Union[str, None], optional): The firewatch config can be stored in a file or an environment var. Defaults to None.
-            transition_map_path (Optional[str]): Path/URL to the project transition map JSON file. Defaults to DEFAULT_TRANSITION_MAP_URL.
+            transition_map_path (Optional[str]): Path/URL to the project transition map JSON file. Defaults to None.
             additional_lables_file (Optional[str]): If set, the filepath provided will be parsed for additional labels. Each label should be separated by a new line.
         """
         self.logger = get_logger(__name__)
@@ -231,10 +230,9 @@ class Configuration:
         Returns:
             dict[Any, Any]: A dictionary object representing the jira transition config data. For example: {"LPINTEROP": "PASS"}
         """
-        self.logger.info(f"Attempting to load project transition map from: {source or "Default URL"}")
-        source_path = source or DEFAULT_TRANSITION_MAP_URL  # Use default if None
+        self.logger.info(f"Attempting to load project transition map from: {source}")
 
-        map_content_str = read_base_config_file(path=source_path)
+        map_content_str = read_base_config_file(path=source)
 
         default_map = {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
         if not map_content_str:
