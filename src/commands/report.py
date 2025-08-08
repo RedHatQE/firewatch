@@ -98,7 +98,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     "--transition-map-url",
     help="The path to the jira transition name map",
     required=False,
-    type=click.Path(exists=True),
+    type=click.Path(),
 )
 @click.option(
     "--fail-with-test-failures",
