@@ -83,7 +83,7 @@ def test_failure_artifacts_present(job_step_names, job_artifacts_dir):
 @pytest.fixture
 def job(firewatch_config, job_step_names):
     yield Job(
-        name="periodic-ci-openshift-pipelines-release-tests-release-v1.15-openshift-pipelines-ocp4.17-lp-interop-openshift-pipelines-interop-aws",
+        name="periodic-ci-openshift-pipelines-release-tests-release-v1.15-openshift-pipelines-ocp-4.17-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
         build_id="1833066891065692160",
         gcs_bucket="test-platform-results",

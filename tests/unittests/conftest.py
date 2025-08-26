@@ -233,7 +233,7 @@ def patch_job_get_steps(monkeypatch):
 @pytest.fixture
 def job(firewatch_config, build_id, patch_job_get_steps):
     yield Job(
-        name="periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp4.16-lp-interop-openshift-pipelines-interop-aws",
+        name="periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp-4.16-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
         build_id=build_id,
         gcs_bucket="test-platform-results",
