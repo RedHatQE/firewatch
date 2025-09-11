@@ -237,7 +237,7 @@ class Configuration:
         default_map = {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
         if not map_content_str:
             self.logger.warning(
-                f"Failed to read jira project transition map from '{source_path}'. Using fallback default '{FALLBACK_DEFAULT_TRANSITION}'."
+                f"Failed to read jira project transition map from '{source}'. Using fallback default '{FALLBACK_DEFAULT_TRANSITION}'."
             )
             return default_map
 
@@ -249,7 +249,7 @@ class Configuration:
             # Ensure "DEFAULT" key exists, otherwise use the hardcoded fallback
             if "DEFAULT" not in project_transition_map:
                 self.logger.warning(
-                    f"'DEFAULT' key not found in loaded transition map from '{source_path}'. Using fallback: '{FALLBACK_DEFAULT_TRANSITION}'."
+                    f"'DEFAULT' key not found in loaded transition map from '{source}'. Using fallback: '{FALLBACK_DEFAULT_TRANSITION}'."
                 )
                 project_transition_map["DEFAULT"] = FALLBACK_DEFAULT_TRANSITION
 
@@ -258,18 +258,18 @@ class Configuration:
 
         except json.JSONDecodeError as e:
             self.logger.error(
-                f"Failed to parse project transition map JSON from '{source_path}': {e}. Using fallback default.",
+                f"Failed to parse project transition map JSON from '{source}': {e}. Using fallback default.",
                 exc_info=True,
             )
             return default_map
         except TypeError as e:
             self.logger.error(
-                f"Error processing loaded transition map from '{source_path}' (expected a dictionary): {e}. Using fallback default."
+                f"Error processing loaded transition map from '{source}' (expected a dictionary): {e}. Using fallback default."
             )
             return default_map
         except Exception as e:  # Catch-all for other unexpected errors
             self.logger.error(
-                f"An unexpected error occurred loading project transition map from '{source_path}': {e}. Using fallback default.",
+                f"An unexpected error occurred loading project transition map from '{source}': {e}. Using fallback default.",
                 exc_info=True,
             )
             return default_map
