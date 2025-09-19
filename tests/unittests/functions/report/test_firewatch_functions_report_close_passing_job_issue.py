@@ -134,7 +134,10 @@ class TestReportClosePassingJobIssue:
         assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == FALLBACK_DEFAULT_TRANSITION
 
         # Assert both expected log messages
-        assert "Determined target transition: 'Closed' for project ROX using mapping." in caplog.text
+        assert (
+            f"Determined target transition: '{FALLBACK_DEFAULT_TRANSITION}' for project ROX using mapping."
+            in caplog.text
+        )
         assert f"Successfully auto-closed/transitioned issue {issue_id}." in caplog.text
 
     def test_close_transition_call_fails(
