@@ -232,7 +232,9 @@ class Configuration:
         """
         self.logger.info(f"Attempting to load project transition map from: {source}")
 
-        map_content_str = read_base_config_file(path=source)
+        map_content_str: Optional[str] = None
+        if source:
+            map_content_str = read_base_config_file(path=source)
 
         default_map = {"DEFAULT": FALLBACK_DEFAULT_TRANSITION}
         if not map_content_str:
