@@ -5,6 +5,7 @@ from jira import Issue as JiraIssueObject
 from jira.exceptions import JIRAError
 
 
+from src.objects.constants import FALLBACK_DEFAULT_TRANSITION
 from src.report.report import Report
 from src.objects.jira_base import Jira
 from src.objects.job import Job
@@ -129,8 +130,8 @@ class TestReportClosePassingJobIssue:
         )
 
         mock_jira_for_report.transition_issue.assert_called_once()
-        # Assert call was made with the hardcoded default "Closed" from the function
-        assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == "Closed"
+        # Assert call was made with the default transition FALLBACK_DEFAULT_TRANSITION from the function
+        assert mock_jira_for_report.transition_issue.call_args[1]["transition_name"] == FALLBACK_DEFAULT_TRANSITION
 
         # Assert both expected log messages
         assert "Determined target transition: 'Closed' for project ROX using mapping." in caplog.text

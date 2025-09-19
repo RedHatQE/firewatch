@@ -8,6 +8,7 @@ from simple_logger.logger import get_logger
 from jira.exceptions import JIRAError
 
 from src.objects.configuration import Configuration
+from src.objects.constants import FALLBACK_DEFAULT_TRANSITION
 from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
@@ -443,8 +444,8 @@ class Report:
                 f"Attempting to auto-close issue {issue_id} (Project: {issue_project_key}) for passed job {job.name} #{job.build_id}."
             )
 
-            # Get the default transition name. It will fallback to "Closed" if "DEFAULT" is not defined.
-            default_transition = project_transition_mapping.get("DEFAULT", "Closed")
+            # Get the default transition name. It will fallback to FALLBACK_DEFAULT_TRANSITION value if "DEFAULT" is not defined.
+            default_transition = project_transition_mapping.get("DEFAULT", FALLBACK_DEFAULT_TRANSITION)
             if "DEFAULT" not in project_transition_mapping:
                 self.logger.warning("Transition map missing 'DEFAULT' key, using hardcoded 'Closed'.")
 
