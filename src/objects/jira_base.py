@@ -374,6 +374,45 @@ class Jira:
         return issue
 
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
+    def transition_issue(
+        self,
+        issue_id_or_key: str,
+        transition_name: str,
+        comment: Optional[str] = None,
+    ) -> bool:
+        """
+        Transitions a Jira issue to a specified status/transition name.
+
+        Args:
+            issue_id_or_key (str): The ID or key of the issue to transition.
+            transition_name (str): The name of the target transition/status (e.g., "PASS", "Closed", "Done").
+            comment (Optional[str]): An optional comment to add during the transition.
+
+        Returns:
+            bool: True if the transition was successful, False otherwise (though ignore_exceptions might raise).
+
+        Raises:
+            JIRAError: If the transition fails for reasons like invalid transition name or permissions.
+        """
+        try:
+            self.connection.transition_issue(
+                issue=issue_id_or_key,
+                transition=transition_name,
+                comment=comment,
+            )
+            self.logger.info(f"Successfully transitioned issue {issue_id_or_key} to '{transition_name}'.")
+            return True
+        except JIRAError as e:
+            self.logger.error(
+                f"Failed to transition issue {issue_id_or_key} to '{transition_name}'. "
+                f"Status Code: {e.status_code}. Error: {e.text}"
+            )
+        except Exception as ex:
+            # Catch other potential exceptions
+            self.logger.error(f"An unexpected error occurred while transitioning {issue_id_or_key}: {ex}")
+        return False
+
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def get_issue_by_id_or_key_with_changelog(self, issue: str) -> Issue:
         """
         Get a Jira Issue object from the given issue id or key field value.
