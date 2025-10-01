@@ -95,12 +95,6 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.Path(exists=True),
 )
 @click.option(
-    "--transition-map-url",
-    help="The path to the jira transition name map",
-    required=False,
-    type=click.Path(),
-)
-@click.option(
     "--fail-with-test-failures",
     help="Firewatch will fail with a non-zero exit code if a test failure is found.",
     is_flag=True,
