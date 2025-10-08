@@ -246,6 +246,30 @@ class Jira:
             LOGGER.error(ex)
             return False
 
+    @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
+    def close_issue(self, issue_id: str) -> None:
+        """
+        Closes a Jira issue by transitioning it to the "closed" state with a standard comment.
+
+        Args:
+            issue_id (str): The ID or key of the issue to close.
+        """
+        try:
+            issue = self.get_issue_by_id_or_key(issue_id)
+            self.logger.info("Closing issue %s with transition 'closed'...", issue_id)
+
+            self.connection.transition_issue(
+                issue=issue.key,
+                transition="closed",
+                comment="Closed by [firewatch|https://github.com/CSPI-QE/firewatch].",
+            )
+
+            self.logger.info("Issue %s has been successfully closed.", issue_id)
+        except JIRAError as e:
+            self.logger.error("Failed to close issue %s. Jira error: %s", issue_id, e.text)
+        except Exception as ex:
+            self.logger.error("Unexpected error while closing issue %s: %s", issue_id, ex)
+
     def project_exists(self, project_key: str) -> bool:
         """
         Used to validate that the "project_key" exists in the Jira server.
