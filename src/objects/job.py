@@ -463,7 +463,7 @@ class Job:
                                     if failure not in failures_list:
                                         failures_list.append(failure)
                                         self.logger.info(
-                                            f"Found test failure in step {step} {"for test " + case.name if self.firewatch_config.verbose_test_failure_reporting else ""}",
+                                            f"Found test failure in step {step} {'for test ' + case.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
                                         )
                         elif isinstance(case, (junitparser.Failure, junitparser.Error)):
                             failure = {
@@ -481,7 +481,7 @@ class Job:
                             if failure not in failures_list:
                                 failures_list.append(failure)
                                 self.logger.info(
-                                    f"Found test failure in step {step} {"for test " + suite.name if self.firewatch_config.verbose_test_failure_reporting else ""}",
+                                    f"Found test failure in step {step} {'for test ' + suite.name if self.firewatch_config.verbose_test_failure_reporting else ''}",
                                 )
 
         # Convert dictionary failures into actual failure objects.
