@@ -490,8 +490,9 @@ class Job:
         for failure in failures_list:
             failures.append(
                 Failure(
-                    failed_step=failure["step"],
-                    failure_type=failure["failure_type"],
+                    # Ensure the values are treated as strings
+                    failed_step=str(failure["step"]),
+                    failure_type=str(failure["failure_type"]),
                     failed_test_name=failure["failed_test_name"],
                     failed_test_junit_path=failure["failed_test_junit_path"],
                 ),
