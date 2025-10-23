@@ -299,7 +299,7 @@ The security level desired for a bug created using this rule.
 
 **Notes:**
 
-- If you are using Red Hat's Jira server, the list of available security levels can be found [here](https://issues.redhat.com/secure/ShowConstantsHelp.jspa?decorator=popup#SecurityLevels).
+- If you are using Red Hat's Jira server, the list of available security levels can be found at [Red Hat Jira Security Levels](https://issues.redhat.com/secure/ShowConstantsHelp.jspa?decorator=popup#SecurityLevels).
 
 ---
 
@@ -321,7 +321,7 @@ A dictionary object that is used to define the group of rules a specific rule be
 This value is useful for when you have one or more steps that are dependent on other steps. If multiple steps are members of the same group,
 and they all fail because one of the steps failed, firewatch will look for the highest priority failure and only report on that failure.
 
-The dictionary object should include a string value for `"name"` and an **integer** value for `"priority"`. For example: `"group": {"name": "some-group-name", "priority": 1}`
+The dictionary object should include a string value for `"name"` and an **integer** value for `"priority"`. For example: `"group": {"name": "some-group", "priority": 1}`
 
 **Example:**
 

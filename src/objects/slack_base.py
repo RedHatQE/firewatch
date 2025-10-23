@@ -45,7 +45,7 @@ class SlackClient:
             user = response["user"]
             return user["profile"]["display_name"]
         except SlackApiError as e:
-            LOGGER.error(f"Error looking up user {e.response["error"]}")
+            LOGGER.error(f"Error looking up user {e.response['error']}")
             return None
 
     def send_notification(self, channel: str, text: str) -> None:
@@ -64,7 +64,7 @@ class SlackClient:
             self.client.chat_postMessage(channel=channel, text=text)
 
         except SlackApiError as e:
-            LOGGER.error(f"Error posting slack message: {e.response["error"]}")
+            LOGGER.error(f"Error posting slack message: {e.response['error']}")
 
     def get_slack_usergroup(self, group_name: str) -> Optional[str]:
         """
@@ -80,11 +80,11 @@ class SlackClient:
             response = self.client.usergroups_list()
             for group in response["usergroups"]:
                 if group["name"] == group_name:
-                    LOGGER.info(f"user group : {group["name"]}")
+                    LOGGER.info(f"user group : {group['name']}")
                     usergroup_id = group["id"]
                     return usergroup_id
             LOGGER.info("\n Slack user group not found \n")
             return None
         except SlackApiError as e:
-            LOGGER.error(f"Error looking up user {e.response["error"]}")
+            LOGGER.error(f"Error looking up user {e.response['error']}")
             return None
