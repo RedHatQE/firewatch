@@ -12,3 +12,4 @@ ignore:
  - ".github/workflows/*.yml"
  - "**/*.yml"
  - "app/manifests/install-config-template.j2"
+ - "**/README.md"
