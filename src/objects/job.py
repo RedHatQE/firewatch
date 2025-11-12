@@ -312,11 +312,14 @@ class Job:
 
         steps = []
 
+        if self.is_rehearsal:
+            prefix = f"pr-logs/pull/openshift_release/{self.pr_id}/{job_name}/{build_id}/artifacts/{job_name_safe}"
+        else:
+            prefix = f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}"
         blobs = storage_client.list_blobs(
             gcs_bucket,
-            prefix=f"logs/{job_name}/{build_id}/artifacts/{job_name_safe}",
+            prefix=prefix,
         )
-
         # Populate list of steps
         for blob in blobs:
             blob_step = blob.name.split("/")[-2]
@@ -523,7 +526,10 @@ class Job:
         try:
             # Construct the blob path
             bucket = storage_client.bucket(gcs_bucket)
-            blob_path = f"logs/{job_name}/{build_id}/started.json"
+            if self.is_rehearsal:
+                blob_path = f"pr-logs/pull/openshift_release/{self.pr_id}/{job_name}/{build_id}/started.json"
+            else:
+                blob_path = f"logs/{job_name}/{build_id}/started.json"
             blob = bucket.blob(blob_path)
 
             # Get the timestamp from path
@@ -556,7 +562,10 @@ class Job:
 
         try:
             bucket = storage_client.bucket(gcs_bucket)
-            prefix = f"logs/{job_name}/"
+            if self.is_rehearsal:
+                prefix = f"pr-logs/pull/openshift_release/{self.pr_id}/{job_name}/"
+            else:
+                prefix = f"logs/{job_name}/"
             blobs = bucket.list_blobs(prefix=prefix, delimiter="/")
 
             build_ids = []
