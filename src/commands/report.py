@@ -25,6 +25,7 @@ from src.objects.configuration import Configuration
 from src.objects.jira_base import Jira
 from src.objects.job import Job
 from src.report.report import Report
+from src.project.project import Project
 
 
 def validate_verbose_test_failure_reporting_ticket_limit(
@@ -83,7 +84,7 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.Path(exists=True),
 )
 @click.option(
-    "--firewatch-config-path",
+    "--rules-config-path",
     help="The path to the firewatch configuration file",
     required=False,
     type=click.Path(),
@@ -135,6 +136,11 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     help="Drop to `ipdb` shell on exception",
     is_flag=True,
 )
+@click.option(
+    "--project-config-path",
+    help="The path to the project configuration file",
+    required=False,
+)
 @click.command("report")
 @click.pass_context
 def report(
@@ -145,7 +151,7 @@ def report(
     pr_id: str,
     gcs_bucket: str,
     gcs_creds_file: Optional[str],
-    firewatch_config_path: Optional[str],
+    rules_config_path: Optional[str],
     jira_config_path: str,
     fail_with_test_failures: bool,
     fail_with_pod_failures: bool,
@@ -154,21 +160,15 @@ def report(
     verbose_test_failure_reporting_ticket_limit: Optional[int],
     additional_labels_file: Optional[str],
     pdb: bool,
+    project_config_path: Optional[str],
 ) -> None:
     ctx.obj["PDB"] = pdb
 
+    project_data = Project(ctx.params)
+
     # Build Objects
-    jira_connection = Jira(jira_config_path=jira_config_path)
-    config = Configuration(
-        jira=jira_connection,
-        fail_with_test_failures=fail_with_test_failures,
-        fail_with_pod_failures=fail_with_pod_failures,
-        keep_job_dir=keep_job_dir,
-        verbose_test_failure_reporting=verbose_test_failure_reporting,
-        verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
-        config_file_path=firewatch_config_path,
-        additional_lables_file=additional_labels_file,
-    )
+    jira_connection = Jira(jira_config_path=project_data.jira_config_path)
+    config = Configuration(jira=jira_connection, project_data=project_data)
     job = Job(
         name=job_name,
         name_safe=job_name_safe,
