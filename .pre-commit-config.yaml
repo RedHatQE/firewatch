@@ -14,7 +14,7 @@ repos:
     - id: check-json
     - id: check-yaml
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.18.2
+  rev: v1.19.0
   hooks:
   - id: mypy
     exclude: ^(tests/)
@@ -27,7 +27,7 @@ repos:
         "flake8-mutable",
       ]
 - repo: https://github.com/DavidAnson/markdownlint-cli2
-  rev: v0.18.1
+  rev: v0.19.1
   hooks:
     - id: markdownlint-cli2
 - repo: https://github.com/Yelp/detect-secrets
@@ -36,7 +36,7 @@ repos:
     - id: detect-secrets
       exclude: tests/unittests/resources/templates/jira_api/fake_server_info.json
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.13.3
+  rev: v0.14.7
   hooks:
     - id: ruff
     - id: ruff-format
