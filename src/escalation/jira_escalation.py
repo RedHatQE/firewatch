@@ -64,7 +64,7 @@ class Jira_Escalation:
 
         # process PQE tickets
         pqe_jira_query = (
-            f"Project != {default_jira_project} AND status not in('Resolved','Blocked','Closed','Backlog','Done')"
+            f"Project != {self.default_project} AND status not in('Resolved','Blocked','Closed','Backlog','Done')"
         )
 
         pqe_jira_query = self.add_labels_to_jira_query(pqe_jira_query)
@@ -109,7 +109,8 @@ class Jira_Escalation:
             # store required jira field values
             comments = jira_issue.fields.comment.comments
             assignee = jira_issue.fields.assignee
-            assignee_email = assignee.emailAddress
+            assignee_account_id = self.get_user_account_id(assignee)
+            assignee_email = self.get_user_email(assignee)
 
             current_time = datetime.now(timezone.utc)
 
@@ -118,8 +119,8 @@ class Jira_Escalation:
             if jira_issue.fields.status.name == "ACK":
                 status_changed_date = self.get_latest_status_change_date(jira_issue=jira_issue)
 
-            # get the date of assignee's latest comment
-            assignee_comments = [c for c in comments if c.author.emailAddress == assignee.emailAddress]
+            # get the date of assignee's latest comment (compare by accountId for Cloud compatibility)
+            assignee_comments = [c for c in comments if self.get_user_account_id(c.author) == assignee_account_id]
             assignee_comment_created_date = None
             if assignee_comments:
                 latest_comment = max(assignee_comments, key=lambda c: self.parse_jira_datetime(c.updated))
@@ -269,6 +270,42 @@ class Jira_Escalation:
         LOGGER.info(f"Jira status changed recently on {max(status_changes)}")
         return max(status_changes) if status_changes else None
 
+    @staticmethod
+    def get_user_account_id(user: Optional[object]) -> Optional[str]:
+        """
+        Extract accountId from a Jira user object.
+
+        In Jira Cloud, users are identified by accountId rather than username.
+        This method safely extracts the accountId, falling back to None if unavailable.
+
+        Args:
+            user: A Jira user object (e.g., issue.fields.assignee, comment.author)
+
+        Returns:
+            The user's accountId if available, None otherwise.
+        """
+        if user is None:
+            return None
+        return getattr(user, "accountId", None)
+
+    @staticmethod
+    def get_user_email(user: Optional[object]) -> Optional[str]:
+        """
+        Extract emailAddress from a Jira user object.
+
+        In Jira Cloud, email visibility may be restricted by privacy settings.
+        This method safely extracts the email, returning None if unavailable.
+
+        Args:
+            user: A Jira user object (e.g., issue.fields.assignee, comment.author)
+
+        Returns:
+            The user's email address if available, None otherwise.
+        """
+        if user is None:
+            return None
+        return getattr(user, "emailAddress", None)
+
     def escalate_issues(
         self,
         jira_issue: Issue,
@@ -276,18 +313,19 @@ class Jira_Escalation:
         prow_job_url: Optional[str],
         days_since_update: int,
         issue_url: str,
-        assignee_email: str,
+        assignee_email: Optional[str],
     ) -> None:
         """
-        Performs escalation check and sends relevant notification
-        Args:
-          jira_issue (Issue): jira issue to escalate
-          prow_job_name (str): job name used to build escalation message
-          prow_job_url (str): job url used to build escalation message
-          days_since_update (datetime): days passed between current date and jira issue update date
-          issue_url (str): url used to build escalation message
-          assignee_email (str): Email for assignee to send escalation message
+        Performs escalation check and sends relevant notification.
 
+        Args:
+            jira_issue (Issue): jira issue to escalate
+            prow_job_name (str): job name used to build escalation message
+            prow_job_url (str): job url used to build escalation message
+            days_since_update (datetime): days passed between current date and jira issue update date
+            issue_url (str): url used to build escalation message
+            assignee_email (Optional[str]): Email for assignee to send escalation message.
+                May be None in Jira Cloud due to privacy settings.
         """
         base_message = (
             f"please provide an update on issue : {issue_url} \n Prow Job Link : <{prow_job_url}|{prow_job_name}>"
@@ -309,6 +347,7 @@ class Jira_Escalation:
             LOGGER.info(
                 f"\n 1 or more days since last comment, please add comment if there is any updates on the issue: {jira_issue.key}"
             )
-            comment = f"[~{jira_issue.fields.assignee.name}], please provide update for this issue."
+            assignee_account_id = self.get_user_account_id(jira_issue.fields.assignee)
+            comment = f"[~accountId:{assignee_account_id}], please provide update for this issue."
             LOGGER.info(f"escalation comment: {comment}")
             self.jira.comment(jira_issue, comment)
