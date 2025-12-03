@@ -67,11 +67,15 @@ def create_mock_issue(
     fake_jira_issue.key = key
     fake_jira_issue.fields = MagicMock()
 
+    # Generate a unique accountId based on email (simulates Jira Cloud behavior)
+    assignee_account_id = f"accountId:{assignee_email}" if assignee_email else None
+
     # if assignee value is provided then update the mock field with actual value
     if assignee_email:
         assignee = MagicMock()
         assignee.name = assignee_email.split("@")[0]
         assignee.emailAddress = assignee_email
+        assignee.accountId = assignee_account_id
         fake_jira_issue.fields.assignee = assignee
     else:
         fake_jira_issue.fields.assignee = None
@@ -89,6 +93,7 @@ def create_mock_issue(
     if comment_days_ago is not None:
         comment = MagicMock()
         comment.author.emailAddress = assignee_email
+        comment.author.accountId = assignee_account_id
         comment.updated = days_ago(comment_days_ago)
         mock_comment.append(comment)
     comments_obj.comments = mock_comment
@@ -117,6 +122,44 @@ def test_add_labels_to_jira_query(setup_jira_escalation):
     query = escalation.add_labels_to_jira_query(jira_query)
     expected_query = 'Project = test-project AND status in("ACK")  AND (labels IN("test-labbel-a","test-label-b")) AND (labels = "test-lp")'
     assert query == expected_query
+
+
+class TestGetUserAccountId:
+    """Tests for get_user_account_id static method."""
+
+    def test_returns_account_id_when_present(self):
+        user = MagicMock()
+        user.accountId = "5b10ac8d82e05b22cc7d4ef5"  # pragma: allowlist secret
+        assert Jira_Escalation.get_user_account_id(user) == "5b10ac8d82e05b22cc7d4ef5"  # pragma: allowlist secret
+
+    def test_returns_none_when_user_is_none(self):
+        assert Jira_Escalation.get_user_account_id(None) is None
+
+    def test_returns_none_when_account_id_missing(self):
+        user = MagicMock(spec=[])  # Empty spec means no attributes
+        assert Jira_Escalation.get_user_account_id(user) is None
+
+
+class TestGetUserEmail:
+    """Tests for get_user_email static method."""
+
+    def test_returns_email_when_present(self):
+        user = MagicMock()
+        user.emailAddress = "user@example.com"
+        assert Jira_Escalation.get_user_email(user) == "user@example.com"
+
+    def test_returns_none_when_user_is_none(self):
+        assert Jira_Escalation.get_user_email(None) is None
+
+    def test_returns_none_when_email_missing(self):
+        user = MagicMock(spec=[])  # Empty spec means no attributes
+        assert Jira_Escalation.get_user_email(user) is None
+
+    def test_returns_none_when_email_is_none(self):
+        """Jira Cloud may return None for emailAddress due to privacy settings."""
+        user = MagicMock()
+        user.emailAddress = None
+        assert Jira_Escalation.get_user_email(user) is None
 
 
 @pytest.mark.parametrize(
@@ -177,7 +220,8 @@ def test_process_issues(
     elif expect_add_jira_comment:
         mock_jira.comment.assert_called_once()
         args, kwargs = mock_jira.comment.call_args
-        assert "user" in args[1]
+        # Comment should use accountId mention format for Jira Cloud compatibility
+        assert "[~accountId:" in args[1]
 
     elif expect_notify_assignee_in_slack:
         escalation.send_slack_notification.assert_called_once()

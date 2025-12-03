@@ -24,7 +24,6 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/CSPI-QE/firewatch"
-Homepage = "https://docs.astral.sh/uv"
 Download = "https://github.com/CSPI-QE/firewatch"
 "Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
 
