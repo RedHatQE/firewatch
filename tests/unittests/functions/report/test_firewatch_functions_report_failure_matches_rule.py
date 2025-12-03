@@ -102,6 +102,36 @@ class TestFailureMatchesRule(ReportBaseTest):
         # Check if match_rule is sorted higher than pattern_rule
         assert matching_rules[0].step.__eq__(failure.step)
 
+    def test_configuration_gets_failure_with_ignore_all_steps(self):
+        failure = Failure(failed_step="exact-failed-step", failure_type="test_failure")
+
+        match_rule = FailureRule(
+            rule_dict={
+                "step": "exact-failed-step",
+                "failure_type": "test_failure",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        ignore_rule = FailureRule(
+            rule_dict={
+                "step": "*",
+                "failure_type": "test_failure",
+                "ignore": "true",
+                "classification": "NONE",
+                "jira_project": "NONE",
+            },
+        )
+        rules = [ignore_rule, match_rule]
+
+        matching_rules = self.report.failure_matches_rule(
+            failure=failure,
+            rules=rules,
+            default_jira_project=self.config.default_jira_project,
+        )
+        # Check if match_rule is sorted higher than pattern_rule
+        assert matching_rules[0].step.__eq__(failure.step)
+
     @patch.dict(
         os.environ,
         {
