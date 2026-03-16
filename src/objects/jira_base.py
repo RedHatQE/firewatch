@@ -27,19 +27,23 @@ class Jira:
 
         self.url = jira_config.get("url")
         self.token = jira_config.get("token")
+        self.email = jira_config.get("email")
+
+        jira_kwargs: dict[str, Any] = {
+            "server": self.url,
+            "options": {"rest_api_version": "3"},
+        }
+
+        if self.email:
+            jira_kwargs["basic_auth"] = (self.email, self.token)
+        else:
+            jira_kwargs["token_auth"] = self.token
 
         if "proxies" in jira_config:
             self.proxies = jira_config.get("proxies")
-            self.connection = JIRA(
-                server=self.url,
-                token_auth=self.token,
-                proxies=self.proxies,
-            )
-        else:
-            self.connection = JIRA(
-                server=self.url,
-                token_auth=self.token,
-            )
+            jira_kwargs["proxies"] = self.proxies
+
+        self.connection = JIRA(**jira_kwargs)
 
         LOGGER.info("Jira authentication successful...")
 
@@ -128,7 +132,7 @@ class Jira:
                 self.add_attachment_to_issue(issue=issue, attachment_path=file_path)
 
         if epic is not None:
-            epic_search = self.connection.search_issues(f'issue="{epic}"', maxResults=False)
+            epic_search = self.connection.search_issues(f"issue={epic}", maxResults=False)
             if len(epic_search) == 1:
                 epic_id = epic_search[0].id
                 self.connection.add_issues_to_epic(

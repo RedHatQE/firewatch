@@ -42,6 +42,11 @@ def jira_token():
 
 
 @pytest.fixture
+def jira_email():
+    yield os.getenv("JIRA_EMAIL")
+
+
+@pytest.fixture
 def jira_server_url():
     res = os.getenv("JIRA_SERVER_URL")
     assert res, "JIRA_SERVER_URL was not found in environment"
@@ -92,7 +97,7 @@ def firewatch_configs_templates_path(templates_path):
 
 
 @pytest.fixture(autouse=True)
-def jira_config_path(tmp_path, jira_configs_templates_path, jira_token, jira_server_url):
+def jira_config_path(tmp_path, jira_configs_templates_path, jira_token, jira_email, jira_server_url):
     path = tmp_path.joinpath("jira.config")
     path.parent.mkdir(exist_ok=True, parents=True)
     loader = Environment(
@@ -100,7 +105,7 @@ def jira_config_path(tmp_path, jira_configs_templates_path, jira_token, jira_ser
         autoescape=select_autoescape(),
     )
     template = loader.get_template("jira.config.j2")
-    rendered_template = template.render(token=jira_token, server_url=jira_server_url)
+    rendered_template = template.render(token=jira_token, email=jira_email, server_url=jira_server_url)
     path.write_text(rendered_template)
     logger.info(f"wrote Jira config to {path.as_uri()}")
     yield path
@@ -123,7 +128,7 @@ def tmp_job_dir(tmp_path, build_id):
 
 @pytest.fixture
 def jira_api_issue_endpoint_url(jira_server_url):
-    yield f"{jira_server_url}/rest/api/2/issue"
+    yield f"{jira_server_url}/rest/api/3/issue"
 
 
 @pytest.fixture

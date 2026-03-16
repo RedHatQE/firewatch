@@ -301,10 +301,8 @@ def jira_config_path(tmp_path):
             json.dumps(
                 {
                     "url": os.getenv(JIRA_SERVER_URL_ENV_VAR, DEFAULT_JIRA_SERVER_URL),
-                    "proxies": {
-                        "http": "http://squid.corp.redhat.com:3128",
-                        "https": "http://squid.corp.redhat.com:3128",
-                    },
+                    "email": "firewatch@redhat.com",
+                    "token": "fake-api-token",
                 },
             ),
         )
@@ -487,7 +485,7 @@ def patch_jira_api_requests(
         elif url.endswith("/field"):
             LOGGER.info("Faking Jira fields")
             return MockJiraApiResponse(_json=fake_fields_response_json, _status_code=200)
-        elif url.endswith("/search"):
+        elif url.endswith("/search") or "/search/jql" in url:
             LOGGER.info("Faking Jira search results")
             return MockJiraApiResponse(_json=fake_search_response_json, _status_code=200)
         elif url_ends_with_fake_issue_id_or_key(url) and url_contains_issue_subpath(url):

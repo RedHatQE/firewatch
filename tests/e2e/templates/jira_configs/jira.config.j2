@@ -1,5 +1,8 @@
 {
     "token": "{{ token }}",
+    {% if email %}
+    "email": "{{ email }}",
+    {% endif %}
     {% if "stage" in server_url %}
     "proxies": {
         "http": "http://squid.corp.redhat.com:3128",

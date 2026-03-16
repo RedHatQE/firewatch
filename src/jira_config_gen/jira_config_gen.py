@@ -13,6 +13,7 @@ class JiraConfig:
         token_path: str,
         output_file: str,
         template_path: str,
+        email: str | None = None,
     ) -> None:
         """
         Used to build the Jira configuration file for use in the report command.
@@ -22,6 +23,7 @@ class JiraConfig:
             token_path (str): Path to the file holding the Jira server API token
             output_file (str): Where the rendered config will be stored.
             template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
+            email (str | None): Email address for Jira Cloud Basic auth. Required for Jira Cloud.
         """
         self.logger = get_logger(__name__)
 
@@ -30,6 +32,7 @@ class JiraConfig:
             token=self.token(file_path=token_path),
             output_file=output_file,
             template_path=template_path,
+            email=email,
         )
 
     def token(self, file_path: str) -> str:
@@ -57,6 +60,7 @@ class JiraConfig:
         token: str,
         output_file: str,
         template_path: str,
+        email: str | None = None,
     ) -> str:
         """
         Uses Jinja to render the Jira configuration file
@@ -66,6 +70,7 @@ class JiraConfig:
             token (str): Jira server API token
             output_file (str): Where the rendered config will be stored.
             template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
+            email (str | None): Email address for Jira Cloud Basic auth.
 
         Returns:
             str: A string object that represents the path of the rendered template.
@@ -74,12 +79,10 @@ class JiraConfig:
         template_dir = Path(template_path).parent
         template_filename = Path(template_path).name
 
-        # Load Jinja template file
         env = Environment(loader=FileSystemLoader(template_dir))
         template = env.get_template(template_filename)
 
-        # Render the template
-        context = {"server_url": server_url, "token": token}
+        context = {"server_url": server_url, "token": token, "email": email}
         rendered_template = template.render(**context)
 
         with open(output_file, "w") as file:
