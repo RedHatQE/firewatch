@@ -184,7 +184,8 @@ class Jira:
     def search(self, jql_query: str) -> list[Any]:
         """
         Performs a Jira JQL query using the Jira connection and returns a list of issues, including all fields.
-
+        For Jira Cloud (when email is set), uses the new search/jql API (enhanced_search_issues) when
+        available to avoid the deprecated v2 search endpoint.
         Args:
             jql_query (str): JQL query to run.
 
