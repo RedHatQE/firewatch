@@ -94,7 +94,7 @@ Remember, when you are using the `firewatch-report-issues` ref, some variables n
   - The default Jira project to report issues to.
 - `FIREWATCH_JIRA_SERVER`
   - The Jira server to report to.
-  - DEFAULT: `https://issues.stage.redhat.com`
+  - DEFAULT: `https://redhat.stage.atlassian.net`
 - `FIREWATCH_JIRA_API_TOKEN_PATH`
   - The path to the file holding the Jira API token.
   - DEFAULT: `/tmp/secrets/jira/access_token`.

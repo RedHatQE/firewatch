@@ -6,7 +6,7 @@ from src.jira_config_gen.jira_config_gen import JiraConfig
 
 @click.option(
     "--server-url",
-    help='Jira server URL, i.e "https://issues.stage.redhat.com"',
+    help='Jira server URL, i.e "https://redhat.stage.atlassian.net"',
     required=True,
     type=click.STRING,
 )

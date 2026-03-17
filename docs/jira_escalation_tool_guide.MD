@@ -55,7 +55,7 @@ firewatch jira-escalation --slack-channel test-jira-slack-bot --jira-config-path
 ### Required keys:
 
 - `"url"`: Jira server URL
-- `"proxies"`: *(Optional)* Presence of this key switches base URL to `https://issues.stage.redhat.com`
+- `"proxies"`: *(Optional)* Presence of this key switches base URL to `https://redhat.stage.atlassian.net`
 
 ### Example jira-config file
 
@@ -68,6 +68,6 @@ firewatch jira-escalation --slack-channel test-jira-slack-bot --jira-config-path
             "https": "proxy_url"
         },
 
-        "url": "https://issues.stage.redhat.com"
+        "url": "https://redhat.stage.atlassian.net"
     }
 ```

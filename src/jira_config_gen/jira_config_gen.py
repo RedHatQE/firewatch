@@ -19,7 +19,7 @@ class JiraConfig:
         Used to build the Jira configuration file for use in the report command.
 
         Args:
-            server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
+            server_url (str): Jira server URL, i.e "https://redhat.stage.atlassian.net"
             token_path (str): Path to the file holding the Jira server API token
             output_file (str): Where the rendered config will be stored.
             template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.
@@ -66,7 +66,7 @@ class JiraConfig:
         Uses Jinja to render the Jira configuration file
 
         Args:
-            server_url (str): Jira server URL, i.e "https://issues.stage.redhat.com"
+            server_url (str): Jira server URL, i.e "https://redhat.stage.atlassian.net"
             token (str): Jira server API token
             output_file (str): Where the rendered config will be stored.
             template_path (str): Path to Jinja template used to generate Jira credentials. Defaults to /firewatch/cli/templates/jira.config.j2.

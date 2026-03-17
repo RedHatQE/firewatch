@@ -201,7 +201,7 @@ Usage: firewatch jira-config-gen [OPTIONS]
 Options:
   --output-file TEXT  Where the rendered config will be stored  [required]
   --token-path TEXT   Path to the Jira API token  [required]
-  --server-url TEXT   Jira server URL, i.e "https://issues.stage.redhat.com"
+  --server-url TEXT   Jira server URL, i.e "https://redhat.stage.atlassian.net"
                       [required]
   --help              Show this message and exit.
 ```
