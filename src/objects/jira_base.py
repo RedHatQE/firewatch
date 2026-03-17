@@ -191,7 +191,8 @@ class Jira:
 
         Returns:
             list[Any]: List of issues that are returned from the query.
-        """
+        ""        if getattr(self, "email", None) and hasattr(self.connection, "enhanced_search_issues"):
+            return self.connection.enhanced_search_issues(jql_query, maxResults=False)"
         return self.connection.search_issues(jql_query, maxResults=False)
 
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
