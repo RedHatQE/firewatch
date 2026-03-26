@@ -8,6 +8,10 @@ from jira.exceptions import JIRAError
 from pyhelper_utils.general import ignore_exceptions
 from simple_logger.logger import get_logger
 
+from src.objects.jira_adf import closed_by_firewatch_adf
+from src.objects.jira_adf import plain_text_to_adf_doc
+from src.objects.jira_adf import sanitize_jira_adf_doc
+
 LOGGER = get_logger(name=__name__)
 
 
@@ -88,7 +92,7 @@ class Jira:
         issue_dict = {
             "project": {"key": project},
             "summary": summary,
-            "description": description,
+            "description": sanitize_jira_adf_doc(plain_text_to_adf_doc(description)),
             "issuetype": {"name": issue_type},
         }
 
@@ -147,10 +151,10 @@ class Jira:
             LOGGER.info(f"Issue {issue} has been assigned to user {assignee}")
 
         if close_issue:
-            self.connection.transition_issue(
-                issue=issue.key,
-                transition="closed",
-                comment="Closed by [firewatch|https://github.com/CSPI-QE/firewatch].",
+            self._transition_issue_with_adf_comment(
+                issue_key=issue.key,
+                transition_name="closed",
+                adf_body=closed_by_firewatch_adf(),
             )
 
         return issue
@@ -212,16 +216,61 @@ class Jira:
 
         return issues
 
+    def _post_issue_comment_adf(self, issue_key: str, adf_body: dict[str, Any]) -> None:
+        url = self.connection._get_url(f"issue/{issue_key}/comment")
+        response = self.connection._session.post(
+            url,
+            json={"body": sanitize_jira_adf_doc(adf_body)},
+            headers={"Content-Type": "application/json"},
+        )
+        if not response.ok:
+            raise JIRAError(
+                text=response.text,
+                status_code=response.status_code,
+                url=response.url,
+            )
+
+    def _transition_issue_with_adf_comment(
+        self,
+        issue_key: str,
+        transition_name: str,
+        adf_body: dict[str, Any],
+    ) -> None:
+        transition_id = self.connection.find_transitionid_by_name(issue_key, transition_name)
+        if transition_id is None:
+            raise JIRAError(
+                text=f"Invalid transition name. {transition_name}",
+                status_code=400,
+                url="",
+            )
+        payload: dict[str, Any] = {
+            "transition": {"id": transition_id},
+            "update": {"comment": [{"add": {"body": sanitize_jira_adf_doc(adf_body)}}]},
+        }
+        url = self.connection._get_url(f"issue/{issue_key}/transitions")
+        response = self.connection._session.post(
+            url,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        if not response.ok:
+            raise JIRAError(
+                text=response.text,
+                status_code=response.status_code,
+                url=response.url,
+            )
+
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
-    def comment(self, issue_id: str, comment: str) -> None:
+    def comment(self, issue_id: str, comment: str | dict[str, Any]) -> None:
         """
         Comments on the issue_id.
 
         Args:
             issue_id (str): Issue to comment on.
-            comment (str): Comment to add to issue.
+            comment (str | dict): Plain text (stored as minimal ADF) or an ADF doc dict for the body.
         """
-        self.connection.add_comment(issue_id, comment)
+        body = plain_text_to_adf_doc(comment) if isinstance(comment, str) else comment
+        self._post_issue_comment_adf(issue_id, body)
 
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def relate_issues(self, inward_issue: str, outward_issue: str) -> bool:
@@ -262,10 +311,10 @@ class Jira:
             issue = self.get_issue_by_id_or_key(issue_id)
             self.logger.info("Closing issue %s with transition 'closed'...", issue_id)
 
-            self.connection.transition_issue(
-                issue=issue.key,
-                transition="closed",
-                comment="Closed by [firewatch|https://github.com/CSPI-QE/firewatch].",
+            self._transition_issue_with_adf_comment(
+                issue_key=issue.key,
+                transition_name="closed",
+                adf_body=closed_by_firewatch_adf(),
             )
 
             self.logger.info("Issue %s has been successfully closed.", issue_id)
@@ -392,7 +441,7 @@ class Jira:
         try:
             response = self.connection._session.put(
                 issue.self,
-                data=json.dumps(payload),
+                json=payload,
                 headers={"Content-Type": "application/json"},
             )
             if not response.ok:
@@ -402,16 +451,15 @@ class Jira:
                     response.url,
                 )
         except JIRAError as error:
-            if error.status_code == 400:
-                LOGGER.error(
-                    f"Failed to add labels {labels} to issue {issue_id_or_key}. Error: {error.text}",
-                )
+            LOGGER.error(
+                f"Failed to add labels {labels} to issue {issue_id_or_key}. Error: {error.text}",
+            )
+            if error.status_code == 403:
                 LOGGER.info(
-                    "This error could be caused by missing permissions on the Jira user."
-                    'Please see the "Jira User Permissions" section in the README for more information.',
+                    "This error can be caused by missing permissions on the Jira user."
+                    ' Please see the "Jira User Permissions" section in the README for more information.',
                 )
-            else:
-                raise
+            raise
         return issue
 
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)

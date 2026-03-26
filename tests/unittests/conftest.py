@@ -488,6 +488,12 @@ def patch_jira_api_requests(
         elif url.endswith("/search") or "/search/jql" in url:
             LOGGER.info("Faking Jira search results")
             return MockJiraApiResponse(_json=fake_search_response_json, _status_code=200)
+        elif url_contains_fake_issue_id_or_key(url) and "/transitions" in url:
+            LOGGER.info("Faking Jira transitions list")
+            return MockJiraApiResponse(
+                _json={"transitions": [{"id": 5, "name": "closed"}]},
+                _status_code=200,
+            )
         elif url_ends_with_fake_issue_id_or_key(url) and url_contains_issue_subpath(url):
             LOGGER.info(f"Faking Jira issue: {url}")
             return MockJiraApiResponse(_json=fake_issue_json, _status_code=200)
@@ -506,6 +512,8 @@ def patch_jira_api_requests(
                 _json=fake_comment_response_json,
                 _status_code=201,
             )
+        elif url_contains_fake_issue_id_or_key(url) and "/transitions" in url:
+            return MockJiraApiResponse(_content=b"{}", _status_code=200)
         elif url_contains_fake_issue_id_or_key(url) and url_contains_issue_subpath and url.endswith("/attachments"):
             LOGGER.info(f"Faking Jira file upload: {url}")
             return fake_issue_add_attachment_response
@@ -514,7 +522,7 @@ def patch_jira_api_requests(
             monkeypatch.undo()
             return requests.sessions.Session.post(self=self, url=url, *args, **kwargs)
 
-    def put(self, url, data, *args, **kwargs):
+    def put(self, url, data=None, *args, **kwargs):
         LOGGER.info(f"Patching PUT request to URL: {url}")
         caps["put"][url] = (data, args, kwargs)
 
@@ -523,18 +531,20 @@ def patch_jira_api_requests(
             and url_ends_with_fake_issue_id_or_key(url)
             and url_contains_issue_subpath(url)
         ):
-            data = json.loads(data)
+            if data is not None:
+                body = json.loads(data) if isinstance(data, (str, bytes)) else data
+            else:
+                body = kwargs.get("json") or {}
             _json = fake_issue_json.copy()
-            # REST API v3 label update uses {"update": {"labels": [{"add": "..."}]}}
-            if "update" in data:
-                pass  # Accept label/field updates; return success
-            elif "fields" in data:
-                _json["fields"].update(data["fields"])
+            if "update" in body:
+                pass
+            elif "fields" in body:
+                _json["fields"].update(body["fields"])
             return MockJiraApiResponse(_json=_json, _status_code=204)
         else:
             LOGGER.info(f"Unpatched PUT request to: {url}")
             monkeypatch.undo()
-            return requests.sessions.Session.put(self, url, *args, **kwargs)
+            return requests.sessions.Session.put(self, url, data=data, *args, **kwargs)
 
     monkeypatch.setattr(requests.sessions.Session, "get", get)
     monkeypatch.setattr(requests.sessions.Session, "post", post)

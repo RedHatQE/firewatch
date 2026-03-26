@@ -2,6 +2,12 @@ from datetime import timezone, datetime
 import re
 from typing import Optional
 from jira import Issue
+from src.objects.jira_adf import adf_doc
+from src.objects.jira_adf import adf_mention
+from src.objects.jira_adf import description_to_plain_text_for_search
+from src.objects.jira_adf import inline_text
+from src.objects.jira_adf import paragraph
+from src.objects.jira_adf import plain_text_to_adf_doc
 from src.objects.jira_base import Jira
 from src.objects.slack_base import SlackClient
 from simple_logger.logger import get_logger
@@ -137,8 +143,9 @@ class Jira_Escalation:
                 LOGGER.info(f"last updated change date: {last_updated_time}")
 
             days_since_update = (current_time - last_updated_time).days
-            prow_job_name = self.extract_prow_job_name(jira_issue.fields.description)
-            prow_job_url = self.extract_prow_job_link(jira_issue.fields.description)
+            desc_text = description_to_plain_text_for_search(jira_issue.fields.description)
+            prow_job_name = self.extract_prow_job_name(desc_text)
+            prow_job_url = self.extract_prow_job_link(desc_text)
             issue_url = f"<{self.base_issue_url}/browse/{jira_issue.key}|{jira_issue.key}>"
 
             # check if issue is updated within corresponding escalation periods and send relevant notifications
@@ -217,6 +224,8 @@ class Jira_Escalation:
         Returns:
           Optional[str]: prow job url string extracted if found else None
         """
+        if not isinstance(jira_description_text, str):
+            raise TypeError("description must be str; use description_to_plain_text_for_search for ADF")
         try:
             url_pattern = r"https://prow\.ci\.openshift\.org/\S+"
             match = re.search(url_pattern, jira_description_text)
@@ -235,6 +244,8 @@ class Jira_Escalation:
           Optional[str]: prow job name string extracted if found else None
         """
 
+        if not isinstance(jira_description_text, str):
+            raise TypeError("description must be str; use description_to_plain_text_for_search for ADF")
         try:
             pattern = r"periodic-ci-[^\|]+"
             match = re.search(pattern, jira_description_text)
@@ -348,6 +359,15 @@ class Jira_Escalation:
                 f"\n 1 or more days since last comment, please add comment if there is any updates on the issue: {jira_issue.key}"
             )
             assignee_account_id = self.get_user_account_id(jira_issue.fields.assignee)
-            comment = f"[~accountId:{assignee_account_id}], please provide update for this issue."
-            LOGGER.info(f"escalation comment: {comment}")
-            self.jira.comment(jira_issue, comment)
+            comment_body = (
+                adf_doc(
+                    paragraph(
+                        adf_mention(assignee_account_id, "@"),
+                        inline_text(", please provide update for this issue."),
+                    ),
+                )
+                if assignee_account_id
+                else plain_text_to_adf_doc("Please provide update for this issue.")
+            )
+            LOGGER.info("escalation comment prepared for %s", jira_issue.key)
+            self.jira.comment(issue_id=jira_issue.key, comment=comment_body)

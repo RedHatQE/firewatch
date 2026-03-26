@@ -11,6 +11,10 @@ from simple_logger.logger import get_logger
 from src.objects.configuration import Configuration
 from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
+from src.objects.jira_adf import adf_doc
+from src.objects.jira_adf import heading
+from src.objects.jira_adf import inline_text
+from src.objects.jira_adf import paragraph
 from src.objects.jira_base import Jira
 from src.objects.job import Job
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL
@@ -375,20 +379,38 @@ class Report:
         Returns:
             None
         """
-        comment = f"""
-                                h4. *JOB RECENTLY PASSED*
-
-                                This job has been run successfully since this bug was filed. Please verify that this bug is still relevant and close it if needed.
-
-                                *Passing Run Link:* https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}
-                                *Passing Run Build ID:* {job.build_id}
-
-
-                                _Please add the "ignore-passing-notification" tag to this bug to avoid future passing job notifications._
-
-                                This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch].
-                            """
-        jira.comment(issue_id=issue_id, comment=comment)
+        prow_url = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
+        fw_url = "https://github.com/CSPI-QE/firewatch"
+        body = adf_doc(
+            heading(4, inline_text("JOB RECENTLY PASSED", bold=True)),
+            paragraph(
+                inline_text(
+                    "This job has been run successfully since this bug was filed. "
+                    "Please verify that this bug is still relevant and close it if needed.",
+                ),
+            ),
+            paragraph(
+                inline_text("Passing Run Link: ", bold=True),
+                inline_text(prow_url, url=prow_url),
+            ),
+            paragraph(
+                inline_text("Passing Run Build ID: ", bold=True),
+                inline_text(job.build_id or ""),
+            ),
+            paragraph(
+                inline_text(
+                    'Please add the "ignore-passing-notification" label to this bug to avoid future '
+                    "passing job notifications.",
+                    italic=True,
+                ),
+            ),
+            paragraph(
+                inline_text("This comment was created using "),
+                inline_text("firewatch in OpenShift CI", url=fw_url),
+                inline_text("."),
+            ),
+        )
+        jira.comment(issue_id=issue_id, comment=body)
 
     def add_passing_job_label(self, jira: Jira, issue_id: str) -> None:
         """
@@ -445,21 +467,54 @@ class Report:
         Returns:
             None
         """
-        comment = f"""
-                        A duplicate failure was identified in a recent run of the {job.name} job:
-
-                        *Link:* https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}
-                        *Build ID:* {job.build_id}
-                        *Classification:* {classification}
-                        *Failed Step:* {failed_step}
-                        {"*Failed Test:* " + failed_test_name if failed_test_name else ""}
-
-                        Please see the link provided above to determine if this is the same issue. If it is not, please manually file a new bug for this issue.
-
-                        This comment was created using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]
-                    """
-
-        jira.comment(issue_id=issue_id, comment=comment)
+        link = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
+        fw_url = "https://github.com/CSPI-QE/firewatch"
+        blocks: list[dict[str, Any]] = [
+            paragraph(
+                inline_text(
+                    f"A duplicate failure was identified in a recent run of the {job.name} job:",
+                ),
+            ),
+            paragraph(
+                inline_text("Link: ", bold=True),
+                inline_text(link, url=link),
+            ),
+            paragraph(
+                inline_text("Build ID: ", bold=True),
+                inline_text(job.build_id or ""),
+            ),
+            paragraph(
+                inline_text("Classification: ", bold=True),
+                inline_text(classification),
+            ),
+            paragraph(
+                inline_text("Failed Step: ", bold=True),
+                inline_text(failed_step),
+            ),
+        ]
+        if failed_test_name:
+            blocks.append(
+                paragraph(
+                    inline_text("Failed Test: ", bold=True),
+                    inline_text(failed_test_name),
+                ),
+            )
+        blocks.extend(
+            [
+                paragraph(
+                    inline_text(
+                        "Please see the link provided above to determine if this is the same issue. "
+                        "If it is not, please manually file a new bug for this issue.",
+                    ),
+                ),
+                paragraph(
+                    inline_text("This comment was created using "),
+                    inline_text("firewatch in OpenShift CI", url=fw_url),
+                    inline_text("."),
+                ),
+            ],
+        )
+        jira.comment(issue_id=issue_id, comment=adf_doc(*blocks))
 
     def relate_issues(self, issues: list[str], jira: Jira) -> None:
         """

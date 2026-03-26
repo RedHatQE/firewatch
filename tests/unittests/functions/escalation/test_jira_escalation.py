@@ -1,7 +1,7 @@
 import pytest
 
 from unittest.mock import MagicMock, patch
-from src.escalation.jira_escalation import Jira_Escalation
+from src.escalation.jira_escalation import Jira_Escalation, description_to_plain_text_for_search
 from datetime import datetime, timedelta, timezone
 
 from simple_logger.logger import get_logger
@@ -11,6 +11,51 @@ LOGGER = get_logger(name=__name__)
 
 
 FIXED_NOW = datetime(2025, 5, 1, tzinfo=timezone.utc)
+
+PROW_WIKI_LINE = "* Prow Job Link *: [periodic-ci-test-job-name #11234567|https://prow.ci.openshift.org/some/log/path]"
+
+PROW_DESCRIPTION_ADF = {
+    "type": "doc",
+    "version": 1,
+    "content": [
+        {
+            "type": "heading",
+            "attrs": {"level": 4},
+            "content": [{"type": "text", "text": "Job"}],
+        },
+        {
+            "type": "paragraph",
+            "content": [
+                {"type": "text", "text": PROW_WIKI_LINE},
+            ],
+        },
+    ],
+}
+
+
+class TestDescriptionToPlainTextForSearch:
+    def test_passes_through_plain_string(self):
+        assert description_to_plain_text_for_search(PROW_WIKI_LINE) == PROW_WIKI_LINE
+
+    def test_flattens_adf_doc_to_searchable_text(self):
+        flat = description_to_plain_text_for_search(PROW_DESCRIPTION_ADF)
+        assert PROW_WIKI_LINE in flat
+        assert "periodic-ci-test-job-name" in flat
+        assert "https://prow.ci.openshift.org/some/log/path" in flat
+
+    def test_extract_prow_job_name_after_flattening_adf_description(self):
+        flat = description_to_plain_text_for_search(PROW_DESCRIPTION_ADF)
+        assert Jira_Escalation.extract_prow_job_name(flat) == "periodic-ci-test-job-name #11234567"
+
+    def test_extract_prow_job_link_after_flattening_adf_description(self):
+        flat = description_to_plain_text_for_search(PROW_DESCRIPTION_ADF)
+        assert Jira_Escalation.extract_prow_job_link(flat) == "https://prow.ci.openshift.org/some/log/path"
+
+    def test_extractors_fail_on_raw_adf_dict_without_flattening(self):
+        with pytest.raises(TypeError):
+            Jira_Escalation.extract_prow_job_name(PROW_DESCRIPTION_ADF)
+        with pytest.raises(TypeError):
+            Jira_Escalation.extract_prow_job_link(PROW_DESCRIPTION_ADF)
 
 
 @pytest.fixture
@@ -219,9 +264,12 @@ def test_process_issues(
 
     elif expect_add_jira_comment:
         mock_jira.comment.assert_called_once()
-        args, kwargs = mock_jira.comment.call_args
-        # Comment should use accountId mention format for Jira Cloud compatibility
-        assert "[~accountId:" in args[1]
+        kwargs = mock_jira.comment.call_args.kwargs
+        comment = kwargs["comment"]
+        assert isinstance(comment, dict)
+        mention = comment["content"][0]["content"][0]
+        assert mention["type"] == "mention"
+        assert mention["attrs"]["id"] == f"accountId:{assignee_email}"
 
     elif expect_notify_assignee_in_slack:
         escalation.send_slack_notification.assert_called_once()

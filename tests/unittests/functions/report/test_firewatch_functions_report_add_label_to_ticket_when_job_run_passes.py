@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import simple_logger.logger
 from jira import Issue
@@ -65,10 +67,15 @@ def test_report_adds_passing_label_to_newly_passing_job_with_open_bugs(
     fake_issue_id,
 ):
     Report(firewatch_config=firewatch_config, job=job)
-    put_request_data_to_issue_endpoint = [
-        v[0]
-        for k, v in patch_jira_api_requests["put"].items()
-        if k.endswith(f"/issue/{fake_issue_id}") or k.endswith(f"/issue/{fake_issue_key}")
-    ]
+    put_request_data_to_issue_endpoint = []
+    for k, v in patch_jira_api_requests["put"].items():
+        if k.endswith(f"/issue/{fake_issue_id}") or k.endswith(f"/issue/{fake_issue_key}"):
+            data, _args, kwargs = v
+            if data is not None:
+                put_request_data_to_issue_endpoint.append(
+                    data if isinstance(data, str) else json.dumps(data),
+                )
+            else:
+                put_request_data_to_issue_endpoint.append(json.dumps(kwargs.get("json") or {}))
     exp = '"update": {"labels": [{"add": "' + JOB_PASSED_SINCE_TICKET_CREATED_LABEL + '"}]'
-    assert any([exp in _ for _ in put_request_data_to_issue_endpoint])
+    assert any(exp in _ for _ in put_request_data_to_issue_endpoint)
