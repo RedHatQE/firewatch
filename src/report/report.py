@@ -19,6 +19,7 @@ from src.objects.jira_adf import inline_text
 from src.objects.jira_adf import paragraph
 from src.objects.jira_base import Jira
 from src.objects.job import Job
+from src.objects.rule import Rule
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL
 
 
@@ -270,29 +271,59 @@ class Report:
         self.logger.info(f"Reporting job {job.name} success.")
         date = datetime.now()
         for rule in firewatch_config.success_rules if firewatch_config.success_rules else []:
-            labels = self._get_issue_labels(
-                job_name=job.name,
-                type="success",
-                jira_additional_labels=rule.jira_additional_labels,  # type: ignore
-                jira_additional_labels_filepath=firewatch_config.additional_labels_file,
-            )
+            labels = [
+                label
+                for label in self._get_issue_labels(
+                    job_name=job.name,
+                    type="success",
+                    jira_additional_labels=rule.jira_additional_labels,  # type: ignore
+                    jira_additional_labels_filepath=firewatch_config.additional_labels_file,
+                )
+                if label
+            ]
+            self._safe_create_success_issue(firewatch_config, job, rule, date, labels)
 
-            firewatch_config.jira.create_issue(
-                project=rule.jira_project,
-                summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
-                description=self._get_issue_description(
-                    job=job,  # type: ignore
-                    success_issue=True,
-                ),
-                issue_type="Story",
-                epic=rule.jira_epic,
-                labels=labels,
-                component=rule.jira_component,
-                affects_version=rule.jira_affects_version,
-                assignee=rule.jira_assignee,
-                priority=rule.jira_priority,
-                security_level=rule.jira_security_level,
-                close_issue=True,
+    def _create_success_issue(
+        self,
+        firewatch_config: Configuration,
+        job: Job,
+        rule: Rule,
+        date: datetime,
+        labels: list[str],
+    ) -> None:
+        firewatch_config.jira.create_issue(
+            project=rule.jira_project,
+            summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
+            description=self._get_issue_description(
+                job=job,  # type: ignore
+                success_issue=True,
+            ),
+            issue_type="Story",
+            epic=rule.jira_epic,
+            labels=labels,
+            component=rule.jira_component,
+            affects_version=rule.jira_affects_version,
+            assignee=rule.jira_assignee,
+            priority=rule.jira_priority,
+            security_level=rule.jira_security_level,
+            close_issue=True,
+        )
+
+    def _safe_create_success_issue(
+        self,
+        firewatch_config: Configuration,
+        job: Job,
+        rule: Rule,
+        date: datetime,
+        labels: list[str],
+    ) -> None:
+        try:
+            self._create_success_issue(firewatch_config, job, rule, date, labels)
+        except JIRAError as err:
+            self.logger.warning(
+                "Could not create success issue in %s: %s",
+                rule.jira_project,
+                err.text,
             )
 
     def filter_priority_rule_failure_pairs(
