@@ -5,10 +5,11 @@ from typing import Any
 from typing import Optional
 
 from simple_logger.logger import get_logger
+from src.project.project import Project
 
 
 class Rule:
-    def __init__(self, rule_dict: dict[Any, Any]) -> None:
+    def __init__(self, rule_dict: dict[Any, Any], project_data: Project) -> None:
         """
         Initializes the Rule object.
 
@@ -17,6 +18,7 @@ class Rule:
         """
 
         self.logger = get_logger(__name__)
+        self.project_data = project_data
         self.jira_project = self._get_jira_project(rule_dict)
         self.jira_epic = self._get_jira_epic(rule_dict)
         self.jira_component = self._get_jira_component(rule_dict)
@@ -40,7 +42,7 @@ class Rule:
         jira_project = rule_dict.get("jira_project")
 
         if jira_project == "!default" or not jira_project:
-            jira_project = os.getenv("FIREWATCH_DEFAULT_JIRA_PROJECT")
+            jira_project = self.project_data.default_jira_project
 
         if not jira_project:
             self.logger.error(
@@ -173,7 +175,7 @@ class Rule:
         if isinstance(jira_additional_labels, list):
             # If the list contains "!default", include the list in the environment variable
             if "!default" in jira_additional_labels:
-                default_labels = os.getenv("FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS")
+                default_labels = self.project_data.default_jira_additional_labels
                 if default_labels:
                     try:
                         default_labels = json.loads(default_labels)
