@@ -1,7 +1,6 @@
 import os
 from typing import Optional
 
-import requests as http_requests
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from simple_logger.logger import get_logger
@@ -90,13 +89,3 @@ class SlackClient:
             LOGGER.error(f"Error looking up user {e.response['error']}")
             return None
 
-    @staticmethod
-    def post_webhook(webhook_url: str, text: str) -> None:
-        LOGGER.info(f"Sending Slack webhook notification: {text[:80]}...")
-        response = http_requests.post(
-            webhook_url,
-            json={"text": text},
-            headers={"Content-Type": "application/json"},
-            timeout=30,
-        )
-        response.raise_for_status()

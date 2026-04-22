@@ -11,6 +11,7 @@ from jira.exceptions import JIRAError
 from simple_logger.logger import get_logger
 
 from src.objects.configuration import Configuration
+from src.objects.slack_base import SlackClient
 from src.objects.failure import Failure
 from src.objects.failure_rule import FailureRule
 from src.objects.jira_adf import adf_doc
@@ -239,6 +240,10 @@ class Report:
                         ),  # type: ignore
                     )
                     dup_bugs_updated.append(bug)
+                    self._notify_slack(
+                        rule=pair["rule"],  # type: ignore
+                        text=f"Duplicate firewatch issue detected for *{job.name}* (step: `{pair['failure'].step}`). Existing issue updated: {firewatch_config.jira.url}/browse/{bug}",  # type: ignore
+                    )
             # If duplicates are not found, file a bug
             else:
                 jira_issue = firewatch_config.jira.create_issue(
@@ -256,6 +261,10 @@ class Report:
                     security_level=security_level,
                 )
                 bugs_filed.append(jira_issue.key)
+                self._notify_slack(
+                    rule=pair["rule"],  # type: ignore
+                    text=f"New firewatch issue filed for *{job.name}* (step: `{pair['failure'].step}`): {firewatch_config.jira.url}/browse/{jira_issue.key}",  # type: ignore
+                )
 
         return bugs_filed, dup_bugs_updated
 
@@ -291,7 +300,7 @@ class Report:
         date: datetime,
         labels: list[str],
     ) -> None:
-        firewatch_config.jira.create_issue(
+        success_issue = firewatch_config.jira.create_issue(
             project=rule.jira_project,
             summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
             description=self._get_issue_description(
@@ -307,6 +316,10 @@ class Report:
             priority=rule.jira_priority,
             security_level=rule.jira_security_level,
             close_issue=True,
+        )
+        self._notify_slack(
+            rule=rule,
+            text=f"*{job.name}* passed: {firewatch_config.jira.url}/browse/{success_issue.key}",
         )
 
     def _safe_create_success_issue(
@@ -325,6 +338,23 @@ class Report:
                 rule.jira_project,
                 err.text,
             )
+
+    def _notify_slack(self, rule: Rule, text: str) -> None:
+        if not rule.slack_channel:
+            return
+        try:
+            slack = SlackClient(token=os.getenv("SLACK_BOT_TOKEN", ""))
+        except ValueError:
+            self.logger.warning("SLACK_BOT_TOKEN is not set; skipping Slack notification")
+            return
+        channel = rule.slack_channel
+        if "@" in channel:
+            username = slack.get_slack_username(email=channel)
+            if not username:
+                self.logger.warning(f"Could not resolve Slack user for email {channel}; skipping notification")
+                return
+            channel = username
+        slack.send_notification(channel=channel, text=text)
 
     def filter_priority_rule_failure_pairs(
         self,

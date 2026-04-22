@@ -25,6 +25,7 @@ class Rule:
         self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.jira_priority = self._get_jira_priority(rule_dict)
         self.jira_security_level = self._get_jira_security_level(rule_dict)
+        self.slack_channel = self._get_slack_channel(rule_dict)
 
     def _get_jira_project(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -305,6 +306,29 @@ class Rule:
 
         self.logger.error(
             f'Value for "jira_security_level" or $FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL is not a string in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_slack_channel(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        """
+        Determines if a Slack channel or user is defined in a rule.
+
+        Args:
+            rule_dict (dict[Any, Any]): A dictionary object representing a user-defined firewatch rule.
+
+        Returns:
+            Optional[str]: A Slack channel name (e.g. "#my-channel") or user email to notify,
+                           or None if not defined.
+        """
+        slack_channel = rule_dict.get("slack_channel")
+
+        if isinstance(slack_channel, str) or not slack_channel:
+            if slack_channel == "!default":
+                slack_channel = os.getenv("FIREWATCH_DEFAULT_SLACK_CHANNEL")
+            return slack_channel
+
+        self.logger.error(
+            f'Value for "slack_channel" or $FIREWATCH_DEFAULT_SLACK_CHANNEL is not a string in firewatch rule: "{rule_dict}"',
         )
         exit(1)
 
