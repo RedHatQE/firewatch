@@ -20,7 +20,6 @@ from src.objects.jira_adf import paragraph
 from src.objects.jira_base import Jira
 from src.objects.job import Job
 from src.objects.rule import Rule
-from src.objects.slack_base import SlackClient
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL, JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL
 
 
@@ -240,12 +239,6 @@ class Report:
                         ),  # type: ignore
                     )
                     dup_bugs_updated.append(bug)
-                    self._slack_duplicate(
-                        issue_key=bug,
-                        job=job,
-                        rule=pair["rule"],  # type: ignore[arg-type]
-                        firewatch_config=firewatch_config,
-                    )
             # If duplicates are not found, file a bug
             else:
                 jira_issue = firewatch_config.jira.create_issue(
@@ -263,13 +256,6 @@ class Report:
                     security_level=security_level,
                 )
                 bugs_filed.append(jira_issue.key)
-                self._slack_new_issue(
-                    issue_key=jira_issue.key,
-                    summary=summary,
-                    job=job,
-                    rule=pair["rule"],  # type: ignore[arg-type]
-                    firewatch_config=firewatch_config,
-                )
 
         return bugs_filed, dup_bugs_updated
 
@@ -305,7 +291,7 @@ class Report:
         date: datetime,
         labels: list[str],
     ) -> None:
-        jira_issue = firewatch_config.jira.create_issue(
+        firewatch_config.jira.create_issue(
             project=rule.jira_project,
             summary=f"Job {job.name} passed - {date.strftime('%m-%d-%Y')}",
             description=self._get_issue_description(
@@ -321,12 +307,6 @@ class Report:
             priority=rule.jira_priority,
             security_level=rule.jira_security_level,
             close_issue=True,
-        )
-        self._slack_success(
-            issue_key=jira_issue.key,
-            job=job,
-            rule=rule,
-            firewatch_config=firewatch_config,
         )
 
     def _safe_create_success_issue(
@@ -654,60 +634,6 @@ class Report:
             ],
         )
         jira.comment(issue_id=issue_id, comment=adf_doc(*blocks))
-
-    def _notify_slack(
-        self,
-        channel: str,
-        text: str,
-        firewatch_config: Configuration,
-    ) -> None:
-        try:
-            if firewatch_config.slack_webhook_url:
-                SlackClient.post_webhook(firewatch_config.slack_webhook_url, text)
-            elif firewatch_config.slack_bot_token:
-                client = SlackClient(token=firewatch_config.slack_bot_token)
-                client.send_notification(channel=channel, text=text)
-        except Exception as exc:
-            self.logger.warning("Slack notification failed: %s", exc)
-
-    def _slack_new_issue(
-        self,
-        issue_key: str,
-        summary: str,
-        job: Job,
-        rule: Rule,
-        firewatch_config: Configuration,
-    ) -> None:
-        if not rule.slack_channel:
-            return
-        prow_url = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
-        text = f"[{issue_key}] {summary}\n{prow_url}"
-        self._notify_slack(rule.slack_channel, text, firewatch_config)
-
-    def _slack_duplicate(
-        self,
-        issue_key: str,
-        job: Job,
-        rule: Rule,
-        firewatch_config: Configuration,
-    ) -> None:
-        if not rule.slack_channel:
-            return
-        prow_url = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
-        text = f"Duplicate failure detected on {issue_key}\nJob: {job.name} | Build: {job.build_id}\n{prow_url}"
-        self._notify_slack(rule.slack_channel, text, firewatch_config)
-
-    def _slack_success(
-        self,
-        issue_key: str,
-        job: Job,
-        rule: Rule,
-        firewatch_config: Configuration,
-    ) -> None:
-        if not rule.slack_channel:
-            return
-        text = f"[{issue_key}] Job {job.name} passed - {datetime.now().strftime('%m-%d-%Y')}"
-        self._notify_slack(rule.slack_channel, text, firewatch_config)
 
     def relate_issues(self, issues: list[str], jira: Jira) -> None:
         """

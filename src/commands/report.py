@@ -131,20 +131,6 @@ def validate_verbose_test_failure_reporting_ticket_limit(
     type=click.Path(exists=True),
 )
 @click.option(
-    "--slack-bot-token",
-    help="Slack bot token for notifications. Defaults to $SLACK_BOT_TOKEN.",
-    required=False,
-    type=click.STRING,
-    default=None,
-)
-@click.option(
-    "--slack-webhook-url",
-    help="Slack incoming webhook URL for notifications. Defaults to $SLACK_WEBHOOK_URL.",
-    required=False,
-    type=click.STRING,
-    default=None,
-)
-@click.option(
     "--pdb",
     help="Drop to `ipdb` shell on exception",
     is_flag=True,
@@ -167,8 +153,6 @@ def report(
     verbose_test_failure_reporting: bool,
     verbose_test_failure_reporting_ticket_limit: Optional[int],
     additional_labels_file: Optional[str],
-    slack_bot_token: Optional[str],
-    slack_webhook_url: Optional[str],
     pdb: bool,
 ) -> None:
     ctx.obj["PDB"] = pdb
@@ -184,8 +168,6 @@ def report(
         verbose_test_failure_reporting_ticket_limit=verbose_test_failure_reporting_ticket_limit,
         config_file_path=firewatch_config_path,
         additional_lables_file=additional_labels_file,
-        slack_bot_token=slack_bot_token,
-        slack_webhook_url=slack_webhook_url,
     )
     job = Job(
         name=job_name,

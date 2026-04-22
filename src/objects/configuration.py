@@ -46,8 +46,6 @@ class Configuration:
         verbose_test_failure_reporting_ticket_limit: Optional[int] = 10,
         config_file_path: Union[str, None] = None,
         additional_lables_file: Optional[str] = None,
-        slack_bot_token: Optional[str] = None,
-        slack_webhook_url: Optional[str] = None,
     ):
         """
         Constructs the Configuration object. This class is mainly used to validate the firewatch configuration given.
@@ -71,8 +69,6 @@ class Configuration:
         self.additional_labels_file = additional_lables_file
         self.verbose_test_failure_reporting = verbose_test_failure_reporting
         self.verbose_test_failure_reporting_ticket_limit = verbose_test_failure_reporting_ticket_limit
-        self.slack_bot_token = slack_bot_token
-        self.slack_webhook_url = slack_webhook_url
         self.config_data = self._get_config_data(base_config_file_path=config_file_path)
         self.success_rules = self._get_success_rules(
             rules_list=self.config_data.get("success_rules"),
