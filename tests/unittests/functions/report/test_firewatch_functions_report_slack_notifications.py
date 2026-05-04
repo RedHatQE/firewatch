@@ -24,6 +24,107 @@ def sample_job():
     return job
 
 
+class TestRehearsalWebhookIntegration:
+    """Tests that Report.__init__ actually calls _notify_failure_webhooks
+    for rehearsal jobs with failures. This exercises the real code path
+    that CI hits, not just the method in isolation."""
+
+    @patch("src.report.report.SlackClient.post_webhook")
+    @patch("src.report.report.shutil.rmtree")
+    def test_rehearsal_with_failures_fires_webhook(self, mock_rmtree, mock_post_webhook):
+        config = MagicMock()
+        config.slack_webhook_url = "https://hooks.slack.com/test"
+        config.slack_bot_token = None
+        config.default_jira_project = "TEST"
+        config.fail_with_test_failures = False
+        config.fail_with_pod_failures = False
+        config.failure_rules = [
+            FailureRule({
+                "step": "*",
+                "failure_type": "all",
+                "classification": "Test",
+                "jira_project": "TEST",
+            })
+        ]
+
+        job = MagicMock(spec=Job)
+        job.is_rehearsal = True
+        job.is_retriggered = False
+        job.name = "rehearse-99999-pull-ci-test-job"
+        job.build_id = "99999"
+        job.download_path = "/tmp/99999"
+        job.has_test_failures = False
+        job.has_pod_failures = True
+        job.failures = [Failure(failed_step="fail-step", failure_type="pod_failure")]
+
+        with pytest.raises(SystemExit) as exc_info:
+            Report(firewatch_config=config, job=job)
+
+        assert exc_info.value.code == 0
+        mock_post_webhook.assert_called_once()
+        payload_text = mock_post_webhook.call_args[0][1]
+        assert "fail-step" in payload_text
+        assert "pod_failure" in payload_text
+
+    @patch("src.report.report.SlackClient.post_webhook")
+    @patch("src.report.report.shutil.rmtree")
+    def test_rehearsal_without_webhook_url_skips_notification(self, mock_rmtree, mock_post_webhook):
+        config = MagicMock()
+        config.slack_webhook_url = None
+        config.slack_bot_token = None
+        config.default_jira_project = "TEST"
+        config.fail_with_test_failures = False
+        config.fail_with_pod_failures = False
+        config.failure_rules = [
+            FailureRule({
+                "step": "*",
+                "failure_type": "all",
+                "classification": "Test",
+                "jira_project": "TEST",
+            })
+        ]
+
+        job = MagicMock(spec=Job)
+        job.is_rehearsal = True
+        job.is_retriggered = False
+        job.name = "rehearse-99999-pull-ci-test-job"
+        job.build_id = "99999"
+        job.download_path = "/tmp/99999"
+        job.has_test_failures = False
+        job.has_pod_failures = True
+        job.failures = [Failure(failed_step="fail-step", failure_type="pod_failure")]
+
+        with pytest.raises(SystemExit):
+            Report(firewatch_config=config, job=job)
+
+        mock_post_webhook.assert_not_called()
+
+    @patch("src.report.report.SlackClient.post_webhook")
+    @patch("src.report.report.shutil.rmtree")
+    def test_rehearsal_no_failures_skips_notification(self, mock_rmtree, mock_post_webhook):
+        config = MagicMock()
+        config.slack_webhook_url = "https://hooks.slack.com/test"
+        config.slack_bot_token = None
+        config.default_jira_project = "TEST"
+        config.fail_with_test_failures = False
+        config.fail_with_pod_failures = False
+
+        job = MagicMock(spec=Job)
+        job.is_rehearsal = True
+        job.is_retriggered = False
+        job.name = "rehearse-99999-pull-ci-test-job"
+        job.build_id = "99999"
+        job.download_path = "/tmp/99999"
+        job.has_test_failures = False
+        job.has_pod_failures = False
+        job.failures = []
+
+        with pytest.raises(SystemExit):
+            Report(firewatch_config=config, job=job)
+
+        mock_post_webhook.assert_not_called()
+
+
 class TestNotifyFailureWebhooks:
     def _make_config(self, webhook_url="https://hooks.slack.com/test", failure_rules=None):
         config = MagicMock()
