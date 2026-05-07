@@ -4,6 +4,7 @@ import pytest
 import simple_logger.logger
 from jira import Issue
 
+from src.objects.failure import Failure
 from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
 from src.report.report import Report
 
@@ -79,3 +80,24 @@ def test_report_adds_passing_label_to_newly_passing_job_with_open_bugs(
                 put_request_data_to_issue_endpoint.append(json.dumps(kwargs.get("json") or {}))
     exp = '"update": {"labels": [{"add": "' + JOB_PASSED_SINCE_TICKET_CREATED_LABEL + '"}]'
     assert any(exp in _ for _ in put_request_data_to_issue_endpoint)
+
+
+def test_report_does_not_run_passing_job_path_when_failures_exist_but_none_filed(
+    monkeypatch,
+    patch_jira_api_requests,
+    firewatch_config,
+    job,
+):
+    job.failures = [Failure("exact-step-name", "pod_failure")]
+    monkeypatch.setattr(Report, "file_jira_issues", lambda *a, **k: ([], []))
+
+    def forbid_passing_comment(self, job_arg, jira, issue_id):
+        raise AssertionError("add_passing_job_comment must not run when job.failures is non-empty")
+
+    def forbid_passing_label(self, jira, issue_id):
+        raise AssertionError("add_passing_job_label must not run when job.failures is non-empty")
+
+    monkeypatch.setattr(Report, "add_passing_job_comment", forbid_passing_comment)
+    monkeypatch.setattr(Report, "add_passing_job_label", forbid_passing_label)
+
+    Report(firewatch_config=firewatch_config, job=job)

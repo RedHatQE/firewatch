@@ -25,3 +25,6 @@ container-run:
 container-build-run: container-build container-run
 
 container-build-test: container-build container-test
+
+smoke-openshift-ci:
+	./scripts/smoke-openshift-ci-replay.sh

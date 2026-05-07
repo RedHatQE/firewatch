@@ -17,6 +17,11 @@
   - [`jira_assignee`](#jira_assignee)
   - [`jira_priority`](#jira_priority)
   - [`jira_security_level`](#jira_security_level)
+  - [`jira_watchers`](#jira_watchers)
+  - [`jira_additional_assignees`](#jira_additional_assignees)
+  - [`slack_channel`](#slack_channel)
+  - [`slack_user`](#slack_user)
+  - [Slack Workflow Builder](#slack-workflow-builder)
   - [`ignore`](#ignore)
   - [`group`](#group)
   - [Using a base config file](#using-a-base-config-file)
@@ -37,7 +42,9 @@ Firewatch was designed to allow for users to define which Jira issues get create
         {"step": "*partial-name*", "failure_type": "all", "classification":  "Misc.", "jira_project": "OTHER", "jira_component": ["component-1", "component-2", "!default"], "jira_priority": "major", "group": {"name": "some-group", "priority": 1}},
         {"step": "*ends-with-this", "failure_type": "test_failure", "classification": "Test failures", "jira_epic": "!default", "jira_additional_labels": ["test-label-1", "test-label-2", "!default"], "group": {"name": "some-group", "priority": 2}},
         {"step": "*ignore*", "failure_type": "test_failure", "classification": "NONE", "jira_project": "NONE", "ignore": "true"},
-        {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"}
+        {"step": "affects-version", "failure_type": "all", "classification": "Affects Version", "jira_project": "TEST", "jira_epic": "!default", "jira_affects_version": "4.14", "jira_assignee": "!default"},
+        {"step": "watched-step", "failure_type": "all", "classification": "Watched", "jira_project": "TEST", "jira_watchers": ["user1@redhat.com"], "jira_additional_assignees": ["user2@redhat.com", "!default"]},
+        {"step": "slack-notify-step", "failure_type": "all", "classification": "Notified", "jira_project": "TEST", "slack_channel": "#my-channel", "slack_user": "some-user@redhat.com"}
     ],
 
   #OPTIONAL
@@ -75,6 +82,11 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 - [`jira_assignee`](#jiraassignee)
 - [`jira_priority`](#jirapriority)
 - [`jira_security_level`](#jirasecuritylevel)
+- [`jira_watchers`](#jirawatchers)
+- [`jira_additional_assignees`](#jiraadditionalassignees)
+- [`slack_channel`](#slackchannel)
+- [`slack_user`](#slackuser)
+- [Slack Workflow Builder](#slack-workflow-builder)
 - [`ignore`](#ignore)
 - [`group`](#group)
 
@@ -93,6 +105,11 @@ The firewatch configuration is a list of rules, each rule is defined using the f
 - [`jira_assignee`](#jiraassignee)
 - [`jira_priority`](#jirapriority)
 - [`jira_security_level`](#jirasecuritylevel)
+- [`jira_watchers`](#jirawatchers)
+- [`jira_additional_assignees`](#jiraadditionalassignees)
+- [`slack_channel`](#slackchannel)
+- [`slack_user`](#slackuser)
+- [Slack Workflow Builder](#slack-workflow-builder)
 
 ## Rule Configuration Value Definitions
 
@@ -300,6 +317,94 @@ The security level desired for a bug created using this rule.
 **Notes:**
 
 - If you are using Red Hat's Jira server, the list of available security levels can be found at [Red Hat Jira Security Levels](https://issues.redhat.com/secure/ShowConstantsHelp.jspa?decorator=popup#SecurityLevels).
+
+---
+
+### `jira_watchers`
+
+A list of email addresses of users who should be added as watchers on the created issue.
+
+**Example:**
+
+- `"jira_watchers": ["user1@redhat.com"]`
+- `"jira_watchers": ["user1@redhat.com", "user2@redhat.com"]`
+- `"jira_watchers": ["user1@redhat.com", "!default"]` or `"jira_watchers": ["!default"]`
+  - `$FIREWATCH_DEFAULT_JIRA_WATCHERS` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_WATCHERS='["default-watcher@redhat.com"]'`
+
+**Notes:**
+
+- Each value must be a valid email address of a user in your Jira instance.
+- Users who cannot be found in Jira will be skipped with a warning (this will not block issue creation).
+
+---
+
+### `jira_additional_assignees`
+
+A list of email addresses of users who should be set as additional assignees on the created issue. This populates the "Additional Assignees" custom field in Jira.
+
+**Example:**
+
+- `"jira_additional_assignees": ["user1@redhat.com"]`
+- `"jira_additional_assignees": ["user1@redhat.com", "user2@redhat.com"]`
+- `"jira_additional_assignees": ["user1@redhat.com", "!default"]` or `"jira_additional_assignees": ["!default"]`
+  - `$FIREWATCH_DEFAULT_JIRA_ADDITIONAL_ASSIGNEES` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_JIRA_ADDITIONAL_ASSIGNEES='["default-assignee@redhat.com"]'`
+
+**Notes:**
+
+- Each value must be a valid email address of a user in your Jira instance.
+- Users who cannot be found in Jira will be skipped with a warning (this will not block issue creation).
+
+---
+
+### `slack_channel`
+
+The Slack channel to associate with a Jira issue created by this rule. When set, firewatch adds a `slack-channel:<channel>` label to the issue (with the `#` prefix stripped). Jira Automation rules can then match on this label to route notifications.
+
+**Example:**
+
+- `"slack_channel": "#my-channel"`
+- `"slack_channel": "!default"`
+  - `$FIREWATCH_DEFAULT_SLACK_CHANNEL` environment variable must be defined.
+  - Example: `export FIREWATCH_DEFAULT_SLACK_CHANNEL="#my-channel"`
+
+**Notes:**
+
+- The `#` prefix is stripped from the label value (e.g., `#my-channel` becomes `slack-channel:my-channel`).
+- If the field is absent or empty, no slack-channel label is added.
+
+---
+
+### `slack_user`
+
+The Slack user to associate with a Jira issue created by this rule. You may set an email address (only the part before `@` is used) or a bare username. When set, firewatch adds a `slack-user:<username>` label to the issue. Jira Automation rules can then match on this label to notify the user.
+
+**Example:**
+
+- `"slack_user": "some-user@redhat.com"` (label suffix: `some-user`)
+- `"slack_user": "some-user"` (label suffix: `some-user`)
+
+**Notes:**
+
+- If the value contains `@`, everything after `@` is discarded for the label (domain is not stored on the issue).
+- If the field is absent or empty, no slack-user label is added.
+
+---
+
+### Slack Workflow Builder
+
+The **`report`** command only turns `slack_channel` / `slack_user` into Jira labels; it does not call Slack or send workflow webhooks. Elsewhere in this repo, the **`jira-escalation`** command posts to Slack via the Slack Web API for a separate escalation workflow; that path does not use these rule fields.
+
+To drive Slack from the labels above, use **Jira Automation** (or another integration) to send an HTTP request to a **Slack workflow** webhook. Have Automation include **flat JSON keys** that match what the workflow expects, usually `slack_channel` and `slack_user`, populated from the issue labels (same values as the label suffixes: channel name without `#`, Slack username only, no email domain).
+
+In **Slack Workflow Builder** for that webhook trigger:
+
+1. Add optional **variables** whose names match the JSON keys exactly (`slack_channel`, `slack_user`).
+2. Use those variables in **Send a message** text (for example dedicated lines like “Route channel: …” / “Notify user: …”) or in **branch** conditions (for example run an extra step when `slack_channel` is not empty).
+3. Keep any URL-shaped fields your message template uses as **links** non-empty in the Automation payload; empty strings can break workflow steps that wrap values in Slack link syntax.
+
+If variable names or payload keys do not match, Slack will not bind the routing fields even though the issue still has `slack-channel:` / `slack-user:` labels.
 
 ---
 

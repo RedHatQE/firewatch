@@ -76,7 +76,7 @@ class Report:
             )
             if len(bugs_filed) > 1:
                 self.relate_issues(issues=bugs_filed, jira=firewatch_config.jira)
-        if not bugs_filed and not bugs_updated:
+        if not job.failures:
             self.logger.info(f"No failures for {job.name} #{job.build_id} were found!")
 
             # Report success
@@ -170,6 +170,8 @@ class Report:
             assignee = pair["rule"].jira_assignee  # type: ignore
             priority = pair["rule"].jira_priority  # type: ignore
             security_level = pair["rule"].jira_security_level  # type: ignore
+            watchers = pair["rule"].jira_watchers  # type: ignore
+            additional_assignees = pair["rule"].jira_additional_assignees  # type: ignore
             summary = f"Failure in {job.name}{' -' + pair['failure'].failed_test_name if firewatch_config.verbose_test_failure_reporting else ''} - {date.strftime('%m-%d-%Y')}"  # type: ignore
             self.logger.info(summary)
             description = self._get_issue_description(
@@ -206,6 +208,8 @@ class Report:
                     if firewatch_config.verbose_test_failure_reporting
                     else None
                 ),  # type: ignore
+                slack_channel=pair["rule"].slack_channel,  # type: ignore
+                slack_user=pair["rule"].slack_user,  # type: ignore
             )
 
             # Find duplicate bugs
@@ -253,6 +257,8 @@ class Report:
                     assignee=assignee,
                     priority=priority,
                     security_level=security_level,
+                    watchers=watchers,
+                    additional_assignees=additional_assignees,
                 )
                 bugs_filed.append(jira_issue.key)
 
@@ -275,6 +281,8 @@ class Report:
                 type="success",
                 jira_additional_labels=rule.jira_additional_labels,  # type: ignore
                 jira_additional_labels_filepath=firewatch_config.additional_labels_file,
+                slack_channel=rule.slack_channel,  # type: ignore
+                slack_user=rule.slack_user,  # type: ignore
             )
 
             firewatch_config.jira.create_issue(
@@ -292,6 +300,8 @@ class Report:
                 assignee=rule.jira_assignee,
                 priority=rule.jira_priority,
                 security_level=rule.jira_security_level,
+                watchers=rule.jira_watchers,
+                additional_assignees=rule.jira_additional_assignees,
                 close_issue=True,
             )
 
@@ -753,6 +763,8 @@ class Report:
         jira_additional_labels_filepath: Optional[str],
         failed_test_name: Optional[str] = None,
         step_name: Optional[str] = None,
+        slack_channel: Optional[str] = None,
+        slack_user: Optional[str] = None,
     ) -> list[Optional[str]]:
         """
         Builds a list of labels to be included on the Jira issue.
@@ -778,6 +790,12 @@ class Report:
         if jira_additional_labels_filepath:
             with open(jira_additional_labels_filepath, "r") as file:
                 labels.extend(line.strip() for line in file)
+
+        if slack_channel:
+            labels.append(f"slack-channel:{slack_channel.lstrip('#')}")
+        if slack_user:
+            slack_username = slack_user.split("@", 1)[0]
+            labels.append(f"slack-user:{slack_username}")
 
         return list(set(labels))
 

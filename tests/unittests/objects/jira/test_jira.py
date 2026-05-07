@@ -6,7 +6,7 @@ from jira import Issue
 from jira.exceptions import JIRAError
 from unittest.mock import MagicMock, patch
 
-from src.objects.jira_base import Jira
+from src.objects.jira_base import LOGGER, Jira
 from tests.unittests.conftest import DEFAULT_JIRA_SERVER_URL
 
 
@@ -360,3 +360,152 @@ class TestJiraCommentPostAdfPayload:
         _args, kwargs = patch_jira_api_requests["post"][comment_urls[0]]
         payload = _post_request_json(kwargs)
         assert payload["body"]["content"][0]["content"][0]["text"] == " "
+
+
+class TestResolveAccountId:
+    def test_resolve_account_id_found(self, mock_jira):
+        fake_user = MagicMock()
+        fake_user.accountId = "abc-123"
+        mock_jira.connection.search_users.return_value = [fake_user]
+
+        result = mock_jira._resolve_account_id("user@example.com")
+        assert result == "abc-123"
+        mock_jira.connection.search_users.assert_called_once_with(query="user@example.com", maxResults=1)
+
+    def test_resolve_account_id_not_found(self, mock_jira, caplog):
+        mock_jira.logger = LOGGER
+        mock_jira.connection.search_users.return_value = []
+
+        result = mock_jira._resolve_account_id("nobody@example.com")
+        assert result is None
+
+    def test_resolve_account_id_jira_error(self, mock_jira, caplog):
+        mock_jira.logger = LOGGER
+        mock_jira.connection.search_users.side_effect = JIRAError("fail")
+
+        result = mock_jira._resolve_account_id("error@example.com")
+        assert result is None
+
+
+class TestAddWatchersToIssue:
+    def test_add_watchers_happy_path(self, mock_jira):
+        mock_jira.logger = LOGGER
+        user1 = MagicMock()
+        user1.accountId = "id-1"
+        user2 = MagicMock()
+        user2.accountId = "id-2"
+        mock_jira.connection.search_users.side_effect = [[user1], [user2]]
+
+        mock_jira.add_watchers_to_issue("TEST-1", ["a@b.com", "c@d.com"])
+
+        assert mock_jira.connection.add_watcher.call_count == 2
+        mock_jira.connection.add_watcher.assert_any_call("TEST-1", "id-1")
+        mock_jira.connection.add_watcher.assert_any_call("TEST-1", "id-2")
+
+    def test_add_watchers_partial_failure(self, mock_jira):
+        mock_jira.logger = LOGGER
+        user1 = MagicMock()
+        user1.accountId = "id-1"
+        mock_jira.connection.search_users.side_effect = [[user1], []]
+
+        mock_jira.add_watchers_to_issue("TEST-1", ["a@b.com", "nobody@b.com"])
+
+        assert mock_jira.connection.add_watcher.call_count == 1
+        mock_jira.connection.add_watcher.assert_called_once_with("TEST-1", "id-1")
+
+
+class TestSetAdditionalAssignees:
+    def test_set_additional_assignees_happy_path(self, mock_jira):
+        mock_jira.logger = LOGGER
+        user1 = MagicMock()
+        user1.accountId = "id-1"
+        user2 = MagicMock()
+        user2.accountId = "id-2"
+        mock_jira.connection.search_users.side_effect = [[user1], [user2]]
+
+        issue = MagicMock()
+        issue.self = f"{DEFAULT_JIRA_SERVER_URL}/rest/api/3/issue/10001"
+        mock_jira.get_issue_by_id_or_key = MagicMock(return_value=issue)
+
+        put_response = MagicMock()
+        put_response.ok = True
+        mock_jira.connection._session.put.return_value = put_response
+
+        mock_jira._set_additional_assignees("TEST-1", ["a@b.com", "c@d.com"])
+
+        mock_jira.connection._session.put.assert_called_once()
+        call_kwargs = mock_jira.connection._session.put.call_args.kwargs
+        payload = call_kwargs.get("json") or {}
+        expected_users = [{"accountId": "id-1"}, {"accountId": "id-2"}]
+        assert payload["fields"]["customfield_10465"] == expected_users
+
+    def test_set_additional_assignees_skip_unresolved(self, mock_jira):
+        mock_jira.logger = LOGGER
+        user1 = MagicMock()
+        user1.accountId = "id-1"
+        mock_jira.connection.search_users.side_effect = [[user1], []]
+
+        issue = MagicMock()
+        issue.self = f"{DEFAULT_JIRA_SERVER_URL}/rest/api/3/issue/10001"
+        mock_jira.get_issue_by_id_or_key = MagicMock(return_value=issue)
+
+        put_response = MagicMock()
+        put_response.ok = True
+        mock_jira.connection._session.put.return_value = put_response
+
+        mock_jira._set_additional_assignees("TEST-1", ["a@b.com", "nobody@b.com"])
+
+        call_kwargs = mock_jira.connection._session.put.call_args.kwargs
+        payload = call_kwargs.get("json") or {}
+        assert payload["fields"]["customfield_10465"] == [{"accountId": "id-1"}]
+
+
+class TestCreateIssueWatchersAndAssigneesWiring:
+    def test_create_issue_calls_add_watchers_when_provided(self, mock_jira):
+        mock_jira.logger = LOGGER
+        mock_jira.add_watchers_to_issue = MagicMock()
+
+        mock_jira.create_issue(
+            project="TEST",
+            summary="S",
+            description="D",
+            issue_type="Bug",
+            watchers=["a@b.com"],
+        )
+
+        mock_jira.add_watchers_to_issue.assert_called_once_with(
+            issue_key="TEST-1",
+            watcher_emails=["a@b.com"],
+        )
+
+    def test_create_issue_calls_set_additional_assignees_when_provided(self, mock_jira):
+        mock_jira.logger = LOGGER
+        mock_jira._set_additional_assignees = MagicMock()
+
+        mock_jira.create_issue(
+            project="TEST",
+            summary="S",
+            description="D",
+            issue_type="Bug",
+            additional_assignees=["c@d.com"],
+        )
+
+        mock_jira._set_additional_assignees.assert_called_once_with(
+            issue_key="TEST-1",
+            assignee_emails=["c@d.com"],
+        )
+
+    def test_create_issue_skips_watchers_when_none(self, mock_jira):
+        mock_jira.logger = LOGGER
+        mock_jira.add_watchers_to_issue = MagicMock()
+        mock_jira._set_additional_assignees = MagicMock()
+
+        mock_jira.create_issue(
+            project="TEST",
+            summary="S",
+            description="D",
+            issue_type="Bug",
+        )
+
+        mock_jira.add_watchers_to_issue.assert_not_called()
+        mock_jira._set_additional_assignees.assert_not_called()
