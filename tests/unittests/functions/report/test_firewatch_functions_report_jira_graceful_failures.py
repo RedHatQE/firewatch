@@ -4,6 +4,7 @@ import pytest
 from jira.exceptions import JIRAError
 
 from src.objects.job import Job
+from src.objects.rule import Rule
 from src.report.report import Report
 
 
@@ -158,3 +159,61 @@ def test_add_passing_job_label_logs_warning_on_jira_error(report_instance):
     report_instance.add_passing_job_label(jira=jira, issue_id="ROX-1")
 
     report_instance.logger.warning.assert_called()
+
+
+def test_report_success_logs_warning_when_create_issue_raises_jira_error(
+    report_instance,
+    sample_job,
+    monkeypatch,
+):
+    rule = Rule(rule_dict={"jira_project": "LPTOCPCI"})
+    config = MagicMock()
+    config.success_rules = [rule]
+    config.additional_labels_file = None
+    jira = MagicMock()
+    jira.create_issue.side_effect = JIRAError(
+        "Method Not Allowed",
+        405,
+        "https://redhat.atlassian.net/rest/api/3/issue",
+    )
+    config.jira = jira
+    monkeypatch.setattr(report_instance, "_get_issue_labels", lambda **k: ["x"])
+    monkeypatch.setattr(report_instance, "_get_issue_description", lambda **k: "desc")
+
+    report_instance.report_success(sample_job, config)
+
+    jira.create_issue.assert_called_once()
+    report_instance.logger.warning.assert_called_once_with(
+        "Could not create success issue in %s: %s",
+        "LPTOCPCI",
+        "Method Not Allowed",
+    )
+
+
+def test_report_success_continues_next_rule_after_create_issue_failure(
+    report_instance,
+    sample_job,
+    monkeypatch,
+):
+    rule_a = Rule(rule_dict={"jira_project": "PROJA"})
+    rule_b = Rule(rule_dict={"jira_project": "PROJB"})
+    config = MagicMock()
+    config.success_rules = [rule_a, rule_b]
+    config.additional_labels_file = None
+    jira = MagicMock()
+    jira.create_issue.side_effect = [
+        JIRAError("fail", 405, "https://example/rest/api/3/issue"),
+        MagicMock(),
+    ]
+    config.jira = jira
+    monkeypatch.setattr(report_instance, "_get_issue_labels", lambda **k: ["x"])
+    monkeypatch.setattr(report_instance, "_get_issue_description", lambda **k: "desc")
+
+    report_instance.report_success(sample_job, config)
+
+    assert jira.create_issue.call_count == 2
+    report_instance.logger.warning.assert_called_once_with(
+        "Could not create success issue in %s: %s",
+        "PROJA",
+        "fail",
+    )
