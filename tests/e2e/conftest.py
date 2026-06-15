@@ -19,12 +19,17 @@ import os
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 import simple_logger.logger
 from jinja2 import Environment
 from jinja2 import select_autoescape
 from jinja2.loaders import FileSystemLoader
 
 from src.objects.jira_base import Jira
+from src.report.constants import JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(_REPO_ROOT / ".env", override=False)
 
 logger = simple_logger.logger.get_logger(__name__)
 
@@ -53,7 +58,7 @@ def jira_server_url():
     yield res
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def firewatch_config_path(tmp_path):
     path = tmp_path.joinpath("firewatch_config.json")
     path.parent.mkdir(exist_ok=True, parents=True)
@@ -62,9 +67,9 @@ def firewatch_config_path(tmp_path):
             {
                 "failure_rules": [
                     {
-                        "step": "ipi-conf*",
+                        "step": "*",
                         "failure_type": "all",
-                        "classification": "Infrastructure Provisioning - Cluster",
+                        "classification": "e2e-open-bugs fixture",
                         "group": {"name": "cluster", "priority": 1},
                         "jira_additional_labels": ["!default"],
                     },
@@ -79,6 +84,11 @@ def firewatch_config_path(tmp_path):
 @pytest.fixture(autouse=True)
 def jira_project(monkeypatch):
     monkeypatch.setenv("FIREWATCH_DEFAULT_JIRA_PROJECT", "LPINTEROP")
+
+
+@pytest.fixture(autouse=True)
+def firewatch_default_jira_additional_labels(monkeypatch):
+    monkeypatch.setenv("FIREWATCH_DEFAULT_JIRA_ADDITIONAL_LABELS", '["default-label"]')
 
 
 @pytest.fixture(autouse=True)
@@ -134,3 +144,29 @@ def jira_api_issue_endpoint_url(jira_server_url):
 @pytest.fixture
 def jira(jira_config_path):
     yield Jira(jira_config_path.as_posix())
+
+
+@pytest.fixture
+def register_jira_issues_for_e2e_cleanup(jira):
+    keys: list[str] = []
+
+    def register(*issue_keys: str) -> None:
+        for k in issue_keys:
+            if k and k not in keys:
+                keys.append(k)
+
+    yield register
+    target_label = JOB_PASSED_SINCE_TICKET_CREATED_LABEL
+    for issue_key in keys:
+        try:
+            issue = jira.get_issue_by_id_or_key(issue_key)
+            if target_label in issue.fields.labels:
+                logger.info('removing label "%s" from %s', target_label, issue_key)
+                issue.update(update={"labels": [{"remove": target_label}]})
+        except Exception as exc:
+            logger.warning(
+                "e2e cleanup: could not strip label from %s: %s",
+                issue_key,
+                exc,
+            )
+        jira.close_issue(issue_key)

@@ -6,6 +6,8 @@ from typing import Optional
 
 from simple_logger.logger import get_logger
 
+EMAIL_REGEX = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"
+
 
 class Rule:
     def __init__(self, rule_dict: dict[Any, Any]) -> None:
@@ -25,6 +27,10 @@ class Rule:
         self.jira_assignee = self._get_jira_assignee(rule_dict)
         self.jira_priority = self._get_jira_priority(rule_dict)
         self.jira_security_level = self._get_jira_security_level(rule_dict)
+        self.jira_watchers = self._get_jira_watchers(rule_dict)
+        self.jira_additional_assignees = self._get_jira_additional_assignees(rule_dict)
+        self.slack_channel = self._get_slack_channel(rule_dict)
+        self.slack_user = self._get_slack_user(rule_dict)
 
     def _get_jira_project(self, rule_dict: dict[Any, Any]) -> str:
         """
@@ -223,16 +229,13 @@ class Rule:
         Returns:
             Optional[str]: A string of the Jira assignee to use in a firewatch rule. If one is not defined, return None
         """
-        regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b"  # Used to check if email is valid
         jira_assignee = rule_dict.get("jira_assignee")
 
-        # If the value is "!default", check the environment variable
         if jira_assignee == "!default":
             jira_assignee = os.getenv("FIREWATCH_DEFAULT_JIRA_ASSIGNEE")
 
         if isinstance(jira_assignee, str):
-            # if the value is an email address, return it
-            if re.fullmatch(regex, jira_assignee):
+            if re.fullmatch(EMAIL_REGEX, jira_assignee):
                 return jira_assignee
             else:
                 self.logger.error(
@@ -307,3 +310,81 @@ class Rule:
             f'Value for "jira_security_level" or $FIREWATCH_DEFAULT_JIRA_SECURITY_LEVEL is not a string in firewatch rule: "{rule_dict}"',
         )
         exit(1)
+
+    def _get_jira_email_list(
+        self,
+        rule_dict: dict[Any, Any],
+        field_name: str,
+        env_var: str,
+    ) -> Optional[list[str]]:
+        values = rule_dict.get(field_name)
+
+        if isinstance(values, list):
+            if "!default" in values:
+                defaults = os.getenv(env_var)
+                if defaults:
+                    try:
+                        defaults = json.loads(defaults)
+                    except json.JSONDecodeError:
+                        self.logger.error(
+                            f'Invalid JSON format for {env_var} environment variable: "{defaults}"',
+                        )
+                        exit(1)
+                if defaults:
+                    values.remove("!default")
+                    values.extend(defaults)
+                else:
+                    self.logger.error(
+                        f"Environment variable ${env_var} is not set.",
+                    )
+                    exit(1)
+
+            emails: list[str] = []
+            for entry in values:
+                if isinstance(entry, str) and re.fullmatch(EMAIL_REGEX, entry):
+                    emails.append(entry)
+                else:
+                    self.logger.error(
+                        f'Value "{entry}" in "{field_name}" is not a valid email address in firewatch rule: "{rule_dict}"',
+                    )
+                    exit(1)
+            return emails
+        elif not values:
+            return values
+
+        self.logger.error(
+            f'Value for "{field_name}" must be a list of email addresses in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_slack_channel(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        slack_channel = rule_dict.get("slack_channel")
+
+        if isinstance(slack_channel, str) or not slack_channel:
+            if slack_channel == "!default":
+                return os.getenv("FIREWATCH_DEFAULT_SLACK_CHANNEL")
+            return slack_channel
+
+        self.logger.error(
+            f'Value for "slack_channel" or $FIREWATCH_DEFAULT_SLACK_CHANNEL is not a string in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_slack_user(self, rule_dict: dict[Any, Any]) -> Optional[str]:
+        slack_user = rule_dict.get("slack_user")
+
+        if isinstance(slack_user, str) or not slack_user:
+            return slack_user
+
+        self.logger.error(
+            f'Value for "slack_user" is not a string in firewatch rule: "{rule_dict}"',
+        )
+        exit(1)
+
+    def _get_jira_watchers(self, rule_dict: dict[Any, Any]) -> Optional[list[str]]:
+        return self._get_jira_email_list(rule_dict, "jira_watchers", "FIREWATCH_DEFAULT_JIRA_WATCHERS")
+
+    def _get_jira_additional_assignees(self, rule_dict: dict[Any, Any]) -> Optional[list[str]]:
+        return self._get_jira_email_list(
+            rule_dict, "jira_additional_assignees", "FIREWATCH_DEFAULT_JIRA_ADDITIONAL_ASSIGNEES"
+        )

@@ -66,6 +66,8 @@ class Jira:
         assignee: Optional[str] = None,
         priority: Optional[str] = None,
         security_level: Optional[str] = None,
+        watchers: Optional[list[str]] = None,
+        additional_assignees: Optional[list[str]] = None,
         close_issue: Optional[bool] = False,
     ) -> Issue:
         """
@@ -150,6 +152,12 @@ class Jira:
         if assignee is not None:
             self.assign_issue(user_email=assignee, issue=issue.key)
             LOGGER.info(f"Issue {issue} has been assigned to user {assignee}")
+
+        if watchers:
+            self.add_watchers_to_issue(issue_key=issue.key, watcher_emails=watchers)
+
+        if additional_assignees:
+            self._set_additional_assignees(issue_key=issue.key, assignee_emails=additional_assignees)
 
         if close_issue:
             self._transition_issue_with_adf_comment(
@@ -440,6 +448,47 @@ class Jira:
 
     def remove_labels_from_issue(self, issue_id_or_key: str, labels: list[str]) -> tuple[Issue, bool]:
         return self._update_issue_labels(issue_id_or_key, labels, "remove")
+
+    def add_watchers_to_issue(self, issue_key: str, watcher_emails: list[str]) -> None:
+        for email in watcher_emails:
+            account_id = self._resolve_account_id(email)
+            if account_id is None:
+                continue
+            try:
+                self.connection.add_watcher(issue_key, account_id)
+                LOGGER.info(f"Added watcher {email} to issue {issue_key}")
+            except JIRAError as e:
+                LOGGER.warning(f"Failed to add watcher {email} to {issue_key}: {e.text}")
+
+    def _set_additional_assignees(self, issue_key: str, assignee_emails: list[str]) -> None:
+        account_ids = []
+        for email in assignee_emails:
+            account_id = self._resolve_account_id(email)
+            if account_id is not None:
+                account_ids.append({"accountId": account_id})
+
+        if not account_ids:
+            LOGGER.warning(f"No valid account IDs resolved for additional assignees on {issue_key}")
+            return
+
+        issue = self.get_issue_by_id_or_key(issue_key)
+        payload = {"fields": {"customfield_10465": account_ids}}
+        try:
+            self._jira_request("put", issue.self, payload)
+            LOGGER.info(f"Set additional assignees on issue {issue_key}")
+        except JIRAError as e:
+            LOGGER.warning(f"Failed to set additional assignees on {issue_key}: {e.text}")
+
+    def _resolve_account_id(self, email: str) -> Optional[str]:
+        try:
+            users = self.connection.search_users(query=email, maxResults=1)
+            if users:
+                return users[0].accountId
+            self.logger.warning(f"No Jira user found for email {email}")
+            return None
+        except JIRAError as e:
+            self.logger.warning(f"Failed to resolve Jira account ID for {email}: {e.text}")
+            return None
 
     @ignore_exceptions(retry=3, retry_interval=1, raise_final_exception=True, logger=LOGGER)
     def get_issue_by_id_or_key_with_changelog(self, issue: str) -> Issue:
