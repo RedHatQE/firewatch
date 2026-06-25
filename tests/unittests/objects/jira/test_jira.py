@@ -243,6 +243,27 @@ class TestCreateIssueAdfDescription:
         fields = call_kwargs["json"]["fields"]
         assert fields["description"]["content"][0]["content"][0]["text"] == " "
 
+    def test_create_issue_accepts_adf_dict_directly(self, mock_jira):
+        from src.objects.jira_adf import adf_doc, paragraph, inline_text
+
+        adf = adf_doc(
+            paragraph(inline_text("hello", bold=True)),
+        )
+        mock_jira.create_issue(
+            project="TEST",
+            summary="Summary",
+            description=adf,
+            issue_type="Bug",
+        )
+        call_kwargs = mock_jira.connection._session.post.call_args.kwargs
+        fields = call_kwargs["json"]["fields"]
+        desc = fields["description"]
+        assert desc["type"] == "doc"
+        assert desc["version"] == 1
+        assert desc["content"][0]["type"] == "paragraph"
+        assert desc["content"][0]["content"][0]["text"] == "hello"
+        assert {"type": "strong"} in desc["content"][0]["content"][0]["marks"]
+
 
 class TestCreateIssueEpicSearch:
     def test_epic_lookup_uses_unquoted_issue_key_for_cloud_compatibility(self, mock_jira):

@@ -56,7 +56,7 @@ class Jira:
         self,
         project: str,
         summary: str,
-        description: str,
+        description: str | dict[str, Any],
         issue_type: str,
         component: Optional[list[str]] = None,
         epic: Optional[str] = None,
@@ -91,10 +91,15 @@ class Jira:
         Returns:
             Issue: A Jira Issue object.
         """
+        adf_description = (
+            sanitize_jira_adf_doc(description)
+            if isinstance(description, dict)
+            else sanitize_jira_adf_doc(plain_text_to_adf_doc(description))
+        )
         issue_dict = {
             "project": {"key": project},
             "summary": summary,
-            "description": sanitize_jira_adf_doc(plain_text_to_adf_doc(description)),
+            "description": adf_description,
             "issuetype": {"name": issue_type},
         }
 
