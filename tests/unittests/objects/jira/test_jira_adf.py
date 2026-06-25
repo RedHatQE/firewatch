@@ -7,7 +7,12 @@ from src.objects.jira_adf import (
     inline_text,
     paragraph,
     plain_text_to_adf_doc,
+    rule,
     sanitize_jira_adf_doc,
+    table,
+    table_cell,
+    table_header_cell,
+    table_row,
 )
 
 
@@ -206,6 +211,38 @@ class TestDescriptionToPlainTextForSearch:
 
     def test_non_dict_non_str_returns_empty(self):
         assert description_to_plain_text_for_search(0) == ""  # type: ignore[arg-type]
+
+
+class TestRule:
+    def test_rule_produces_horizontal_divider(self):
+        assert rule() == {"type": "rule"}
+
+
+class TestTable:
+    def test_table_wraps_rows(self):
+        t = table(
+            table_row(table_header_cell(paragraph(inline_text("Col1")))),
+            table_row(table_cell(paragraph(inline_text("Val1")))),
+        )
+        assert t["type"] == "table"
+        assert len(t["content"]) == 2
+        assert t["content"][0]["type"] == "tableRow"
+        assert t["content"][0]["content"][0]["type"] == "tableHeader"
+        assert t["content"][1]["content"][0]["type"] == "tableCell"
+
+    def test_table_cell_contains_block_content(self):
+        cell = table_cell(paragraph(inline_text("data")))
+        assert cell == {
+            "type": "tableCell",
+            "content": [
+                {"type": "paragraph", "content": [{"type": "text", "text": "data"}]},
+            ],
+        }
+
+    def test_table_header_cell_type(self):
+        cell = table_header_cell(paragraph(inline_text("Header")))
+        assert cell["type"] == "tableHeader"
+        assert cell["content"][0]["content"][0]["text"] == "Header"
 
 
 class TestClosedByFirewatchAdf:

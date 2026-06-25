@@ -17,6 +17,11 @@ from src.objects.jira_adf import adf_doc
 from src.objects.jira_adf import heading
 from src.objects.jira_adf import inline_text
 from src.objects.jira_adf import paragraph
+from src.objects.jira_adf import rule
+from src.objects.jira_adf import table
+from src.objects.jira_adf import table_cell
+from src.objects.jira_adf import table_header_cell
+from src.objects.jira_adf import table_row
 from src.objects.jira_base import Jira
 from src.objects.job import Job
 from src.objects.rule import Rule
@@ -736,55 +741,69 @@ class Report:
         failed_test_name: Optional[str] = None,
         success_issue: Optional[bool] = False,
         jira: Optional[Jira] = None,
-    ) -> str:
-        """
-        Used to generate the description of a bug to be filed in Jira.
-
-        Args:
-            job_name (str): Name of job that failed.
-            build_id (str): Build ID of failure.
-            step_name (Optional[str]): Name of the step that failed.
-            classification (Optional[str]): Classification of the failure.
-            failure_type (Optional[str]): Failure type.
-            failed_test_name (Optional[str]): Name of failed test, else None
-            success_issue (Optional [bool]): Description for success issue if True else for failure
-
-        Returns:
-            str: String object representing the description.
-        """
-        link_line_base_url = (
+    ) -> dict[str, Any]:
+        prow_base_url = (
             "https://qe-private-deck-ci.apps.ci.l2s4.p1.openshiftapps.com/view/gs/qe-private-deck/logs/"
             if job.is_private_deck
             else "https://prow.ci.openshift.org/view/gs/test-platform-results/logs/"
         )
-        link_line = f"*Prow Job Link:* [{job.name} #{job.build_id}|{link_line_base_url}{job.name}/{job.build_id}]"
-        build_id_line = f"*Build ID:* {job.build_id}"
-        job_history_link_line = f"*Job History:* [{job.name}|https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/{job.name}]"
-        firewatch_link_line = f"This {'issue' if success_issue else 'bug'} was filed using [firewatch in OpenShift CI|https://github.com/CSPI-QE/firewatch]"
+        prow_url = f"{prow_base_url}{job.name}/{job.build_id}"
+        job_history_url = f"https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/{job.name}"
+        fw_url = "https://github.com/CSPI-QE/firewatch"
 
-        # If the issue is being created for a failure
+        blocks: list[dict[str, Any]] = [
+            paragraph(
+                inline_text("Prow Job Link: ", bold=True),
+                inline_text(f"{job.name} #{job.build_id}", url=prow_url),
+            ),
+            paragraph(
+                inline_text("Build ID: ", bold=True),
+                inline_text(job.build_id or ""),
+            ),
+        ]
+
         if not success_issue:
-            classification_line = f"*Classification:* {classification}"
-            failed_step_line = f"*Failed Step:* {step_name}"
-            failed_test_line = f"*Failed Test:* {failed_test_name}" if failed_test_name else ""
+            blocks.append(paragraph(
+                inline_text("Classification: ", bold=True),
+                inline_text(classification or ""),
+            ))
+            blocks.append(paragraph(
+                inline_text("Failed Step: ", bold=True),
+                inline_text(step_name or ""),
+            ))
+            if failed_test_name:
+                blocks.append(paragraph(
+                    inline_text("Failed Test: ", bold=True),
+                    inline_text(failed_test_name),
+                ))
+            blocks.append(paragraph(
+                inline_text("Job History: ", bold=True),
+                inline_text(job.name, url=job_history_url),
+            ))
+
             past_bugs = self._get_past_bugs(
                 failed_step=step_name,  # type: ignore
                 failure_type=failure_type,  # type: ignore
                 failed_test_name=failed_test_name,  # type: ignore
                 jira=jira,  # type: ignore
             )
-            description = f"{link_line}\n{build_id_line}\n{classification_line}\n{failed_step_line}\n{failed_test_line}\n{job_history_link_line}\n"
             if past_bugs:
-                failed_test_portion = f" and failed test *{failed_test_name}*" if failed_test_name else ""
-                description += f"\n----\nHere are up to 10 related bugs produced by the step *{step_name}* and failed with failure type *{failure_type}*{failed_test_portion}:\n{self._get_past_bugs_table(issues=past_bugs, jira=jira)}\n"  # type: ignore
+                failed_test_portion = f" and failed test {failed_test_name}" if failed_test_name else ""
+                blocks.append(rule())
+                blocks.append(paragraph(inline_text(
+                    f"Here are up to 10 related bugs produced by the step {step_name} "
+                    f"and failed with failure type {failure_type}{failed_test_portion}:",
+                )))
+                blocks.append(self._get_past_bugs_table(issues=past_bugs, jira=jira))  # type: ignore
 
-        # If the issue is being created for a success
-        else:
-            description = f"{link_line}\n{build_id_line}"
+        issue_kind = "issue" if success_issue else "bug"
+        blocks.append(paragraph(
+            inline_text(f"This {issue_kind} was filed using "),
+            inline_text("firewatch in OpenShift CI", url=fw_url),
+            inline_text("."),
+        ))
 
-        description += f"\n{firewatch_link_line}"
-
-        return description
+        return adf_doc(*blocks)
 
     def _get_issue_labels(
         self,
@@ -938,27 +957,19 @@ class Report:
         # Reduce to 10 most recent issues
         return list_of_issues[:10]
 
-    def _get_past_bugs_table(self, issues: list[jira.Issue], jira: Jira) -> str:
-        """
-        Used to build the table of bugs related to a specific step/failure type that will be put in issue descriptions
-
-        Args:
-            issues (list[jira.Issue]): A list of jira issues.
-            jira (Jira): Jia object.
-
-        Returns:
-            str: A string object representing the table of related Jira issues to be put in a bug description.
-        """
-        table = "||Bug||Date Created||Assignee||"
-        issue_rows = []
-
+    def _get_past_bugs_table(self, issues: list[jira.Issue], jira: Jira) -> dict[str, Any]:
+        header = table_row(
+            table_header_cell(paragraph(inline_text("Bug", bold=True))),
+            table_header_cell(paragraph(inline_text("Date Created", bold=True))),
+            table_header_cell(paragraph(inline_text("Assignee", bold=True))),
+        )
+        rows = [header]
         for issue in issues:
             date_created = issue.get_field("created").split("T")[0]
-            assignee = issue.get_field("assignee")
-            issue_row = f"\n|[{issue.key}|{jira.url}/browse/{issue.key}]|{date_created}|{assignee}|"
-            issue_rows.append(issue_row)
-
-        for row in issue_rows:
-            table += row
-
-        return table
+            assignee = str(issue.get_field("assignee") or "Unassigned")
+            rows.append(table_row(
+                table_cell(paragraph(inline_text(issue.key, url=f"{jira.url}/browse/{issue.key}"))),
+                table_cell(paragraph(inline_text(date_created))),
+                table_cell(paragraph(inline_text(assignee))),
+            ))
+        return table(*rows)
