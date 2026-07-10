@@ -763,23 +763,31 @@ class Report:
         ]
 
         if not success_issue:
-            blocks.append(paragraph(
-                inline_text("Classification: ", bold=True),
-                inline_text(classification or ""),
-            ))
-            blocks.append(paragraph(
-                inline_text("Failed Step: ", bold=True),
-                inline_text(step_name or ""),
-            ))
+            blocks.append(
+                paragraph(
+                    inline_text("Classification: ", bold=True),
+                    inline_text(classification or ""),
+                )
+            )
+            blocks.append(
+                paragraph(
+                    inline_text("Failed Step: ", bold=True),
+                    inline_text(step_name or ""),
+                )
+            )
             if failed_test_name:
-                blocks.append(paragraph(
-                    inline_text("Failed Test: ", bold=True),
-                    inline_text(failed_test_name),
-                ))
-            blocks.append(paragraph(
-                inline_text("Job History: ", bold=True),
-                inline_text(job.name, url=job_history_url),
-            ))
+                blocks.append(
+                    paragraph(
+                        inline_text("Failed Test: ", bold=True),
+                        inline_text(failed_test_name or ""),
+                    )
+                )
+            blocks.append(
+                paragraph(
+                    inline_text("Job History: ", bold=True),
+                    inline_text(job.name or "", url=job_history_url),
+                )
+            )
 
             past_bugs = self._get_past_bugs(
                 failed_step=step_name,  # type: ignore
@@ -790,18 +798,24 @@ class Report:
             if past_bugs:
                 failed_test_portion = f" and failed test {failed_test_name}" if failed_test_name else ""
                 blocks.append(rule())
-                blocks.append(paragraph(inline_text(
-                    f"Here are up to 10 related bugs produced by the step {step_name} "
-                    f"and failed with failure type {failure_type}{failed_test_portion}:",
-                )))
+                blocks.append(
+                    paragraph(
+                        inline_text(
+                            f"Here are up to 10 related bugs produced by the step {step_name} "
+                            f"and failed with failure type {failure_type}{failed_test_portion}:",
+                        )
+                    )
+                )
                 blocks.append(self._get_past_bugs_table(issues=past_bugs, jira=jira))  # type: ignore
 
         issue_kind = "issue" if success_issue else "bug"
-        blocks.append(paragraph(
-            inline_text(f"This {issue_kind} was filed using "),
-            inline_text("firewatch in OpenShift CI", url=fw_url),
-            inline_text("."),
-        ))
+        blocks.append(
+            paragraph(
+                inline_text(f"This {issue_kind} was filed using "),
+                inline_text("firewatch in OpenShift CI", url=fw_url),
+                inline_text("."),
+            )
+        )
 
         return adf_doc(*blocks)
 
@@ -967,9 +981,11 @@ class Report:
         for issue in issues:
             date_created = issue.get_field("created").split("T")[0]
             assignee = str(issue.get_field("assignee") or "Unassigned")
-            rows.append(table_row(
-                table_cell(paragraph(inline_text(issue.key, url=f"{jira.url}/browse/{issue.key}"))),
-                table_cell(paragraph(inline_text(date_created))),
-                table_cell(paragraph(inline_text(assignee))),
-            ))
+            rows.append(
+                table_row(
+                    table_cell(paragraph(inline_text(issue.key, url=f"{jira.url}/browse/{issue.key}"))),
+                    table_cell(paragraph(inline_text(date_created))),
+                    table_cell(paragraph(inline_text(assignee))),
+                )
+            )
         return table(*rows)
