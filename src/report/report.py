@@ -149,8 +149,8 @@ class Report:
                 rules=firewatch_config.failure_rules,  # type: ignore
                 default_jira_project=firewatch_config.default_jira_project,
             )
-            for rule in rule_matches:
-                rule_failure_pairs.append({"rule": rule, "failure": failure})
+            for failure_rule in rule_matches:
+                rule_failure_pairs.append({"rule": failure_rule, "failure": failure})
 
         rule_failure_pairs = self.filter_priority_rule_failure_pairs(
             rule_failure_pairs=rule_failure_pairs,
@@ -281,20 +281,20 @@ class Report:
         """
         self.logger.info(f"Reporting job {job.name} success.")
         date = datetime.now()
-        for rule in firewatch_config.success_rules if firewatch_config.success_rules else []:
+        for failure_rule in firewatch_config.success_rules if firewatch_config.success_rules else []:
             labels = [
                 label
                 for label in self._get_issue_labels(
                     job_name=job.name,
                     type="success",
-                    jira_additional_labels=rule.jira_additional_labels,  # type: ignore
+                    jira_additional_labels=failure_rule.jira_additional_labels,  # type: ignore
                     jira_additional_labels_filepath=firewatch_config.additional_labels_file,
-                    slack_channel=rule.slack_channel,  # type: ignore
-                    slack_user=rule.slack_user,  # type: ignore
+                    slack_channel=failure_rule.slack_channel,  # type: ignore
+                    slack_user=failure_rule.slack_user,  # type: ignore
                 )
                 if label
             ]
-            self._safe_create_success_issue(firewatch_config, job, rule, date, labels)
+            self._safe_create_success_issue(firewatch_config, job, failure_rule, date, labels)
 
     def _create_success_issue(
         self,
@@ -403,12 +403,12 @@ class Report:
         }
         default_rule = FailureRule(default_rule_dict)
 
-        for rule in rules:
-            if rule.matches_failure(failure):
-                if rule.ignore:
-                    ignored_rules.append(rule)
+        for failure_rule in rules:
+            if failure_rule.matches_failure(failure):
+                if failure_rule.ignore:
+                    ignored_rules.append(failure_rule)
                 else:
-                    matching_rules.append(rule)
+                    matching_rules.append(failure_rule)
 
         if (len(matching_rules) < 1) and (len(ignored_rules) < 1):
             if default_rule not in matching_rules:
