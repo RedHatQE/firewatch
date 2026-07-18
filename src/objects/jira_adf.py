@@ -94,6 +94,26 @@ def inline_text(
     return node
 
 
+def rule() -> dict[str, Any]:
+    return {"type": "rule"}
+
+
+def table(*rows: dict[str, Any]) -> dict[str, Any]:
+    return {"type": "table", "content": list(rows)}
+
+
+def table_row(*cells: dict[str, Any]) -> dict[str, Any]:
+    return {"type": "tableRow", "content": list(cells)}
+
+
+def table_header_cell(*blocks: dict[str, Any]) -> dict[str, Any]:
+    return {"type": "tableHeader", "content": list(blocks)}
+
+
+def table_cell(*blocks: dict[str, Any]) -> dict[str, Any]:
+    return {"type": "tableCell", "content": list(blocks)}
+
+
 def adf_mention(account_id: str, display_stub: str) -> dict[str, Any]:
     return {
         "type": "mention",
