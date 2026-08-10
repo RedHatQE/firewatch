@@ -288,6 +288,73 @@ class TestCreateIssueEpicSearch:
             issue_keys="TEST-1",
         )
 
+    def test_epic_lookup_jira_error_does_not_crash(self, mock_jira):
+        mock_jira.connection.search_issues.side_effect = JIRAError(
+            "The requested epic cannot be viewed",
+            404,
+            "https://jira/rest/agile/1.0/epic",
+        )
+
+        with patch("src.objects.jira_base.LOGGER") as mock_logger:
+            issue = mock_jira.create_issue(
+                project="TEST",
+                summary="Test issue",
+                description="Description",
+                issue_type="Bug",
+                epic="INTEROP-9999",
+            )
+
+        assert issue is not None
+        assert issue.key == "TEST-1"
+        mock_jira.connection.add_issues_to_epic.assert_not_called()
+        warning_msg = mock_logger.warning.call_args[0][0]
+        assert "INTEROP-9999" in warning_msg
+        assert "Issue created without epic link" in warning_msg
+
+    def test_epic_lookup_empty_results_warns_without_error(self, mock_jira):
+        mock_jira.connection.search_issues.return_value = []
+
+        with patch("src.objects.jira_base.LOGGER") as mock_logger:
+            issue = mock_jira.create_issue(
+                project="TEST",
+                summary="Test issue",
+                description="Description",
+                issue_type="Bug",
+                epic="INTEROP-9999",
+            )
+
+        assert issue is not None
+        assert issue.key == "TEST-1"
+        mock_jira.connection.add_issues_to_epic.assert_not_called()
+        warning_msg = mock_logger.warning.call_args[0][0]
+        assert "INTEROP-9999" in warning_msg
+
+    def test_add_issues_to_epic_jira_error_does_not_crash(self, mock_jira):
+        epic_issue = MagicMock()
+        epic_issue.id = "20001"
+        mock_jira.connection.search_issues.return_value = [epic_issue]
+        mock_jira.connection.add_issues_to_epic.side_effect = JIRAError(
+            "You do not have permission to link to this epic",
+            403,
+            "https://jira/rest/agile/1.0/epic/20001/issue",
+        )
+
+        with patch("src.objects.jira_base.LOGGER") as mock_logger:
+            issue = mock_jira.create_issue(
+                project="TEST",
+                summary="Test issue",
+                description="Description",
+                issue_type="Bug",
+                epic="INTEROP-1234",
+            )
+
+        assert issue is not None
+        assert issue.key == "TEST-1"
+        mock_jira.connection.add_issues_to_epic.assert_called_once()
+        warning_msg = mock_logger.warning.call_args[0][0]
+        assert "INTEROP-1234" in warning_msg
+        assert "Issue created without epic link" in warning_msg
+
 
 class TestJiraInitAuth:
     @pytest.fixture

@@ -144,15 +144,25 @@ class Jira:
                 self.add_attachment_to_issue(issue=issue, attachment_path=file_path)
 
         if epic is not None:
-            epic_search = self.connection.search_issues(f"issue={epic}", maxResults=False)
-            if len(epic_search) == 1:
-                epic_id = epic_search[0].id
-                self.connection.add_issues_to_epic(
-                    epic_id=epic_id,
-                    issue_keys=issue.key,
+            try:
+                epic_search = self.connection.search_issues(f"issue={epic}", maxResults=False)
+                if len(epic_search) == 1:
+                    epic_id = epic_search[0].id
+                    self.connection.add_issues_to_epic(
+                        epic_id=epic_id,
+                        issue_keys=issue.key,
+                    )
+                else:
+                    LOGGER.warning(
+                        f"Epic {epic} not found or not accessible; issue {issue} created without epic link",
+                    )
+            except JIRAError as e:
+                LOGGER.warning(
+                    f"Failed to link {issue} to epic {epic} "
+                    f"(status {e.status_code}): {e.text}. "
+                    f"Issue created without epic link.",
+                    exc_info=True,
                 )
-            else:
-                LOGGER.error(f"Error finding Jira ID of epic {epic}")
 
         if assignee is not None:
             self.assign_issue(user_email=assignee, issue=issue.key)
