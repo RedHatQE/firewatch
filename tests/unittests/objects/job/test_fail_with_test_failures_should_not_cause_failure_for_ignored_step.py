@@ -86,7 +86,7 @@ def job(firewatch_config, job_step_names):
         name="periodic-ci-openshift-pipelines-release-tests-release-v1.15-openshift-pipelines-ocp4.17-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
         build_id="1833066891065692160",
-        gcs_bucket="test-platform-results",
+        gcs_bucket="test-platform-results-public",
         gcs_creds_file=None,
         firewatch_config=firewatch_config,
     )

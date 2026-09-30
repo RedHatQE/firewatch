@@ -449,7 +449,7 @@ class Report:
         Returns:
             None
         """
-        prow_url = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
+        prow_url = f"https://prow.ci.openshift.org/view/gs/test-platform-results-public/logs/{job.name}/{job.build_id}"
         fw_url = "https://github.com/CSPI-QE/firewatch"
         body = adf_doc(
             heading(4, inline_text("JOB RECENTLY PASSED", bold=True)),
@@ -545,7 +545,7 @@ class Report:
         return (
             f"firewatch could not add the label {JOB_RETRIGGERED_IN_CURRENT_WEEK_LABEL}. "
             f"This job build was a retrigger in the current week. "
-            f"Prow run: https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id} "
+            f"Prow run: https://prow.ci.openshift.org/view/gs/test-platform-results-public/logs/{job.name}/{job.build_id} "
             f"Build ID: {job.build_id}"
         )
 
@@ -601,7 +601,7 @@ class Report:
         Returns:
             None
         """
-        link = f"https://prow.ci.openshift.org/view/gs/test-platform-results/logs/{job.name}/{job.build_id}"
+        link = f"https://prow.ci.openshift.org/view/gs/test-platform-results-public/logs/{job.name}/{job.build_id}"
         fw_url = "https://github.com/CSPI-QE/firewatch"
         blocks: list[dict[str, Any]] = [
             paragraph(
@@ -745,10 +745,10 @@ class Report:
         prow_base_url = (
             "https://qe-private-deck-ci.apps.ci.l2s4.p1.openshiftapps.com/view/gs/qe-private-deck/logs/"
             if job.is_private_deck
-            else "https://prow.ci.openshift.org/view/gs/test-platform-results/logs/"
+            else "https://prow.ci.openshift.org/view/gs/test-platform-results-public/logs/"
         )
         prow_url = f"{prow_base_url}{job.name}/{job.build_id}"
-        job_history_url = f"https://prow.ci.openshift.org/job-history/gs/test-platform-results/logs/{job.name}"
+        job_history_url = f"https://prow.ci.openshift.org/job-history/gs/test-platform-results-public/logs/{job.name}"
         fw_url = "https://github.com/CSPI-QE/firewatch"
 
         blocks: list[dict[str, Any]] = [
