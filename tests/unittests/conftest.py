@@ -236,7 +236,7 @@ def job(firewatch_config, build_id, patch_job_get_steps):
         name="periodic-ci-openshift-pipelines-release-tests-release-v1.14-openshift-pipelines-ocp4.16-lp-interop-openshift-pipelines-interop-aws",
         name_safe="openshift-pipelines-interop-aws",
         build_id=build_id,
-        gcs_bucket="test-platform-results",
+        gcs_bucket="test-platform-results-public",
         gcs_creds_file=None,
         firewatch_config=firewatch_config,
     )
