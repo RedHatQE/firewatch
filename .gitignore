@@ -155,5 +155,30 @@ cython_debug/
 # PyCharm
 .idea/
 
+# VS Code
+.vscode/
+
+# Vim swap files
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
 # Environment Varaible File
 development/env.list
+
+# AgentReady
+.agentready/
+
+# Ruff cache
+.ruff_cache/
+
+# Wheel files
+*.whl
+
+# uv
+.uv/
+
+# Node modules (commitlint)
+node_modules/

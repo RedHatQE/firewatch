@@ -1,0 +1,142 @@
+# CLAUDE.md - AI Agent Instructions for firewatch
+
+## Project Overview
+
+Firewatch is a Python CLI tool (v2.0.0) for monitoring OpenShift CI job results and automatically
+reporting pod or test failures to Jira. It parses JUnit XML results and CI artifacts, matches
+failures against configurable rules, and creates or updates Jira issues with detailed failure
+information. It also supports Slack notifications and Jira escalation workflows.
+
+## Architecture
+
+- **CLI entry point**: `src/cli.py` (uses Click)
+- **Commands**: `src/commands/` — `report`, `jira_escalation`, `jira_config_gen`
+- **Core logic**: `src/report/report.py` — failure detection, rule matching, Jira filing
+- **Escalation**: `src/escalation/` — Jira escalation workflows
+- **Config generation**: `src/jira_config_gen/` — Jira configuration generator
+- **Domain objects**: `src/objects/` — `job`, `failure`, `rule`, `failure_rule`, `configuration`,
+  `jira_base`, `jira_adf`, `slack_base`
+- **Tests**: `tests/unittests/` — pytest unit tests with fixtures in `conftest.py`
+
+## Build and Setup
+
+```bash
+# Install dependencies (creates .venv automatically)
+uv sync
+
+# Build the package
+uv build
+
+# Full dev environment setup
+make dev-environment
+```
+
+## Running Tests
+
+```bash
+# Run full test suite via tox (recommended)
+make test
+# Or directly:
+uv run --with tox-uv tox
+
+# Run a specific test file
+uv run pytest tests/unittests/functions/report/test_firewatch_functions_report.py -v
+
+# Run with coverage report
+uv run pytest --verbose --cov=src --cov-report=html:./tests/unittests/coverage --cov-fail-under=60
+```
+
+## Linting and Formatting
+
+```bash
+# Run all pre-commit hooks
+make pre-commit
+# Or directly:
+pre-commit run --all-files
+
+# Single-file checks
+ruff check path/to/file.py
+ruff format --check path/to/file.py
+mypy path/to/file.py
+```
+
+## Code Style and Conventions
+
+- **Linter/Formatter**: ruff (line-length 120, preview mode enabled, auto-fix on)
+- **Type checker**: mypy (strict mode — disallow untyped defs, no implicit optional)
+- **Additional linting**: flake8 with RedHatQE plugins, detect-secrets
+- **Markdown**: markdownlint-cli2 with project `.markdownlint.json`
+- **Python**: >=3.12 required
+- **Dependency management**: uv with `pyproject.toml` and `uv.lock`
+- **Test coverage**: minimum 60% required (enforced by pytest-cov)
+- **Test framework**: pytest with fixtures in `conftest.py` files
+
+## Directory Layout
+
+```text
+src/                    # Main source code
+  cli.py                # Click CLI entry point
+  commands/             # CLI command implementations
+  report/               # Core reporting logic
+  escalation/           # Jira escalation logic
+  jira_config_gen/      # Jira config generation
+  objects/              # Domain model classes
+tests/
+  unittests/            # Unit tests (pytest)
+    functions/          # Functional test modules
+    resources/          # Test fixtures and data
+docs/                   # MkDocs documentation source
+scripts/                # Utility scripts
+development/            # Development environment configs
+catalog/                # Service catalog definitions
+```
+
+## Key Dependencies
+
+- `click` — CLI framework
+- `jira` — Jira API client
+- `junitparser` — JUnit XML parsing
+- `google-cloud-storage` — GCS artifact access
+- `slack-sdk` — Slack notifications
+- `jinja2` — Template rendering
+
+## Common Change Patterns
+
+### Adding a new Jira rule or configuration option
+
+1. Define the new field in `src/objects/rule.py` (for failure rules) or `src/objects/configuration.py`.
+2. Update the rule-matching logic in `src/report/report.py` to handle the new field.
+3. Add test cases in `tests/unittests/functions/report/` and update fixtures in `tests/unittests/conftest.py`.
+4. Document the new option in `docs/configuration_guide.md`.
+
+### Adding a new CLI flag or command
+
+1. Add the Click option/argument in `src/cli.py` or the relevant command file in `src/commands/`.
+2. Wire the new parameter through to the appropriate business logic in `src/report/` or `src/escalation/`.
+3. Add unit tests covering the new flag behavior.
+4. Update `docs/cli_usage_guide.md` with usage examples.
+
+### Modifying test fixtures
+
+1. Edit `tests/unittests/conftest.py` for shared pytest fixtures.
+2. Test-specific fixtures live in `tests/unittests/functions/<module>/conftest.py`.
+3. Static test data (sample JUnit XML, config files) is in `tests/unittests/resources/`.
+
+### Updating dependencies
+
+1. Add or modify the dependency in `pyproject.toml` under `[project.dependencies]` (runtime) or `[dependency-groups]` (dev/test).
+2. Run `uv sync` to update `uv.lock`.
+3. Verify with `make test` and `make pre-commit`.
+
+### Adding a new report output format
+
+1. Create a new module under `src/report/` or extend `src/report/report.py`.
+2. Add Jinja2 templates if needed (the project uses `jinja2` for rendering).
+3. Wire the new format into the CLI via `src/commands/report.py`.
+4. Add corresponding unit tests in `tests/unittests/functions/report/`.
+
+## CI/CD
+
+- GitHub Actions workflow: `.github/workflows/pr-verification.yml`
+- Runs unit tests via tox on pull requests to `main`
+- Container build: `make container-build` (uses Podman or Docker)

@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/CSPI-QE/firewatch"
-Download = "https://github.com/CSPI-QE/firewatch"
-"Bug Tracker" = "https://github.com/CSPI-QE/firewatch/issues"
+Repository = "https://github.com/RedHatQE/firewatch"
+Download = "https://github.com/RedHatQE/firewatch"
+"Bug Tracker" = "https://github.com/RedHatQE/firewatch/issues"
 
 [dependency-groups]
 commit = [
@@ -63,6 +63,16 @@ preview = true
 line-length = 120
 fix = true
 output-format = "grouped"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S105", "S106", "S108"]
+"scripts/**/*.py" = ["S404", "S603", "S605", "S607"]
+# S405: xml.etree.ElementTree used with trusted GCS-sourced JUnit XML only
+"src/**/*.py" = ["S108", "S310", "S405"]
+"src/jira_config_gen/**/*.py" = ["S701"]
 
 [tool.ruff.format]
 exclude = [".git", ".venv", ".mypy_cache", ".tox", "__pycache__"]
