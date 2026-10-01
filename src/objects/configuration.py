@@ -11,6 +11,8 @@ from src.objects.failure_rule import FailureRule
 from src.objects.jira_base import Jira
 from src.objects.rule import Rule
 
+logger = get_logger(__name__)
+
 
 def read_base_config_file(path: str) -> str:
     from urllib.request import urlopen
@@ -26,11 +28,11 @@ def read_base_config_file(path: str) -> str:
             with open(path) as file:
                 base_config_str = file.read()
                 return base_config_str
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to read config file at path '%s': %s", path, exc)
     # Path is an invalid or unreadable URL
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Failed to fetch config from URL '%s': %s", path, exc)
 
     return None  # type: ignore
 
