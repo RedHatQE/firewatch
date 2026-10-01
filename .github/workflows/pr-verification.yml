@@ -73,5 +73,5 @@ jobs:
         with:
           python-version-file: .python-version
 
-      - name: Run Tox
+      - name: Run unit tests
         run: uv run --with tox-uv tox

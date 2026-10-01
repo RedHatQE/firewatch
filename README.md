@@ -6,6 +6,13 @@ Thank you for your interest in the firewatch project! Please find some informati
 - [Configuration Guide](docs/configuration_guide.md)
 - [Contribution Guide](docs/contribution_guide.md)
 
+## Quick Start
+
+```bash
+git clone https://github.com/CSPI-QE/firewatch.git && cd firewatch
+make dev-environment
+```
+
 ## Features
 
 - Automatically creates Jira issues for failed OpenShift CI jobs.

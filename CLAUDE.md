@@ -100,6 +100,41 @@ catalog/                # Service catalog definitions
 - `slack-sdk` — Slack notifications
 - `jinja2` — Template rendering
 
+## Common Change Patterns
+
+### Adding a new Jira rule or configuration option
+
+1. Define the new field in `src/objects/rule.py` (for failure rules) or `src/objects/configuration.py`.
+2. Update the rule-matching logic in `src/report/report.py` to handle the new field.
+3. Add test cases in `tests/unittests/functions/report/` and update fixtures in `tests/unittests/conftest.py`.
+4. Document the new option in `docs/configuration_guide.md`.
+
+### Adding a new CLI flag or command
+
+1. Add the Click option/argument in `src/cli.py` or the relevant command file in `src/commands/`.
+2. Wire the new parameter through to the appropriate business logic in `src/report/` or `src/escalation/`.
+3. Add unit tests covering the new flag behavior.
+4. Update `docs/cli_usage_guide.md` with usage examples.
+
+### Modifying test fixtures
+
+1. Edit `tests/unittests/conftest.py` for shared pytest fixtures.
+2. Test-specific fixtures live in `tests/unittests/functions/<module>/conftest.py`.
+3. Static test data (sample JUnit XML, config files) is in `tests/unittests/resources/`.
+
+### Updating dependencies
+
+1. Add or modify the dependency in `pyproject.toml` under `[project.dependencies]` (runtime) or `[dependency-groups]` (dev/test).
+2. Run `uv sync` to update `uv.lock`.
+3. Verify with `make test` and `make pre-commit`.
+
+### Adding a new report output format
+
+1. Create a new module under `src/report/` or extend `src/report/report.py`.
+2. Add Jinja2 templates if needed (the project uses `jinja2` for rendering).
+3. Wire the new format into the CLI via `src/commands/report.py`.
+4. Add corresponding unit tests in `tests/unittests/functions/report/`.
+
 ## CI/CD
 
 - GitHub Actions workflow: `.github/workflows/pr-verification.yml`
