@@ -3,6 +3,7 @@ name: Bug Report
 about: Report a bug in firewatch
 labels: bug
 ---
+<!-- markdownlint-disable MD041 -->
 
 ## Description
 

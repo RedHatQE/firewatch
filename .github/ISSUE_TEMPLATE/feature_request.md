@@ -3,6 +3,7 @@ name: Feature Request
 about: Suggest a new feature or enhancement for firewatch
 labels: enhancement
 ---
+<!-- markdownlint-disable MD041 -->
 
 ## Description
 
