@@ -157,3 +157,18 @@ cython_debug/
 
 # Environment Varaible File
 development/env.list
+
+# AgentReady
+.agentready/
+
+# Ruff cache
+.ruff_cache/
+
+# Wheel files
+*.whl
+
+# uv
+.uv/
+
+# Node modules (commitlint)
+node_modules/
