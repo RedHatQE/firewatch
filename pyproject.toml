@@ -18,7 +18,7 @@ dependencies = [
     "jira>=3.10",
     "junitparser>=3.2.0",
     "pyhelper-utils>=1.0.13",
-    "python-simple-logger>=2.0.9",
+    "python-simple-logger>=2.0.19",
     "slack-sdk>=3.35.0",
 ]
 
