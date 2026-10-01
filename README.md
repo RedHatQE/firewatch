@@ -9,7 +9,7 @@ Thank you for your interest in the firewatch project! Please find some informati
 ## Quick Start
 
 ```bash
-git clone https://github.com/CSPI-QE/firewatch.git && cd firewatch
+git clone https://github.com/RedHatQE/firewatch.git && cd firewatch
 make dev-environment
 ```
 

@@ -34,7 +34,7 @@ GCS (artifacts) --[read]--> Firewatch --[write]--> Jira (issues, comments, attac
 |--------|------------|
 | Credentials committed to source | `detect-secrets` in pre-commit hooks scans for leaked tokens |
 | Jira token exposure in logs | Token is read from file, not passed as CLI argument |
-| Malicious JUnit XML injection | `junitparser` processes only well-formed XML; no code execution |
+| Malicious JUnit XML injection | JUnit XML is sourced exclusively from GCS artifacts behind authenticated CI service accounts; no user-supplied XML is accepted. `xml.etree.ElementTree` is used without XXE protection, which is acceptable given this trust boundary. |
 | Unauthorized Jira access | Jira permissions are scoped per-project via the API user's role |
 | CI artifact tampering | GCS access uses authenticated service accounts with audit logging |
 

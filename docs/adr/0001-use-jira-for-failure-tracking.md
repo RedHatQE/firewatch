@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Accepted (Retroactive)
+
+> **Note:** This ADR documents an existing decision made at project inception.
 
 ## Context
 

@@ -16,6 +16,11 @@
 - [ ] Unit tests pass (`make test`)
 - [ ] Pre-commit checks pass (`make pre-commit`)
 
+## Commit Format
+
+This project uses [conventional commits](https://www.conventionalcommits.org/). Format: `type(scope): description`
+Common types: `feat`, `fix`, `chore`, `docs`, `test`, `ci`, `refactor`
+
 ## Related Issues
 
 <!-- Link any related issues: Fixes #123, Relates to #456 -->
